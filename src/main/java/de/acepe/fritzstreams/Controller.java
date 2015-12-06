@@ -3,14 +3,9 @@ package de.acepe.fritzstreams;
 import static de.acepe.fritzstreams.StreamInfo.Stream.NIGHTFLIGHT;
 import static de.acepe.fritzstreams.StreamInfo.Stream.SOUNDGARDEN;
 
-import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
@@ -96,58 +91,13 @@ public class Controller {
     }
 
     private void downloadMP3(StreamInfo streamInfo) {
-        int size;
+        Downloader downloader = new Downloader(streamInfo);
 
-        try {
-            URLConnection connection = new URL(streamInfo.getStreamURL()).openConnection();
-            size = connection.getContentLength();
-
-            System.out.println("size: " + size);
-        } catch (IOException e) {
-            return;
-        }
-
-        Task<Void> downloadTask = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                updateProgress(0, size);
-
-                String userHome = System.getProperty("user.home");
-
-                String pathname = userHome
-                                  + File.separator
-                                  + streamInfo.getTitle()
-                                  + "_"
-                                  + streamInfo.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                                  + ".mp3";
-                File file = new File(pathname);
-                try (InputStream is = new URL(streamInfo.getStreamURL()).openConnection().getInputStream();
-                     OutputStream outstream = new FileOutputStream(file)) {
-
-                    byte[] buffer = new byte[4096];
-                    int downloaded = 0;
-                    int len;
-                    while ((len = is.read(buffer)) > 0) {
-                        if (isCancelled()) {
-                            break;
-                        }
-                        downloaded += len;
-                        updateProgress(downloaded, size);
-                        outstream.write(buffer, 0, len);
-                    }
-                    outstream.close();
-                } catch (IOException e) {
-                    throw new Exception(e);
-                }
-                return null;
-            }
-        };
         ProgressBar progress;
         progress = streamInfo.getStream() == NIGHTFLIGHT ? progressNightflight : progressSoundgarden;
-        progress.progressProperty().bind(downloadTask.progressProperty());
-        progress.visibleProperty().bind(downloadTask.runningProperty());
-        new Thread(downloadTask).start();
-
+        progress.progressProperty().bind(downloader.progressProperty());
+        progress.visibleProperty().bind(downloader.runningProperty());
+        downloader.download();
     }
 
 }
