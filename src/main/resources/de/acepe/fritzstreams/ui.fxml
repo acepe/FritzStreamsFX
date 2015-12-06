@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="100.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.66" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.Controller">
+    <children>
+        <DatePicker fx:id="dateChooser" />
+        <Label fx:id="titleSoundgardenLabel" text="Label" />
+        <Label fx:id="subtitleSoundgardenLabel" text="Label" />
+        <ButtonBar prefHeight="40.0" prefWidth="200.0">
+            <buttons>
+                <ProgressBar fx:id="progressSoundgarden" prefWidth="200.0" progress="0.0" />
+                <Button fx:id="downloadSoundgardenButton" mnemonicParsing="false" onAction="#onDownloadSoundgardenPerformed" text="Download" />
+            </buttons>
+        </ButtonBar>
+      <Label fx:id="titleNightflightLabel" layoutX="10.0" layoutY="36.0" text="Label" />
+      <Label fx:id="subtitleNightflightLabel" layoutX="10.0" layoutY="52.0" text="Label" />
+      <ButtonBar layoutX="10.0" layoutY="94.0" prefHeight="40.0" prefWidth="200.0">
+         <buttons>
+            <ProgressBar fx:id="progressNightflight" prefWidth="200.0" progress="0.0" />
+            <Button fx:id="downloadNightflightButton" mnemonicParsing="false" onAction="#onDownloadNightflightPerformed" text="Download" />
+         </buttons>
+      </ButtonBar>
+    </children>
+</VBox>
