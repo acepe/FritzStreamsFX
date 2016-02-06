@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToHeight="true" fitToWidth="true" styleClass="bordered" xmlns="http://javafx.com/javafx/8.0.72" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.Controller">
+    <content>
+        <HBox opacity="0.97">
+            <children>
+                <VBox styleClass="spaced" HBox.hgrow="ALWAYS">
+                    <children>
+                        <HBox alignment="CENTER_LEFT" prefHeight="70.0" styleClass="days">
+                            <children>
+                                <ToggleButton styleClass="day-button" text="Mo">
+                                    <toggleGroup>
+                                        <ToggleGroup fx:id="daysGroup" />
+                                    </toggleGroup>
+                                </ToggleButton>
+                                <ToggleButton styleClass="day-button" text="Di" toggleGroup="$daysGroup" />
+                                <ToggleButton styleClass="day-button" text="Mi" toggleGroup="$daysGroup" />
+                                <ToggleButton styleClass="day-button" text="Do" toggleGroup="$daysGroup" />
+                                <ToggleButton styleClass="day-button" text="Fr" toggleGroup="$daysGroup" />
+                                <ToggleButton styleClass="day-button" text="Sa" toggleGroup="$daysGroup" />
+                                <ToggleButton styleClass="day-button" text="So" toggleGroup="$daysGroup" />
+                            </children>
+                        </HBox>
+                        <VBox styleClass="spaced">
+                            <HBox>
+                                <styleClass>
+                                    <String fx:value="stream" />
+                                    <String fx:value="bordered" />
+                                    <String fx:value="spaced" />
+                                </styleClass>
+                                <StackPane styleClass="description">
+                                    <ImageView fx:id="soundgardenImageView" fitHeight="150.0" fitWidth="240.0" pickOnBounds="true" preserveRatio="true" styleClass="bordered" />
+                                </StackPane>
+                                <VBox HBox.hgrow="ALWAYS">
+                                    <styleClass>
+                                        <String fx:value="description" />
+                                        <String fx:value="spaced" />
+                                        <String fx:value="bordered" />
+                                    </styleClass>
+                                    <Label fx:id="titleSoundgardenLabel" styleClass="title" text="Soundgarden am Montag" wrapText="true" />
+                                    <Label fx:id="subTitleSoundgardenLabel" styleClass="subtitle" text="mit Max Mustermann" />
+                                    <AnchorPane VBox.vgrow="ALWAYS">
+                                        <ButtonBar AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                                            <buttons>
+                                                <Button fx:id="downloadSoundgardenButton" mnemonicParsing="false" onAction="#onDownloadSoundgardenPerformed" text="Download" />
+                                            </buttons>
+                                        </ButtonBar>
+                                    </AnchorPane>
+                                </VBox>
+                            </HBox>
+                            <HBox>
+                                <styleClass>
+                                    <String fx:value="stream" />
+                                    <String fx:value="bordered" />
+                                    <String fx:value="spaced" />
+                                </styleClass>
+                                <StackPane styleClass="description">
+                                    <ImageView fx:id="nightflightImageView" fitHeight="150.0" fitWidth="240.0" pickOnBounds="true" preserveRatio="true" styleClass="bordered" />
+                                </StackPane>
+                                <VBox HBox.hgrow="ALWAYS">
+                                    <styleClass>
+                                        <String fx:value="description" />
+                                        <String fx:value="spaced" />
+                                        <String fx:value="bordered" />
+                                    </styleClass>
+                                    <Label fx:id="titleNightflightLabel" styleClass="title" text="Nightflight am Montag" wrapText="true" />
+                                    <Label fx:id="subTitleNightflightLabel" styleClass="subtitle" text="mit Max Mustermann" />
+                                    <AnchorPane VBox.vgrow="ALWAYS">
+                                        <children>
+                                            <ButtonBar AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                                                <buttons>
+                                                    <Button fx:id="downloadNightflightButton" mnemonicParsing="false" onAction="#onDownloadNightflightPerformed" text="Download" />
+                                                </buttons>
+                                            </ButtonBar>
+                                        </children>
+                                    </AnchorPane>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+    </content>
+</ScrollPane>

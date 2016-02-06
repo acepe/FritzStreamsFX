@@ -7,31 +7,41 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.function.Consumer;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.concurrent.Task;
+import javafx.scene.image.Image;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 public class StreamInfo {
+
     public enum Stream {
         SOUNDGARDEN, NIGHTFLIGHT
     }
 
-    static final String BASE_URL = "http://fritz.de%s";
-    static final String NIGHTFLIGHT_URL = "/livestream/liveplayer_nightflight.htm/day=%s.html";
-    static final String SOUNDGARDEN_URL = "/livestream/liveplayer_soundgarden.htm/day=%s.html";
-    static final String TITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > h3 > a > span";
-    static final String SUBTITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > div > p";
-    static final String DOWNLOAD_SELECTOR = "#main > article > div.teaserboxgroup.first.count1.odd.layoutstandard.layouthalf_2_4 > section > article.manualteaser.last.count2.even.layoutmusikstream.layoutbeitrag_av_nur_av.doctypeteaser > div";
-    static final String DOWNLOAD_DESCRIPTOR_ATTRIBUTE = "data-media-ref";
+    private static final String BASE_URL = "http://fritz.de%s";
+    private static final String NIGHTFLIGHT_URL = "/livestream/liveplayer_nightflight.htm/day=%s.html";
+    private static final String SOUNDGARDEN_URL = "/livestream/liveplayer_soundgarden.htm/day=%s.html";
+    private static final String TITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > h3 > a > span";
+    private static final String SUBTITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > div > p";
+    private static final String DOWNLOAD_SELECTOR = "#main > article > div.teaserboxgroup.first.count1.odd.layoutstandard.layouthalf_2_4 > section > article.manualteaser.last.count2.even.layoutmusikstream.layoutbeitrag_av_nur_av.doctypeteaser > div";
+    private static final String DOWNLOAD_DESCRIPTOR_ATTRIBUTE = "data-media-ref";
+    private static final String IMAGE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.last.count2.even.layoutstandard.doctypeteaser > aside > div > a > img";
+    private static final String STREAM_TOKEN = "_stream\":\"";
+    private static final String MP3_TOKEN = ".mp3";
 
     private final LocalDate date;
     private final Stream stream;
+
     private Document doc;
     private String title;
     private String subtitle;
     private String streamURL;
+    private Image image;
+    private ReadOnlyBooleanWrapper initialised = new ReadOnlyBooleanWrapper();
 
     public StreamInfo(LocalDate date, Stream stream) {
         this.date = date;
@@ -56,7 +66,14 @@ public class StreamInfo {
         doc = Jsoup.connect(contentURL).data("query", "Java").userAgent("Mozilla").timeout(3000).get();
         title = extractTitle(TITLE_SELECTOR);
         subtitle = extractTitle(SUBTITLE_SELECTOR);
+        image = new Image(extractImageUrl(IMAGE_SELECTOR));
         streamURL = extractDownloadURL();
+        initialised.setValue(true);
+    }
+
+    private String extractImageUrl(String imageSelector) {
+        String imageUrl = doc.select(IMAGE_SELECTOR).attr("src");
+        return String.format(BASE_URL, imageUrl);
     }
 
     private String extractTitle(String selector) {
@@ -83,11 +100,8 @@ public class StreamInfo {
             BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
             String jsonText = readAll(rd);
 
-            String streamToken = "_stream\":\"";
-            int beginIndex = jsonText.indexOf(streamToken) + streamToken.length();
-
-            String mp3Token = ".mp3";
-            int endIndex = jsonText.indexOf(mp3Token) + mp3Token.length();
+            int beginIndex = jsonText.indexOf(STREAM_TOKEN) + STREAM_TOKEN.length();
+            int endIndex = jsonText.indexOf(MP3_TOKEN) + MP3_TOKEN.length();
 
             return jsonText.substring(beginIndex, endIndex);
         } catch (IOException e) {
@@ -128,5 +142,17 @@ public class StreamInfo {
 
     public LocalDate getDate() {
         return date;
+    }
+
+    public Image getImage() {
+        return image;
+    }
+
+    public boolean getInitialised() {
+        return initialised.get();
+    }
+
+    public ReadOnlyBooleanProperty initialisedProperty() {
+        return initialised.getReadOnlyProperty();
     }
 }

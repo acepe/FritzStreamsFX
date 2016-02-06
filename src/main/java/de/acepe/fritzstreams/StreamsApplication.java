@@ -10,9 +10,12 @@ public class StreamsApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("ui.fxml"));
+
+        Parent root = FXMLLoader.load(getClass().getResource("streams.fxml"));
         primaryStage.setTitle("Fritz Streams");
-        primaryStage.setScene(new Scene(root, 400, 200));
+        Scene value = new Scene(root, 500, 450);
+        value.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        primaryStage.setScene(value);
         primaryStage.show();
     }
 

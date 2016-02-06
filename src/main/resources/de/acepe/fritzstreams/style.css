@@ -1,0 +1,71 @@
+.root {
+    -acepe-fritz-red: #e80007;
+    -acepe-fritz-yellow: #FED400;
+    -acepe-fritz-yellow-bright: #FEED00;
+    -acepe-fritz-yellow-dark: #FEED00;
+
+    -fx-background: white;
+    -fx-background-color: -acepe-fritz-yellow-bright;
+}
+
+
+.spaced {
+    -fx-spacing: 10;
+}
+
+.bordered {
+    -fx-padding: 10;
+}
+
+.days{
+    -fx-background-color: -acepe-fritz-yellow;
+    -fx-padding: 8;
+    -fx-graphic-fixed-size: 2.5em;
+    -fx-spacing: 10;
+}
+
+.day-button {
+    -fx-padding: 10;
+    -fx-pref-width: 50;
+    -fx-pref-height: 50;
+    -fx-background-color: -acepe-fritz-red;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-text-fill: white;
+}
+
+.day-button:hover {
+    -fx-background-color: derive(-acepe-fritz-red, -10%);
+}
+
+.day-button:selected {
+    -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -15%);
+    -fx-background-insets: 0, 2
+}
+
+.stream {
+    -fx-background-color: -acepe-fritz-yellow;
+}
+
+.description {
+    -fx-background-color: rgba(0,0,0,0.6);
+}
+
+.title {
+    -fx-font-weight: bold;
+    -fx-font-size: 20px;
+    -fx-text-fill: -acepe-fritz-red;
+}
+
+.subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+}
+
+.scroll-pane {
+     -fx-background-color: -acepe-fritz-yellow-bright;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
