@@ -5,18 +5,22 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.function.Consumer;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.concurrent.Task;
 import javafx.scene.image.Image;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.MoreObjects;
 
 public class StreamInfo {
+
+    private static final Logger LOG = LoggerFactory.getLogger(StreamInfo.class);
 
     public enum Stream {
         SOUNDGARDEN, NIGHTFLIGHT
@@ -48,22 +52,13 @@ public class StreamInfo {
         this.stream = stream;
     }
 
-    public void init(Consumer<Boolean> callback) {
-        Task<Boolean> task = new Task<Boolean>() {
-            @Override
-            protected Boolean call() throws Exception {
-                init();
-                return null;
-            }
-        };
-        task.setOnFailed(event -> callback.accept(false));
-        task.setOnSucceeded(event -> callback.accept(true));
-        new Thread(task).start();
-    }
-
-    private void init() throws IOException {
+    public void init() {
         String contentURL = buildURL();
-        doc = Jsoup.connect(contentURL).data("query", "Java").userAgent("Mozilla").timeout(3000).get();
+        try {
+            doc = Jsoup.connect(contentURL).data("query", "Java").userAgent("Mozilla").timeout(3000).get();
+        } catch (IOException e) {
+            LOG.error("Init stream failed: " + e);
+        }
         title = extractTitle(TITLE_SELECTOR);
         subtitle = extractTitle(SUBTITLE_SELECTOR);
         image = new Image(extractImageUrl(IMAGE_SELECTOR));
@@ -72,7 +67,7 @@ public class StreamInfo {
     }
 
     private String extractImageUrl(String imageSelector) {
-        String imageUrl = doc.select(IMAGE_SELECTOR).attr("src");
+        String imageUrl = doc.select(imageSelector).attr("src");
         return String.format(BASE_URL, imageUrl);
     }
 
@@ -154,5 +149,10 @@ public class StreamInfo {
 
     public ReadOnlyBooleanProperty initialisedProperty() {
         return initialised.getReadOnlyProperty();
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).add("date", date).add("stream", stream).toString();
     }
 }

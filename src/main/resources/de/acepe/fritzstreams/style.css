@@ -8,7 +8,6 @@
     -fx-background-color: -acepe-fritz-yellow-bright;
 }
 
-
 .spaced {
     -fx-spacing: 10;
 }
@@ -41,6 +40,29 @@
 .day-button:selected {
     -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -15%);
     -fx-background-insets: 0, 2
+}
+
+.download-button {
+    -fx-padding: 8;
+    -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -10%);
+    -fx-background-insets: 0, 1;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+}
+
+.download-button > .glyph-icon {
+    -fx-fill: white;
+}
+
+.download-button:hover {
+    -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -8%);
+    -fx-background-insets: 0, 2;
+}
+
+.download-button:pressed {
+    -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -5%);
+    -fx-background-insets: 0, 2;
 }
 
 .stream {

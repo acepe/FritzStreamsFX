@@ -5,7 +5,6 @@ import static de.acepe.fritzstreams.StreamInfo.Stream.SOUNDGARDEN;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -13,89 +12,94 @@ import java.util.Map;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.image.ImageView;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.VBox;
 
 public class Controller {
 
     private static final int DAYS_PAST = 6;
 
-    @FXML
-    private ToggleGroup daysGroup;
-    @FXML
-    private Label titleSoundgardenLabel;
-    @FXML
-    private Label subTitleSoundgardenLabel;
-    @FXML
-    private Button downloadSoundgardenButton;
-    @FXML
-    private Label titleNightflightLabel;
-    @FXML
-    private Label subTitleNightflightLabel;
-    @FXML
-    private Button downloadNightflightButton;
-    @FXML
-    private ImageView soundgardenImageView;
-    @FXML
-    private ImageView nightflightImageView;
-
     private final ObjectProperty<LocalDate> date = new SimpleObjectProperty<>();
-    private final Map<Toggle, LocalDate> toggleDayMap = new HashMap<>();
+    private final Map<ToggleButton, LocalDate> toggleDayMap = new HashMap<>();
     private final Map<LocalDate, StreamInfo> soundgardenStreamMap = new HashMap<>();
     private final Map<LocalDate, StreamInfo> nightflightStreamMap = new HashMap<>();
 
     @FXML
+    private ToggleGroup daysToggleGroup;
+    @FXML
+    private VBox streamList;
+
+    private StreamView soundgardenView;
+    private StreamView nightflightView;
+
+    @FXML
     private void initialize() {
+        soundgardenView = new StreamView();
+        soundgardenView.setDownloadConsumer(this::downloadMP3);
 
-        ArrayList<Label> labels = new ArrayList<>(4);
-        labels.add(titleNightflightLabel);
-        labels.add(titleSoundgardenLabel);
-        labels.add(subTitleNightflightLabel);
-        labels.add(subTitleSoundgardenLabel);
+        nightflightView = new StreamView();
+        nightflightView.setDownloadConsumer(this::downloadMP3);
 
-        downloadSoundgardenButton.disableProperty().bind(titleSoundgardenLabel.textProperty().isEmpty());
-        downloadNightflightButton.disableProperty().bind(titleNightflightLabel.textProperty().isEmpty());
+        streamList.getChildren().add(soundgardenView);
+        streamList.getChildren().add(nightflightView);
 
         LocalDate startDay = LocalDate.now();
-
-        ObservableList<Toggle> toggles = daysGroup.getToggles();
+        ObservableList<Toggle> toggles = daysToggleGroup.getToggles();
         for (int i = 0; i <= DAYS_PAST; i++) {
-            ToggleButton toggle = (ToggleButton) toggles.get(DAYS_PAST - i);
             LocalDate date = startDay.minusDays(i);
-            toggleDayMap.put(toggle, date);
+            ToggleButton toggle = (ToggleButton) toggles.get(DAYS_PAST - i);
             toggle.setText(date.format(DateTimeFormatter.ofPattern("E").withLocale(Locale.GERMANY)));
+            toggleDayMap.put(toggle, date);
 
-            StreamInfo streamInfoSoundgarden = new StreamInfo(date, SOUNDGARDEN);
-            soundgardenStreamMap.put(date, streamInfoSoundgarden);
-
-            StreamInfo streamInfoNightflight = new StreamInfo(date, NIGHTFLIGHT);
-            nightflightStreamMap.put(date, streamInfoNightflight);
+            soundgardenStreamMap.put(date, new StreamInfo(date, SOUNDGARDEN));
+            nightflightStreamMap.put(date, new StreamInfo(date, NIGHTFLIGHT));
         }
 
-        daysGroup.selectedToggleProperty()
-                 .addListener((observable, oldValue, newValue) -> date.set(toggleDayMap.get(newValue)));
-
-        date.addListener((observable, oldValue, selectedDate) -> {
-            labels.forEach(label -> label.setText(null));
-            selectToggleForDay(selectedDate);
-
-            StreamInfo soundgarden = soundgardenStreamMap.get(selectedDate);
-            if (!soundgarden.getInitialised()) {
-                soundgarden.init(succeeded -> setInfo(soundgarden));
+        daysToggleGroup.selectedToggleProperty().addListener((oldSelectedDay, oldValue, selectedDay) -> {
+            if (selectedDay != null) {
+                // noinspection SuspiciousMethodCalls
+                date.set(toggleDayMap.get(selectedDay));
             } else {
-                setInfo(soundgarden);
-            }
-
-            StreamInfo nightflight = nightflightStreamMap.get(selectedDate);
-            if (!nightflight.getInitialised()) {
-                nightflight.init(succeeded -> setInfo(nightflight));
-            } else {
-                setInfo(nightflight);
+                daysToggleGroup.selectToggle(oldValue);
             }
         });
 
-        date.setValue(startDay);
+        date.addListener((observable, oldValue, selectedDate) -> {
+            soundgardenView.clear();
+            nightflightView.clear();
+
+            selectToggleForDay(selectedDate);
+            soundgardenView.streamProperty().setValue(soundgardenStreamMap.get(selectedDate));
+            nightflightView.streamProperty().setValue(nightflightStreamMap.get(selectedDate));
+        });
+
+        Task<Void> initTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                for (Map.Entry<ToggleButton, LocalDate> entry : toggleDayMap.entrySet()) {
+                    LocalDate day = entry.getValue();
+
+                    StreamInfo soundgarden = soundgardenStreamMap.get(day);
+                    soundgarden.init();
+                    StreamInfo nightflight = nightflightStreamMap.get(day);
+                    nightflight.init();
+
+                    entry.getKey().disableProperty().setValue(false);
+                }
+                return null;
+            }
+
+            @Override
+            protected void succeeded() {
+                date.setValue(startDay);
+            }
+        };
+        new Thread(initTask).start();
+
     }
 
     private void selectToggleForDay(LocalDate selectedDate) {
@@ -103,27 +107,6 @@ public class Controller {
                     .stream()
                     .filter(entry -> entry.getValue().equals(selectedDate))
                     .forEach(entry -> entry.getKey().setSelected(true));
-    }
-
-    private void setInfo(StreamInfo streamInfo) {
-        StreamInfo.Stream stream = streamInfo.getStream();
-        Label titleLabel = stream == NIGHTFLIGHT ? titleNightflightLabel : titleSoundgardenLabel;
-        Label subtitleLabel = stream == NIGHTFLIGHT ? subTitleNightflightLabel : subTitleSoundgardenLabel;
-        ImageView imageView = stream == NIGHTFLIGHT ? nightflightImageView : soundgardenImageView;
-
-        titleLabel.setText(streamInfo.getTitle());
-        subtitleLabel.setText(streamInfo.getSubtitle());
-        imageView.setImage(streamInfo.getImage());
-    }
-
-    @FXML
-    void onDownloadSoundgardenPerformed() {
-        downloadMP3(soundgardenStreamMap.get(date.get()));
-    }
-
-    @FXML
-    void onDownloadNightflightPerformed() {
-        downloadMP3(nightflightStreamMap.get(date.get()));
     }
 
     private void downloadMP3(StreamInfo streamInfo) {
