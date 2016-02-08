@@ -20,12 +20,11 @@ import com.google.common.base.MoreObjects;
 
 public class StreamInfo {
 
-    private static final Logger LOG = LoggerFactory.getLogger(StreamInfo.class);
-
     public enum Stream {
         SOUNDGARDEN, NIGHTFLIGHT
     }
 
+    private static final Logger LOG = LoggerFactory.getLogger(StreamInfo.class);
     private static final String BASE_URL = "http://fritz.de%s";
     private static final String NIGHTFLIGHT_URL = "/livestream/liveplayer_nightflight.htm/day=%s.html";
     private static final String SOUNDGARDEN_URL = "/livestream/liveplayer_soundgarden.htm/day=%s.html";
@@ -39,6 +38,7 @@ public class StreamInfo {
 
     private final LocalDate date;
     private final Stream stream;
+    private Downloader downloader;
 
     private Document doc;
     private String title;
@@ -55,7 +55,12 @@ public class StreamInfo {
     public void init() {
         String contentURL = buildURL();
         try {
-            doc = Jsoup.connect(contentURL).data("query", "Java").userAgent("Mozilla").timeout(3000).get();
+            doc = Jsoup.connect(contentURL)
+                       .timeout(10000)
+                       .data("query", "Java")
+                       .userAgent("Mozilla")
+                       .timeout(3000)
+                       .get();
         } catch (IOException e) {
             LOG.error("Init stream failed: " + e);
         }
@@ -117,6 +122,15 @@ public class StreamInfo {
             sb.append((char) cp);
         }
         return sb.toString();
+    }
+
+    public void download() {
+        downloader = new Downloader(this);
+        downloader.download();
+    }
+
+    public Downloader getDownloader() {
+        return downloader;
     }
 
     public String getTitle() {

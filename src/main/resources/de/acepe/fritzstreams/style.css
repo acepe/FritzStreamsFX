@@ -37,6 +37,12 @@
     -fx-background-color: derive(-acepe-fritz-red, -10%);
 }
 
+.day-button:disabled {
+    -fx-background-image: url("rolling.gif");
+    -fx-background-repeat: no-repeat;
+    -fx-background-position:center;
+}
+
 .day-button:selected {
     -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -15%);
     -fx-background-insets: 0, 2
@@ -63,6 +69,19 @@
 .download-button:pressed {
     -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -5%);
     -fx-background-insets: 0, 2;
+}
+
+.download-progress {
+}
+
+.download-progress > .bar {
+  -fx-background-color: #ffffff80;
+  -fx-background-insets: 0,3,0,13;
+}
+
+.download-progress > .track {
+  -fx-background-color: transparent;
+
 }
 
 .stream {

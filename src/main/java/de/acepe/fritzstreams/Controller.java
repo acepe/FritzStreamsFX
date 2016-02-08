@@ -5,9 +5,11 @@ import static de.acepe.fritzstreams.StreamInfo.Stream.SOUNDGARDEN;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -19,12 +21,15 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.VBox;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+
 public class Controller {
 
     private static final int DAYS_PAST = 6;
 
     private final ObjectProperty<LocalDate> date = new SimpleObjectProperty<>();
-    private final Map<ToggleButton, LocalDate> toggleDayMap = new HashMap<>();
+    private final BiMap<ToggleButton, LocalDate> toggleDayMap = HashBiMap.create();
     private final Map<LocalDate, StreamInfo> soundgardenStreamMap = new HashMap<>();
     private final Map<LocalDate, StreamInfo> nightflightStreamMap = new HashMap<>();
 
@@ -39,10 +44,10 @@ public class Controller {
     @FXML
     private void initialize() {
         soundgardenView = new StreamView();
-        soundgardenView.setDownloadConsumer(this::downloadMP3);
+        // soundgardenView.setDownloadConsumer(this::downloadMP3);
 
         nightflightView = new StreamView();
-        nightflightView.setDownloadConsumer(this::downloadMP3);
+        // nightflightView.setDownloadConsumer(this::downloadMP3);
 
         streamList.getChildren().add(soundgardenView);
         streamList.getChildren().add(nightflightView);
@@ -80,22 +85,24 @@ public class Controller {
         Task<Void> initTask = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                for (Map.Entry<ToggleButton, LocalDate> entry : toggleDayMap.entrySet()) {
-                    LocalDate day = entry.getValue();
+                Collection<LocalDate> values = toggleDayMap.values().stream().sorted().collect(Collectors.toList());
 
+                for (LocalDate day : values) {
                     StreamInfo soundgarden = soundgardenStreamMap.get(day);
                     soundgarden.init();
                     StreamInfo nightflight = nightflightStreamMap.get(day);
                     nightflight.init();
 
-                    entry.getKey().disableProperty().setValue(false);
+                    toggleDayMap.inverse().get(day).disableProperty().setValue(false);
                 }
                 return null;
             }
 
             @Override
             protected void succeeded() {
-                date.setValue(startDay);
+                if (date.get() == null) {
+                    date.setValue(startDay);
+                }
             }
         };
         new Thread(initTask).start();
@@ -107,16 +114,6 @@ public class Controller {
                     .stream()
                     .filter(entry -> entry.getValue().equals(selectedDate))
                     .forEach(entry -> entry.getKey().setSelected(true));
-    }
-
-    private void downloadMP3(StreamInfo streamInfo) {
-        Downloader downloader = new Downloader(streamInfo);
-
-        // ProgressBar progress;
-        // progress = streamInfo.getStream() == NIGHTFLIGHT ? progressNightflight : progressSoundgarden;
-        // progress.progressProperty().bind(downloader.progressProperty());
-        // progress.visibleProperty().bind(downloader.runningProperty());
-        downloader.download();
     }
 
 }

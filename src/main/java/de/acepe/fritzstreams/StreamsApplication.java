@@ -13,7 +13,7 @@ public class StreamsApplication extends Application {
 
         Parent root = FXMLLoader.load(getClass().getResource("streams.fxml"));
         primaryStage.setTitle("Fritz Streams");
-        Scene value = new Scene(root, 550, 450);
+        Scene value = new Scene(root, 630, 450);
         value.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         primaryStage.setScene(value);
         primaryStage.show();
