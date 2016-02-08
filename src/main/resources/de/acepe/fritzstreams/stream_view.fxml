@@ -36,7 +36,7 @@
                      <StackPane fx:id="downloadStackPane">
                         <children>
                                   <Button fx:id="downloadButton" disable="true" mnemonicParsing="false" onAction="#onDownloadPerformed" styleClass="download-button" text="Download" />
-                           <ProgressBar fx:id="downloadProgress" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" progress="0.38" styleClass="download-progress" />
+                           <ProgressBar fx:id="downloadProgress" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" progress="0.0" styleClass="download-progress" visible="false" />
                         </children>
                      </StackPane>
                         </buttons>
