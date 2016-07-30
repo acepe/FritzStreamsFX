@@ -16,25 +16,26 @@ import javafx.concurrent.Task;
 public class Downloader {
     private static final Logger LOG = LoggerFactory.getLogger(Downloader.class);
 
-
     private final StreamInfo streamInfo;
 
     private final DoubleProperty progress = new SimpleDoubleProperty();
     private final BooleanProperty running = new SimpleBooleanProperty();
+    private Task<Void> downloadTask;
+    private File targetFile;
 
     public Downloader(StreamInfo streamInfo) {
         this.streamInfo = streamInfo;
     }
 
     public void download() {
-        File file = new File(streamInfo.getDownloadFileName());
+        targetFile = new File(streamInfo.getDownloadFileName());
 
-        Task<Void> downloadTask = new Task<Void>() {
+        downloadTask = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
                 URLConnection connection = new URL(streamInfo.getStreamURL()).openConnection();
                 try (InputStream is = connection.getInputStream();
-                        OutputStream outstream = new FileOutputStream(file)) {
+                        OutputStream outstream = new FileOutputStream(targetFile)) {
 
                     final int size = connection.getContentLength();
                     updateProgress(0, size);
@@ -59,13 +60,20 @@ public class Downloader {
 
             @Override
             protected void succeeded() {
-                streamInfo.setDownloadedFile(file);
+                streamInfo.setDownloadedFile(targetFile);
             }
 
             @Override
             protected void failed() {
                 LOG.error("Failed to download stream {}", streamInfo, getException());
-                super.failed();
+            }
+
+            @Override
+            protected void cancelled() {
+                LOG.info("Download was cancelled, deleting partial download.");
+                if (targetFile.exists()) {
+                    targetFile.delete();
+                }
             }
         };
         progress.bind(downloadTask.progressProperty());
@@ -79,5 +87,11 @@ public class Downloader {
 
     public BooleanProperty runningProperty() {
         return running;
+    }
+
+    public void cancel() {
+        if (downloadTask != null) {
+            downloadTask.cancel();
+        }
     }
 }

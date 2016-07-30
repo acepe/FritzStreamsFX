@@ -108,4 +108,16 @@ public class Controller {
                     .forEach(entry -> entry.getKey().setSelected(true));
     }
 
+    public void stop() {
+        for (LocalDate day : toggleDayMap.values()) {
+            stopDownload(soundgardenStreamMap.get(day));
+            stopDownload(nightflightStreamMap.get(day));
+        }
+    }
+
+    private void stopDownload(StreamInfo streamInfo) {
+        if(streamInfo!=null && streamInfo.getDownloader() != null){
+            streamInfo.getDownloader().cancel();
+        }
+    }
 }
