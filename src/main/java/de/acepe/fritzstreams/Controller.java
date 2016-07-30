@@ -41,6 +41,7 @@ public class Controller {
 
     private StreamView soundgardenView;
     private StreamView nightflightView;
+    private Task<Void> initTask;
 
     @FXML
     private void initialize() {
@@ -77,28 +78,35 @@ public class Controller {
             nightflightView.streamProperty().setValue(nightflightStreamMap.get(selectedDate));
         });
 
-        Task<Void> initTask = new Task<Void>() {
+        initTask = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                Collection<LocalDate> values = toggleDayMap.values()
-                                                           .stream()
-                                                           .sorted((o1, o2) -> o2.compareTo(o1))
-                                                           .collect(Collectors.toList());
-
-                for (LocalDate day : values) {
-                    StreamInfo soundgarden = soundgardenStreamMap.get(day);
-                    soundgarden.init();
-                    StreamInfo nightflight = nightflightStreamMap.get(day);
-                    nightflight.init();
-
-                    toggleDayMap.inverse().get(day).disableProperty().setValue(false);
-                }
-                return null;
+                return initStreams(this);
             }
         };
         new Thread(initTask).start();
 
         selectedDay.setValue(startDay);
+    }
+
+    private Void initStreams(Task<Void> task) {
+        Collection<LocalDate> values = toggleDayMap.values()
+                                                   .stream()
+                                                   .sorted((o1, o2) -> o2.compareTo(o1))
+                                                   .collect(Collectors.toList());
+
+        for (LocalDate day : values) {
+            if (task.isCancelled()) {
+                return null;
+            }
+            StreamInfo soundgarden = soundgardenStreamMap.get(day);
+            soundgarden.init();
+            StreamInfo nightflight = nightflightStreamMap.get(day);
+            nightflight.init();
+
+            toggleDayMap.inverse().get(day).disableProperty().setValue(false);
+        }
+        return null;
     }
 
     private void selectToggleForDay(LocalDate selectedDate) {
@@ -109,6 +117,9 @@ public class Controller {
     }
 
     public void stop() {
+        if (initTask.isRunning()) {
+            initTask.cancel();
+        }
         for (LocalDate day : toggleDayMap.values()) {
             stopDownload(soundgardenStreamMap.get(day));
             stopDownload(nightflightStreamMap.get(day));
@@ -116,7 +127,7 @@ public class Controller {
     }
 
     private void stopDownload(StreamInfo streamInfo) {
-        if(streamInfo!=null && streamInfo.getDownloader() != null){
+        if (streamInfo != null && streamInfo.getDownloader() != null) {
             streamInfo.getDownloader().cancel();
         }
     }
