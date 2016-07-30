@@ -2,7 +2,15 @@ package de.acepe.fritzstreams;
 
 import java.io.IOException;
 
-import javafx.beans.binding.Bindings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
+
+import de.jensd.fx.glyphs.GlyphsDude;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -16,10 +24,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 
-import de.jensd.fx.glyphs.GlyphsDude;
-import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
-
 public class StreamView extends HBox {
+    private static final Logger LOG = LoggerFactory.getLogger(StreamView.class);
+
+    private final ObjectProperty<StreamInfo> stream = new SimpleObjectProperty<>();
+    private final InvalidationListener changeIconListener = this::updateDownloadButton;
 
     @FXML
     private ImageView imageView;
@@ -33,8 +42,6 @@ public class StreamView extends HBox {
     private Button downloadButton;
     @FXML
     private ProgressBar downloadProgress;
-
-    private ObjectProperty<StreamInfo> stream = new SimpleObjectProperty<>();
 
     public StreamView() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("stream_view.fxml"));
@@ -50,29 +57,80 @@ public class StreamView extends HBox {
 
     @FXML
     private void initialize() {
-        downloadButton.disableProperty().bind(Bindings.createBooleanBinding(() -> {
-            StreamInfo streamInfo = stream.get();
-            return streamInfo == null || !streamInfo.getInitialised();
-        } , stream));
-
-        GlyphsDude.setIcon(downloadButton, MaterialDesignIcon.DOWNLOAD, "1.5em");
-
-        streamProperty().addListener((observable, oldValue, newValue) -> {
+        streamProperty().addListener((observable, oldValue, stream) -> {
             unbindDownloader();
-            if (newValue == null) {
-                clear();
-                return;
-            }
-            titleProperty().setValue(newValue.getTitle());
-            subTitleProperty().setValue(newValue.getSubtitle());
-            imageProperty().setValue(newValue.getImage());
+            unbindStreamInfo();
+
+            bindStreamInfo();
             bindDownloader();
         });
     }
 
-    public void clear() {
-        titleLabel.textProperty().setValue(null);
-        subTitleLabel.textProperty().setValue(null);
+    private void bindStreamInfo() {
+        StreamInfo streamInfo = stream.get();
+
+        titleProperty().bind(streamInfo.titleProperty());
+        subTitleProperty().bind(streamInfo.subtitleProperty());
+        imageProperty().bind(streamInfo.imageProperty());
+        downloadButton.disableProperty().bind(streamInfo.initialisedProperty().not());
+
+        streamInfo.downloadedFileProperty().addListener(changeIconListener);
+        updateDownloadButton(null);
+    }
+
+    private String getButtonText() {
+        StreamInfo streamInfo = stream.get();
+        return streamInfo.isDownloadFinished() ? "Play" : "Download";
+    }
+
+    private void unbindStreamInfo() {
+        titleProperty().unbind();
+        subTitleProperty().unbind();
+        imageProperty().unbind();
+        downloadButton.disableProperty().unbind();
+
+        StreamInfo streamInfo = stream.get();
+        streamInfo.downloadedFileProperty().removeListener(changeIconListener);
+    }
+
+    private void updateDownloadButton(Observable observable) {
+        if (stream.get().isDownloadFinished()) {
+            GlyphsDude.setIcon(downloadButton, MaterialDesignIcon.PLAY, "1.5em");
+        } else {
+            GlyphsDude.setIcon(downloadButton, MaterialDesignIcon.DOWNLOAD, "1.5em");
+        }
+        downloadButton.setText(getButtonText());
+    }
+
+    private void bindDownloader() {
+        StreamInfo streamInfo = stream.get();
+        Downloader downloader = streamInfo.getDownloader();
+        if (downloader == null) {
+            downloadProgress.setVisible(false);
+            return;
+        }
+        downloadProgress.progressProperty().bind(downloader.progressProperty());
+        downloadProgress.visibleProperty().bind(downloader.runningProperty());
+        downloadButton.disableProperty().unbind();
+        downloadButton.disableProperty().bind(downloader.runningProperty());
+    }
+
+    private void unbindDownloader() {
+        downloadProgress.progressProperty().unbind();
+        downloadProgress.visibleProperty().unbind();
+        downloadButton.disableProperty().unbind();
+    }
+
+    @FXML
+    void onDownloadPerformed() {
+        StreamInfo streamInfo = stream.get();
+        if (streamInfo.isDownloadFinished()) {
+            HostServicesFactory.getInstance(StreamsApplication.getApplication())
+                               .showDocument(stream.get().getDownloadedFile().getAbsolutePath());
+            return;
+        }
+        streamInfo.download();
+        bindDownloader();
     }
 
     public StringProperty titleProperty() {
@@ -89,30 +147,6 @@ public class StreamView extends HBox {
 
     public ObjectProperty<StreamInfo> streamProperty() {
         return stream;
-    }
-
-    @FXML
-    void onDownloadPerformed() {
-        stream.get().download();
-        bindDownloader();
-    }
-
-    private void unbindDownloader() {
-        downloadProgress.progressProperty().unbind();
-        downloadProgress.visibleProperty().unbind();
-        downloadButton.disableProperty().unbind();
-    }
-
-    private void bindDownloader() {
-        Downloader downloader = stream.get().getDownloader();
-        if (downloader == null) {
-            downloadProgress.setVisible(false);
-            downloadButton.disableProperty().setValue(false);
-            return;
-        }
-        downloadProgress.progressProperty().bind(downloader.progressProperty());
-        downloadProgress.visibleProperty().bind(downloader.runningProperty());
-        downloadButton.disableProperty().bind(downloader.runningProperty());
     }
 
 }

@@ -3,7 +3,9 @@ package de.acepe.fritzstreams;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.time.format.DateTimeFormatter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -12,6 +14,8 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.concurrent.Task;
 
 public class Downloader {
+    private static final Logger LOG = LoggerFactory.getLogger(Downloader.class);
+
 
     private final StreamInfo streamInfo;
 
@@ -23,15 +27,7 @@ public class Downloader {
     }
 
     public void download() {
-        String userHome = System.getProperty("user.home");
-
-        String pathname = userHome
-                          + File.separator
-                          + streamInfo.getTitle()
-                          + "_"
-                          + streamInfo.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                          + ".mp3";
-        File file = new File(pathname);
+        File file = new File(streamInfo.getDownloadFileName());
 
         Task<Void> downloadTask = new Task<Void>() {
             @Override
@@ -56,9 +52,20 @@ public class Downloader {
                     }
                     outstream.close();
                 } catch (IOException e) {
-                    throw new Exception(e);
+                    throw e;
                 }
                 return null;
+            }
+
+            @Override
+            protected void succeeded() {
+                streamInfo.setDownloadedFile(file);
+            }
+
+            @Override
+            protected void failed() {
+                LOG.error("Failed to download stream {}", streamInfo, getException());
+                super.failed();
             }
         };
         progress.bind(downloadTask.progressProperty());

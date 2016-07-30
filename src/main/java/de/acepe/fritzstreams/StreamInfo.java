@@ -6,10 +6,6 @@ import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.scene.image.Image;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -18,11 +14,19 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+import javafx.application.Platform;
+import javafx.beans.property.*;
+import javafx.scene.image.Image;
+
 public class StreamInfo {
 
     public enum Stream {
         SOUNDGARDEN, NIGHTFLIGHT
     }
+
+    private static final DateTimeFormatter TARGET_Date_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter URL_DATE_FORMAT = DateTimeFormatter.ofPattern("ddMM");
+    private static final Charset UTF8 = Charset.forName("UTF-8");
 
     private static final Logger LOG = LoggerFactory.getLogger(StreamInfo.class);
     private static final String BASE_URL = "http://fritz.de%s";
@@ -38,14 +42,16 @@ public class StreamInfo {
 
     private final LocalDate date;
     private final Stream stream;
-    private Downloader downloader;
+    private final ObjectProperty<File> downloadedFile = new SimpleObjectProperty<>();
+    private final StringProperty title = new SimpleStringProperty();
+    private final StringProperty subtitle = new SimpleStringProperty();
+    private final ObjectProperty<Image> image = new SimpleObjectProperty<>();
+    private final ReadOnlyBooleanWrapper initialised = new ReadOnlyBooleanWrapper();
 
+    private String downloadFileName;
+    private Downloader downloader;
     private Document doc;
-    private String title;
-    private String subtitle;
     private String streamURL;
-    private Image image;
-    private ReadOnlyBooleanWrapper initialised = new ReadOnlyBooleanWrapper();
 
     public StreamInfo(LocalDate date, Stream stream) {
         this.date = date;
@@ -55,20 +61,35 @@ public class StreamInfo {
     public void init() {
         String contentURL = buildURL();
         try {
-            doc = Jsoup.connect(contentURL)
-                       .timeout(10000)
-                       .data("query", "Java")
-                       .userAgent("Mozilla")
-                       .timeout(3000)
-                       .get();
+            doc = Jsoup.connect(contentURL).timeout(10000).data("query", "Java").userAgent("Mozilla").get();
+
         } catch (IOException e) {
             LOG.error("Init stream failed: " + e);
+            return;
         }
-        title = extractTitle(TITLE_SELECTOR);
-        subtitle = extractTitle(SUBTITLE_SELECTOR);
-        image = new Image(extractImageUrl(IMAGE_SELECTOR));
+        image.setValue(new Image(extractImageUrl(IMAGE_SELECTOR)));
         streamURL = extractDownloadURL();
-        initialised.setValue(true);
+        Platform.runLater(() -> {
+            title.setValue(extractTitle(TITLE_SELECTOR));
+            subtitle.setValue(extractTitle(SUBTITLE_SELECTOR));
+            downloadFileName = createDownloadFileName();
+            downloadedFile.setValue(tryGetExistingDownload());
+        });
+        initialised.setValue(streamURL != null);
+    }
+
+    private File tryGetExistingDownload() {
+        File file = new File(downloadFileName);
+        return file.exists() ? file : null;
+    }
+
+    private String buildURL() {
+        String contentURL = streamURL(stream == Stream.NIGHTFLIGHT ? NIGHTFLIGHT_URL : SOUNDGARDEN_URL);
+        return String.format(contentURL, date.format(URL_DATE_FORMAT));
+    }
+
+    private String streamURL(String subUrl) {
+        return String.format(BASE_URL, subUrl);
     }
 
     private String extractImageUrl(String imageSelector) {
@@ -81,23 +102,14 @@ public class StreamInfo {
         return info.text();
     }
 
-    private String buildURL() {
-        String contentURL = url(stream == Stream.NIGHTFLIGHT ? NIGHTFLIGHT_URL : SOUNDGARDEN_URL);
-        return String.format(contentURL, date.format(DateTimeFormatter.ofPattern("ddMM")));
-    }
-
-    private String url(String subUrl) {
-        return String.format(BASE_URL, subUrl);
-    }
-
     private String extractDownloadURL() {
         String downloadDescriptorURL = extractDownloadDescriptorUrl();
         if (downloadDescriptorURL == null) {
             return null;
         }
 
-        try (InputStream is = new URL(url(downloadDescriptorURL)).openStream()) {
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+        try (BufferedReader rd = new BufferedReader(new InputStreamReader(new URL(streamURL(downloadDescriptorURL)).openStream(),
+                                                                          UTF8))) {
             String jsonText = readAll(rd);
 
             int beginIndex = jsonText.indexOf(STREAM_TOKEN) + STREAM_TOKEN.length();
@@ -105,7 +117,7 @@ public class StreamInfo {
 
             return jsonText.substring(beginIndex, endIndex);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error("Couldn't extract download-URL from stream website", e);
             return null;
         }
     }
@@ -124,6 +136,17 @@ public class StreamInfo {
         return sb.toString();
     }
 
+    private String createDownloadFileName() {
+        String userHome = System.getProperty("user.home");
+
+        return userHome
+               + File.separator
+               + getTitle().replaceAll(" ", "_")
+               + "_"
+               + getDate().format(TARGET_Date_FORMAT)
+               + ".mp3";
+    }
+
     public void download() {
         downloader = new Downloader(this);
         downloader.download();
@@ -133,32 +156,28 @@ public class StreamInfo {
         return downloader;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public String getSubtitle() {
-        return subtitle;
-    }
-
     public String getStreamURL() {
         return streamURL;
-    }
-
-    public Stream getStream() {
-        return stream;
     }
 
     public LocalDate getDate() {
         return date;
     }
 
-    public Image getImage() {
-        return image;
+    public String getTitle() {
+        return title.get();
     }
 
-    public boolean getInitialised() {
-        return initialised.get();
+    public StringProperty titleProperty() {
+        return title;
+    }
+
+    public StringProperty subtitleProperty() {
+        return subtitle;
+    }
+
+    public ObjectProperty<Image> imageProperty() {
+        return image;
     }
 
     public ReadOnlyBooleanProperty initialisedProperty() {
@@ -167,6 +186,26 @@ public class StreamInfo {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("date", date).add("stream", stream).toString();
+        return MoreObjects.toStringHelper(this).add("stream", stream).add("date", date).toString();
+    }
+
+    public File getDownloadedFile() {
+        return downloadedFile.get();
+    }
+
+    public ObjectProperty<File> downloadedFileProperty() {
+        return downloadedFile;
+    }
+
+    public void setDownloadedFile(File downloadedFile) {
+        this.downloadedFile.set(downloadedFile);
+    }
+
+    public String getDownloadFileName() {
+        return downloadFileName;
+    }
+
+    public boolean isDownloadFinished() {
+        return downloadedFileProperty().get() != null;
     }
 }
