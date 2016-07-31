@@ -12,19 +12,25 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 
 public class ScreenManager extends StackPane {
+    public enum Direction {
+        LEFT, RIGHT, NONE
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(ScreenManager.class);
-    private static final Duration FADE_DURATION = new Duration(600);
+    private static final Duration FADE_DURATION = new Duration(400);
 
     private final Map<ScreenId, Node> screens;
     private final Map<ScreenId, ControlledScreen> controllers;
-    private Timeline fadeOut;
-    private Timeline fadeIn;
 
     public ScreenManager() {
         screens = new HashMap<>();
@@ -52,46 +58,66 @@ public class ScreenManager extends StackPane {
     }
 
     public boolean setScreen(ScreenId id) {
+        return setScreen(id, Direction.NONE);
+    }
+
+    public boolean setScreen(ScreenId id, Direction direction) {
         if (screens.get(id) == null) {
             LOG.error("Screen {} hasn't been loaded", id);
             return false;
         }
-
-        if (getChildren().isEmpty()) {
+        if (getChildren().isEmpty() || direction == Direction.NONE) {
             return showScreen(id);
         }
 
-        return changeScreens(id);
+        return changeScreens(id, direction);
     }
 
     private boolean showScreen(ScreenId id) {
-        getChildren().add(screens.get(id));
+        getChildren().setAll(screens.get(id));
         return true;
     }
 
-    private boolean changeScreens(ScreenId id) {
+    private boolean changeScreens(ScreenId id, Direction direction) {
         Node oldNode = getChildren().get(0);
+        Bounds oldNodeBounds = oldNode.getBoundsInParent();
+        ImageView oldImage = new ImageView(oldNode.snapshot(new SnapshotParameters(),
+                                                            new WritableImage((int) oldNodeBounds.getWidth(),
+                                                                              (int) oldNodeBounds.getHeight())));
+
         Node newNode = screens.get(id);
-
-        if (fadeIn != null) {
-            fadeIn.stop();
-        }
-        if (fadeOut != null) {
-            fadeOut.stop();
-        }
-//        fadeOut = new Timeline(new KeyFrame(FADE_DURATION,
-//                                            new KeyValue(oldNode.opacityProperty(), 0, Interpolator.EASE_BOTH)));
-
-        fadeIn = new Timeline(new KeyFrame(Duration.ZERO,
-                                           new KeyValue(newNode.opacityProperty(), 0.0, Interpolator.EASE_BOTH)),
-                              new KeyFrame(FADE_DURATION,
-                                           new KeyValue(newNode.opacityProperty(), 1, Interpolator.EASE_BOTH)));
-        fadeIn.setOnFinished(event -> getChildren().remove(oldNode));
-
         getChildren().add(newNode);
+        ImageView newImage = new ImageView(newNode.snapshot(new SnapshotParameters(),
+                                                            new WritableImage((int) oldNodeBounds.getWidth(),
+                                                                              (int) oldNodeBounds.getHeight())));
+        getChildren().remove(newNode);
 
-//        fadeOut.play();
-        fadeIn.play();
+        // Create new animationPane with both images
+        StackPane animationPane = new StackPane(oldImage, newImage);
+        animationPane.setPrefSize((int) oldNodeBounds.getWidth(), (int) oldNodeBounds.getHeight());
+        getChildren().setAll(animationPane);
+
+        oldImage.setTranslateX(0);
+        newImage.setTranslateX(direction == Direction.LEFT ? oldNodeBounds.getWidth() : -oldNodeBounds.getWidth());
+
+        KeyFrame newImageKeyFrame = new KeyFrame(FADE_DURATION,
+                                                 new KeyValue(newImage.translateXProperty(),
+                                                              0,
+                                                              Interpolator.EASE_BOTH));
+        Timeline newImageTimeline = new Timeline();
+        newImageTimeline.getKeyFrames().add(newImageKeyFrame);
+        newImageTimeline.setOnFinished(t -> getChildren().setAll(newNode));
+
+        double endValue = direction == Direction.LEFT ? -oldNodeBounds.getWidth() : oldNodeBounds.getWidth();
+        KeyFrame oldImageKeyFrame = new KeyFrame(FADE_DURATION,
+                                                 new KeyValue(oldImage.translateXProperty(),
+                                                              endValue,
+                                                              Interpolator.EASE_BOTH));
+        Timeline oldImageTimeLine = new Timeline();
+        oldImageTimeLine.getKeyFrames().add(oldImageKeyFrame);
+
+        newImageTimeline.play();
+        oldImageTimeLine.play();
 
         return true;
     }

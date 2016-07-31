@@ -150,45 +150,7 @@ public class StreamsController implements ControlledScreen {
 
     @FXML
     void onSettingsPerformed() {
-        //
-        // Scene streamScene = streamView.getScene();
-        //
-        // // Create snapshots with the last state of the scenes
-        // WritableImage wi = new WritableImage((int) streamScene.getWidth(), (int) streamScene.getHeight());
-        // Image img1 = streamsRoot.snapshot(new SnapshotParameters(), wi);
-        // ImageView imgView1 = new ImageView(img1);
-        // wi = new WritableImage((int) streamScene.getWidth(), (int) streamScene.getHeight());
-        //
-        // Parent settingsView = loadSettingsView();
-        // Scene settingsScene = new Scene(settingsView, streamScene.getWidth(), streamScene.getHeight());
-        // settingsScene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
-        //
-        // Image img2 = settingsView.snapshot(new SnapshotParameters(), wi);
-        // ImageView imgView2 = new ImageView(img2);
-        // // Create new pane with both images
-        // imgView1.setTranslateX(0);
-        // imgView2.setTranslateX(streamScene.getWidth());
-        //
-        // StackPane pane = new StackPane(imgView1, imgView2);
-        // pane.setPrefSize((int) streamScene.getWidth(), (int) streamScene.getHeight());
-        //
-        // // Replace root1 with new pane
-        // streamsRoot.getChildren().addAll(pane);
-        //
-        // // create transtition
-        // Timeline timeline = new Timeline();
-        // KeyValue kv = new KeyValue(imgView2.translateXProperty(), 0, Interpolator.EASE_BOTH);
-        // KeyFrame kf = new KeyFrame(Duration.seconds(1), kv);
-        // timeline.getKeyFrames().add(kf);
-        // timeline.setOnFinished(t -> {
-        // // remove pane and restore scene 1
-        // streamsRoot.getChildren().addAll(streamView);
-        // // set scene 2
-        // primaryStage.setScene(settingsScene);
-        // });
-        // timeline.play();
-        screenManager.setScreen(ScreenId.SETTINGS);
-
+        screenManager.setScreen(ScreenId.SETTINGS, ScreenManager.Direction.LEFT);
     }
 
     @Override

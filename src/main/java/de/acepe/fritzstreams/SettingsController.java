@@ -29,7 +29,7 @@ public class SettingsController implements ControlledScreen {
 
     @FXML
     void onSaveSettingsPerformed() {
-        screenManager.setScreen(ScreenId.STREAMS);
+        screenManager.setScreen(ScreenId.STREAMS, ScreenManager.Direction.RIGHT);
     }
 
     @Override
