@@ -16,17 +16,31 @@
     -fx-padding: 10;
 }
 
+.content-pane{
+   -fx-background-color: -acepe-fritz-yellow;
+   -fx-padding: 8;
+   -fx-spacing: 10;
+}
+
 .days{
     -fx-background-color: -acepe-fritz-yellow;
-    -fx-padding: 8;
     -fx-graphic-fixed-size: 2.5em;
+    -fx-padding: 8;
     -fx-spacing: 10;
+}
+
+.square-button{
+    -fx-pref-width: 50;
+    -fx-pref-height: 50;
+}
+
+
+.back-button{
+    -fx-pref-height: 50;
 }
 
 .day-button {
     -fx-padding: 10;
-    -fx-pref-width: 50;
-    -fx-pref-height: 50;
     -fx-background-color: -acepe-fritz-red;
     -fx-font-weight: bold;
     -fx-font-size: 16px;
@@ -46,6 +60,38 @@
 .day-button:selected {
     -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -15%);
     -fx-background-insets: 0, 2
+}
+
+.settings-title{
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: rgba(0,0,0,0.8);
+    -fx-padding: 10;
+    -fx-pref-height: 50;
+}
+
+.settings-button {
+    -fx-padding: 10;
+    -fx-pref-width: 50;
+    -fx-pref-height: 50;
+    -fx-background-color: -acepe-fritz-yellow;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-text-fill: white;
+}
+
+.settings-button > .glyph-icon {
+    -fx-fill: rgba(0,0,0,0.4);
+}
+
+.settings-button:hover {
+    -fx-background-color: derive(-acepe-fritz-yellow, +30%);
+}
+
+.grid {
+    -fx-padding: 10;
+    -fx-hgap: 5;
+    -fx-vgap: 10;
 }
 
 .download-button {

@@ -20,6 +20,7 @@ public class StreamsApplication extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader();
         Parent root = fxmlLoader.load(getClass().getResource("streams.fxml").openStream());
         controller = fxmlLoader.getController();
+        controller.setPrimaryStage(primaryStage);
 
         Scene scene = new Scene(root, 630, 450);
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
@@ -43,4 +44,5 @@ public class StreamsApplication extends Application {
     static Application getApplication() {
         return application;
     }
+
 }
