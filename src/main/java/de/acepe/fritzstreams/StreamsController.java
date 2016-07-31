@@ -3,7 +3,6 @@ package de.acepe.fritzstreams;
 import static de.acepe.fritzstreams.StreamInfo.Stream.NIGHTFLIGHT;
 import static de.acepe.fritzstreams.StreamInfo.Stream.SOUNDGARDEN;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -12,7 +11,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javafx.scene.layout.Pane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,31 +19,20 @@ import com.google.common.collect.HashBiMap;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import javafx.animation.Interpolator;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.*;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
-import javafx.util.Duration;
 
-public class Controller {
-    private static final Logger LOG = LoggerFactory.getLogger(Controller.class);
+public class StreamsController implements ControlledScreen {
+    private static final Logger LOG = LoggerFactory.getLogger(StreamsController.class);
 
     private static final int DAYS_PAST = 6;
     private static final DateTimeFormatter DAY_OF_WEEK = DateTimeFormatter.ofPattern("E").withLocale(Locale.GERMANY);
@@ -66,10 +53,9 @@ public class Controller {
     @FXML
     private Button settingsButton;
     @FXML
-    private Pane streamsRoot;
-    @FXML
     private Node streamView;
-    private Stage primaryStage;
+
+    private ScreenManager screenManager;
 
     @FXML
     private void initialize() {
@@ -164,57 +150,49 @@ public class Controller {
 
     @FXML
     void onSettingsPerformed() {
-
-        Scene streamScene = streamView.getScene();
-
-        // Create snapshots with the last state of the scenes
-        WritableImage wi = new WritableImage((int) streamScene.getWidth(), (int) streamScene.getHeight());
-        Image img1 = streamsRoot.snapshot(new SnapshotParameters(), wi);
-        ImageView imgView1 = new ImageView(img1);
-        wi = new WritableImage((int) streamScene.getWidth(), (int) streamScene.getHeight());
-
-        Parent settingsView = loadSettingsView();
-        Scene settingsScene = new Scene(settingsView, streamScene.getWidth(), streamScene.getHeight());
-        settingsScene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
-
-        Image img2 = settingsView.snapshot(new SnapshotParameters(), wi);
-        ImageView imgView2 = new ImageView(img2);
-        // Create new pane with both images
-        imgView1.setTranslateX(0);
-        imgView2.setTranslateX(streamScene.getWidth());
-
-        StackPane pane = new StackPane(imgView1, imgView2);
-        pane.setPrefSize((int) streamScene.getWidth(), (int) streamScene.getHeight());
-
-        // Replace root1 with new pane
-        streamsRoot.getChildren().addAll(pane);
-
-        // create transtition
-        Timeline timeline = new Timeline();
-        KeyValue kv = new KeyValue(imgView2.translateXProperty(), 0, Interpolator.EASE_BOTH);
-        KeyFrame kf = new KeyFrame(Duration.seconds(1), kv);
-        timeline.getKeyFrames().add(kf);
-        timeline.setOnFinished(t -> {
-            // remove pane and restore scene 1
-            streamsRoot.getChildren().addAll(streamView);
-            // set scene 2
-            primaryStage.setScene(settingsScene);
-        });
-        timeline.play();
+        //
+        // Scene streamScene = streamView.getScene();
+        //
+        // // Create snapshots with the last state of the scenes
+        // WritableImage wi = new WritableImage((int) streamScene.getWidth(), (int) streamScene.getHeight());
+        // Image img1 = streamsRoot.snapshot(new SnapshotParameters(), wi);
+        // ImageView imgView1 = new ImageView(img1);
+        // wi = new WritableImage((int) streamScene.getWidth(), (int) streamScene.getHeight());
+        //
+        // Parent settingsView = loadSettingsView();
+        // Scene settingsScene = new Scene(settingsView, streamScene.getWidth(), streamScene.getHeight());
+        // settingsScene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        //
+        // Image img2 = settingsView.snapshot(new SnapshotParameters(), wi);
+        // ImageView imgView2 = new ImageView(img2);
+        // // Create new pane with both images
+        // imgView1.setTranslateX(0);
+        // imgView2.setTranslateX(streamScene.getWidth());
+        //
+        // StackPane pane = new StackPane(imgView1, imgView2);
+        // pane.setPrefSize((int) streamScene.getWidth(), (int) streamScene.getHeight());
+        //
+        // // Replace root1 with new pane
+        // streamsRoot.getChildren().addAll(pane);
+        //
+        // // create transtition
+        // Timeline timeline = new Timeline();
+        // KeyValue kv = new KeyValue(imgView2.translateXProperty(), 0, Interpolator.EASE_BOTH);
+        // KeyFrame kf = new KeyFrame(Duration.seconds(1), kv);
+        // timeline.getKeyFrames().add(kf);
+        // timeline.setOnFinished(t -> {
+        // // remove pane and restore scene 1
+        // streamsRoot.getChildren().addAll(streamView);
+        // // set scene 2
+        // primaryStage.setScene(settingsScene);
+        // });
+        // timeline.play();
+        screenManager.setScreen(ScreenId.SETTINGS);
 
     }
 
-    private Parent loadSettingsView() {
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader();
-            return fxmlLoader.load(getClass().getResource("settings.fxml").openStream());
-        } catch (IOException e) {
-            LOG.error("Couldn't load settings view from fxml");
-        }
-        return null;
-    }
-
-    public void setPrimaryStage(Stage primaryStage) {
-        this.primaryStage = primaryStage;
+    @Override
+    public void setScreenParent(ScreenManager screenManager) {
+        this.screenManager = screenManager;
     }
 }

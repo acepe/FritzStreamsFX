@@ -22,21 +22,15 @@
    -fx-spacing: 10;
 }
 
-.days{
-    -fx-background-color: -acepe-fritz-yellow;
-    -fx-graphic-fixed-size: 2.5em;
-    -fx-padding: 8;
-    -fx-spacing: 10;
-}
-
 .square-button{
-    -fx-pref-width: 50;
-    -fx-pref-height: 50;
+    -fx-min-height: 51;
+    -fx-pref-width: 51;
+    -fx-pref-height: 51;
 }
-
 
 .back-button{
-    -fx-pref-height: 50;
+    -fx-min-height: 51;
+    -fx-pref-height: 51;
 }
 
 .day-button {
@@ -67,13 +61,10 @@
     -fx-font-weight: bold;
     -fx-text-fill: rgba(0,0,0,0.8);
     -fx-padding: 10;
-    -fx-pref-height: 50;
 }
 
 .settings-button {
     -fx-padding: 10;
-    -fx-pref-width: 50;
-    -fx-pref-height: 50;
     -fx-background-color: -acepe-fritz-yellow;
     -fx-font-weight: bold;
     -fx-font-size: 16px;
@@ -86,6 +77,10 @@
 
 .settings-button:hover {
     -fx-background-color: derive(-acepe-fritz-yellow, +30%);
+}
+
+.settings-button:pressed {
+    -fx-background-color: derive(-acepe-fritz-yellow, -10%);
 }
 
 .grid {

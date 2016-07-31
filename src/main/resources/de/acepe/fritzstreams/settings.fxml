@@ -10,58 +10,58 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 
-<StackPane fx:id="settingsRoot" xmlns="http://javafx.com/javafx/8.0.101" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.SettingsController">
-   <children>
-      <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" styleClass="bordered">
-         <content>
-            <VBox styleClass="spaced">
+<ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" styleClass="bordered" xmlns="http://javafx.com/javafx/8.0.101" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.SettingsController">
+   <content>
+      <VBox styleClass="spaced">
+         <children>
+            <HBox styleClass="content-pane">
                <children>
-                  <HBox styleClass="content-pane">
-                     <children>
-                        <Button fx:id="saveSettingsButton" mnemonicParsing="false" onAction="#onSaveSettingsPerformed" text="&lt;">
-                           <styleClass>
-                              <String fx:value="day-button" />
-                              <String fx:value="back-button" />
-                           </styleClass>
-                        </Button>
-                        <Label styleClass="settings-title" text="Settings" />
-                     </children>
-                  </HBox>
-                  <BorderPane styleClass="content-pane" VBox.vgrow="ALWAYS">
-                     <center>
-                        <VBox>
-                           <children>
-                              <GridPane>
-                                <columnConstraints>
-                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="-Infinity" />
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                </columnConstraints>
-                                <rowConstraints>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                </rowConstraints>
-                                 <children>
-                                    <Label text="Download Location" />
-                                    <TextField fx:id="downloadLocationTextfield" GridPane.columnIndex="1" />
-                                    <Button fx:id="changeDownloadLocationButton" mnemonicParsing="false" onAction="#onChangeDownloadLocationPerformed" text="Change" GridPane.columnIndex="2" />
-                                 </children>
-                                 <styleClass>
-                                    <String fx:value="bordered" />
-                                    <String fx:value="grid" />
-                                 </styleClass>
-                              </GridPane>
-                           </children>
-                        </VBox>
-                     </center>
-                  </BorderPane>
+                  <Button fx:id="saveSettingsButton" mnemonicParsing="false" onAction="#onSaveSettingsPerformed" text="&lt;">
+                     <styleClass>
+                        <String fx:value="day-button" />
+                        <String fx:value="back-button" />
+                     </styleClass>
+                  </Button>
+                  <Label fx:id="settingsLabel" text="Einstellungen">
+                     <styleClass>
+                        <String fx:value="settings-title" />
+                        <String fx:value="back-button" />
+                     </styleClass>
+                  </Label>
                </children>
-            </VBox>
-         </content>
-      </ScrollPane>
-   </children>
-</StackPane>
+            </HBox>
+            <BorderPane styleClass="content-pane" VBox.vgrow="ALWAYS">
+               <center>
+                  <VBox>
+                     <children>
+                        <GridPane>
+                          <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="-Infinity" />
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                          </rowConstraints>
+                           <children>
+                              <Label text="Downloadpfad" />
+                              <TextField fx:id="downloadLocationTextfield" GridPane.columnIndex="1" />
+                              <Button fx:id="changeDownloadLocationButton" mnemonicParsing="false" onAction="#onChangeDownloadLocationPerformed" text="Ändern" GridPane.columnIndex="2" />
+                           </children>
+                           <styleClass>
+                              <String fx:value="bordered" />
+                              <String fx:value="grid" />
+                           </styleClass>
+                        </GridPane>
+                     </children>
+                  </VBox>
+               </center>
+            </BorderPane>
+         </children>
+      </VBox>
+   </content>
+</ScrollPane>
