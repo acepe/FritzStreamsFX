@@ -1,7 +1,7 @@
 package de.acepe.fritzstreams;
 
 public enum ScreenId {
-    STREAMS("streams.fxml"), SETTINGS("settings.fxml");
+    STREAMS("ui/streams.fxml"), SETTINGS("ui/settings.fxml");
 
     private String resource;
 

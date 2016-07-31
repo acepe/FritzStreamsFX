@@ -11,6 +11,7 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -22,6 +23,8 @@ import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 
 public class ScreenManager extends StackPane {
+    private final StreamsApplication application;
+
     public enum Direction {
         LEFT, RIGHT, NONE
     }
@@ -32,7 +35,8 @@ public class ScreenManager extends StackPane {
     private final Map<ScreenId, Node> screens;
     private final Map<ScreenId, ControlledScreen> controllers;
 
-    public ScreenManager() {
+    public ScreenManager(StreamsApplication application) {
+        this.application = application;
         screens = new HashMap<>();
         controllers = new HashMap<>();
     }
@@ -49,7 +53,7 @@ public class ScreenManager extends StackPane {
             controllers.put(id, myScreenControler);
             screens.put(id, screen);
 
-            myScreenControler.setScreenParent(this);
+            myScreenControler.setScreenManager(this);
             return true;
         } catch (IOException e) {
             LOG.error("Couldn't load FXML-View {}", id, e);
@@ -133,5 +137,9 @@ public class ScreenManager extends StackPane {
 
     public ControlledScreen getController(ScreenId id) {
         return controllers.get(id);
+    }
+
+    public Application getApplication() {
+        return application;
     }
 }

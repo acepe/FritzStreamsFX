@@ -1,4 +1,4 @@
-package de.acepe.fritzstreams;
+package de.acepe.fritzstreams.backend;
 
 import java.io.*;
 import java.net.URL;

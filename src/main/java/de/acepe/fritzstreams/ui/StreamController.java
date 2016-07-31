@@ -1,12 +1,12 @@
-package de.acepe.fritzstreams;
+package de.acepe.fritzstreams.ui;
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
 
+import de.acepe.fritzstreams.ScreenManager;
+import de.acepe.fritzstreams.backend.Downloader;
+import de.acepe.fritzstreams.backend.StreamInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import javafx.beans.InvalidationListener;
@@ -24,8 +24,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 
-public class StreamView extends HBox {
-    private static final Logger LOG = LoggerFactory.getLogger(StreamView.class);
+public class StreamController extends HBox {
 
     private final ObjectProperty<StreamInfo> stream = new SimpleObjectProperty<>();
     private final InvalidationListener changeIconListener = this::updateDownloadButton;
@@ -42,8 +41,9 @@ public class StreamView extends HBox {
     private Button downloadButton;
     @FXML
     private ProgressBar downloadProgress;
+    private ScreenManager screenManager;
 
-    public StreamView() {
+    public StreamController() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("stream_view.fxml"));
         fxmlLoader.setRoot(this);
         fxmlLoader.setController(this);
@@ -125,7 +125,7 @@ public class StreamView extends HBox {
     void onDownloadPerformed() {
         StreamInfo streamInfo = stream.get();
         if (streamInfo.isDownloadFinished()) {
-            HostServicesFactory.getInstance(StreamsApplication.getApplication())
+            HostServicesFactory.getInstance(screenManager.getApplication())
                                .showDocument(stream.get().getDownloadedFile().getAbsolutePath());
             return;
         }
@@ -149,4 +149,7 @@ public class StreamView extends HBox {
         return stream;
     }
 
+    public void setScreenManager(ScreenManager screenManager) {
+        this.screenManager = screenManager;
+    }
 }

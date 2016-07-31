@@ -1,7 +1,7 @@
-package de.acepe.fritzstreams;
+package de.acepe.fritzstreams.ui;
 
-import static de.acepe.fritzstreams.StreamInfo.Stream.NIGHTFLIGHT;
-import static de.acepe.fritzstreams.StreamInfo.Stream.SOUNDGARDEN;
+import static de.acepe.fritzstreams.backend.StreamInfo.Stream.NIGHTFLIGHT;
+import static de.acepe.fritzstreams.backend.StreamInfo.Stream.SOUNDGARDEN;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -11,12 +11,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
+import de.acepe.fritzstreams.ControlledScreen;
+import de.acepe.fritzstreams.ScreenId;
+import de.acepe.fritzstreams.ScreenManager;
+import de.acepe.fritzstreams.backend.StreamInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.beans.property.ObjectProperty;
@@ -24,7 +25,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
@@ -32,7 +32,6 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.VBox;
 
 public class StreamsController implements ControlledScreen {
-    private static final Logger LOG = LoggerFactory.getLogger(StreamsController.class);
 
     private static final int DAYS_PAST = 6;
     private static final DateTimeFormatter DAY_OF_WEEK = DateTimeFormatter.ofPattern("E").withLocale(Locale.GERMANY);
@@ -42,8 +41,8 @@ public class StreamsController implements ControlledScreen {
     private final Map<LocalDate, StreamInfo> nightflightStreamMap = new HashMap<>();
     private final ObjectProperty<LocalDate> selectedDay = new SimpleObjectProperty<>();
 
-    private StreamView soundgardenView;
-    private StreamView nightflightView;
+    private StreamController soundgardenView;
+    private StreamController nightflightView;
     private Task<Void> initTask;
 
     @FXML
@@ -52,15 +51,13 @@ public class StreamsController implements ControlledScreen {
     private VBox streamList;
     @FXML
     private Button settingsButton;
-    @FXML
-    private Node streamView;
 
     private ScreenManager screenManager;
 
     @FXML
     private void initialize() {
-        soundgardenView = new StreamView();
-        nightflightView = new StreamView();
+        soundgardenView = new StreamController();
+        nightflightView = new StreamController();
 
         streamList.getChildren().add(soundgardenView);
         streamList.getChildren().add(nightflightView);
@@ -154,7 +151,9 @@ public class StreamsController implements ControlledScreen {
     }
 
     @Override
-    public void setScreenParent(ScreenManager screenManager) {
+    public void setScreenManager(ScreenManager screenManager) {
         this.screenManager = screenManager;
+        soundgardenView.setScreenManager(screenManager);
+        nightflightView.setScreenManager(screenManager);
     }
 }

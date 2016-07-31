@@ -1,5 +1,6 @@
 package de.acepe.fritzstreams;
 
+import de.acepe.fritzstreams.ui.StreamsController;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -7,16 +8,11 @@ import javafx.stage.Stage;
 
 public class StreamsApplication extends Application {
 
-    @SuppressWarnings("StaticNonFinalField")
-    private static Application application;
-
     private ScreenManager screenManager;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        application = this;
-
-        screenManager = new ScreenManager();
+        screenManager = new ScreenManager(this);
         screenManager.loadScreen(ScreenId.SETTINGS);
         screenManager.loadScreen(ScreenId.STREAMS);
 
@@ -42,10 +38,6 @@ public class StreamsApplication extends Application {
 
     public static void main(String[] args) {
         launch(args);
-    }
-
-    static Application getApplication() {
-        return application;
     }
 
 }
