@@ -1,6 +1,5 @@
 package de.acepe.fritzstreams;
 
-import de.acepe.fritzstreams.backend.Settings;
 import de.acepe.fritzstreams.ui.StreamsController;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -10,7 +9,6 @@ import javafx.stage.Stage;
 public class StreamsApplication extends Application {
 
     private ScreenManager screenManager;
-    private Settings settings;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -40,9 +38,5 @@ public class StreamsApplication extends Application {
 
     public static void main(String[] args) {
         launch(args);
-    }
-
-    public Settings getSettings() {
-        return settings;
     }
 }

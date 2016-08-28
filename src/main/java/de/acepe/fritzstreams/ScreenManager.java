@@ -141,4 +141,5 @@ public class ScreenManager extends StackPane {
     public StreamsApplication getApplication() {
         return application;
     }
+
 }

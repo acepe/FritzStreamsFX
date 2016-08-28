@@ -74,10 +74,14 @@ public class StreamInfo {
         Platform.runLater(() -> {
             title.setValue(extractTitle(TITLE_SELECTOR));
             subtitle.setValue(extractTitle(SUBTITLE_SELECTOR));
-            downloadFileName = createDownloadFileName();
-            downloadedFile.setValue(tryGetExistingDownload());
+            initializeDownloadFile();
         });
         initialised.setValue(streamURL != null);
+    }
+
+    private void initializeDownloadFile() {
+        downloadFileName = createDownloadFileName();
+        downloadedFile.setValue(tryGetExistingDownload());
     }
 
     private File tryGetExistingDownload() {
@@ -150,6 +154,7 @@ public class StreamInfo {
     }
 
     public void download() {
+        initializeDownloadFile();
         downloader = new Downloader(this);
         downloader.download();
     }
