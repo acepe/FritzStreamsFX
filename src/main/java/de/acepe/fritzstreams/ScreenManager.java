@@ -11,7 +11,6 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -139,7 +138,7 @@ public class ScreenManager extends StackPane {
         return controllers.get(id);
     }
 
-    public Application getApplication() {
+    public StreamsApplication getApplication() {
         return application;
     }
 }

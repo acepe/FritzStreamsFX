@@ -40,6 +40,7 @@ public class StreamInfo {
     private static final String STREAM_TOKEN = "_stream\":\"";
     private static final String MP3_TOKEN = ".mp3";
 
+    private final Settings settings;
     private final LocalDate date;
     private final Stream stream;
     private final ObjectProperty<File> downloadedFile = new SimpleObjectProperty<>();
@@ -54,6 +55,7 @@ public class StreamInfo {
     private String streamURL;
 
     public StreamInfo(LocalDate date, Stream stream) {
+        this.settings = Settings.getInstance();
         this.date = date;
         this.stream = stream;
     }
@@ -137,9 +139,9 @@ public class StreamInfo {
     }
 
     private String createDownloadFileName() {
-        String userHome = System.getProperty("user.home");
+        String targetpath = settings.getTargetpath();
 
-        return userHome
+        return targetpath
                + File.separator
                + getTitle().replaceAll(" ", "_")
                + "_"
