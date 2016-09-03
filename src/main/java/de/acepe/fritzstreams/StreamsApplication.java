@@ -12,6 +12,8 @@ public class StreamsApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        System.setProperty("prism.lcdtext", "false");
+
         screenManager = new ScreenManager(this);
         screenManager.loadScreen(Screens.SETTINGS);
         screenManager.loadScreen(Screens.STREAMS);
