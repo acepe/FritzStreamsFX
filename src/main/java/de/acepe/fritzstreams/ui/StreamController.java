@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
 
+import de.acepe.fritzstreams.ControlledScreen;
+import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.backend.Downloader;
 import de.acepe.fritzstreams.backend.StreamInfo;
@@ -37,6 +39,8 @@ public class StreamController extends HBox {
     private Label subTitleLabel;
     @FXML
     private StackPane downloadStackPane;
+    @FXML
+    private Button playListButton;
     @FXML
     private Button downloadButton;
     @FXML
@@ -73,6 +77,7 @@ public class StreamController extends HBox {
         subTitleProperty().bind(streamInfo.subtitleProperty());
         imageProperty().bind(streamInfo.imageProperty());
         downloadButton.disableProperty().bind(streamInfo.initialisedProperty().not());
+        playListButton.disableProperty().bind(streamInfo.initialisedProperty().not());
 
         streamInfo.downloadedFileProperty().addListener(changeIconListener);
         updateDownloadButton(null);
@@ -122,11 +127,19 @@ public class StreamController extends HBox {
     }
 
     @FXML
+    void onPlayListPerformed() {
+        StreamInfo streamInfo = stream.get();
+        screenManager.showScreenInNewStage(Screens.PLAYLIST);
+        ControlledScreen controller = screenManager.getController(Screens.PLAYLIST);
+        ((PlaylistController)controller).setPlayList(streamInfo.getPlaylist());
+    }
+
+    @FXML
     void onDownloadPerformed() {
         StreamInfo streamInfo = stream.get();
         if (streamInfo.isDownloadFinished()) {
             HostServicesFactory.getInstance(screenManager.getApplication())
-                               .showDocument(stream.get().getDownloadedFile().getAbsolutePath());
+                    .showDocument(stream.get().getDownloadedFile().getAbsolutePath());
             return;
         }
         streamInfo.download();

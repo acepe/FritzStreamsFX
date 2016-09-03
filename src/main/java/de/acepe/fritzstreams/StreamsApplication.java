@@ -13,26 +13,30 @@ public class StreamsApplication extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         screenManager = new ScreenManager(this);
-        screenManager.loadScreen(ScreenId.SETTINGS);
-        screenManager.loadScreen(ScreenId.STREAMS);
-
-        screenManager.setScreen(ScreenId.STREAMS);
+        screenManager.loadScreen(Screens.SETTINGS);
+        screenManager.loadScreen(Screens.STREAMS);
 
         BorderPane root = new BorderPane();
         root.setCenter(screenManager);
 
-        Scene scene = new Scene(root, 630, 450);
+        Screens startScreen = Screens.STREAMS;
+        Scene scene = new Scene(root, startScreen.getWidth(), startScreen.getHeight());
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
 
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Fritz Streams");
         primaryStage.setX(600);
         primaryStage.show();
+        primaryStage.setOnCloseRequest((event -> {
+            // event.consume();
+            screenManager.closeStages();
+        }));
+
+        screenManager.setScreen(startScreen);
     }
 
     @Override
     public void stop() throws Exception {
-        ((StreamsController) screenManager.getController(ScreenId.STREAMS)).stop();
+        ((StreamsController) screenManager.getController(Screens.STREAMS)).stop();
         super.stop();
     }
 

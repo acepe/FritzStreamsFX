@@ -15,7 +15,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
 import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.ScreenId;
+import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.backend.StreamInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
@@ -147,7 +147,7 @@ public class StreamsController implements ControlledScreen {
 
     @FXML
     void onSettingsPerformed() {
-        screenManager.setScreen(ScreenId.SETTINGS, ScreenManager.Direction.LEFT);
+        screenManager.setScreen(Screens.SETTINGS, ScreenManager.Direction.LEFT);
     }
 
     @Override

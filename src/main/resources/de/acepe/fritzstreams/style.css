@@ -122,7 +122,6 @@
 
 .download-progress > .track {
   -fx-background-color: transparent;
-
 }
 
 .stream {
@@ -150,4 +149,36 @@
 
 .scroll-pane > .viewport {
     -fx-background-color: transparent;
+}
+
+.playlist-title{
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: rgba(0,0,0,0.8);
+    -fx-padding: 10;
+}
+
+
+.playlist-stream-title{
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -acepe-fritz-red;
+    -fx-padding: 10;
+}
+
+.playlistlistview {
+    -fx-background-color: transparent;
+}
+
+.playlistlistview .list-cell {
+    -fx-background-color: transparent;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.playlistlistview .list-cell:selected {
+    -fx-background-color: transparent;
+    -fx-text-fill: -acepe-fritz-red;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
 }

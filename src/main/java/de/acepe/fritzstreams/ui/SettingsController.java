@@ -3,7 +3,7 @@ package de.acepe.fritzstreams.ui;
 import java.io.File;
 
 import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.ScreenId;
+import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.backend.Settings;
 import javafx.fxml.FXML;
@@ -48,7 +48,7 @@ public class SettingsController implements ControlledScreen {
     void onSaveSettingsPerformed() {
         settings.setTargetpath(downloadLocationTextfield.getText());
         settings.persist();
-        screenManager.setScreen(ScreenId.STREAMS, ScreenManager.Direction.RIGHT);
+        screenManager.setScreen(Screens.STREAMS, ScreenManager.Direction.RIGHT);
     }
 
     @Override

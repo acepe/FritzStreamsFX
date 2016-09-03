@@ -35,6 +35,7 @@ public class StreamInfo {
     private static final String TITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > h3 > a > span";
     private static final String SUBTITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > div > p";
     private static final String DOWNLOAD_SELECTOR = "#main > article > div.teaserboxgroup.first.count1.odd.layoutstandard.layouthalf_2_4 > section > article.manualteaser.last.count2.even.layoutmusikstream.layoutbeitrag_av_nur_av.doctypeteaser > div";
+    private static final String PRORAMM_SELECTOR = "#sendungslink";
     private static final String DOWNLOAD_DESCRIPTOR_ATTRIBUTE = "data-media-ref";
     private static final String IMAGE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.last.count2.even.layoutstandard.doctypeteaser > aside > div > a > img";
     private static final String STREAM_TOKEN = "_stream\":\"";
@@ -49,6 +50,7 @@ public class StreamInfo {
     private final ObjectProperty<Image> image = new SimpleObjectProperty<>();
     private final ReadOnlyBooleanWrapper initialised = new ReadOnlyBooleanWrapper();
 
+    private Playlist playlist;
     private String downloadFileName;
     private Downloader downloader;
     private Document doc;
@@ -64,18 +66,21 @@ public class StreamInfo {
         String contentURL = buildURL();
         try {
             doc = Jsoup.connect(contentURL).timeout(10000).data("query", "Java").userAgent("Mozilla").get();
-
         } catch (IOException e) {
             LOG.error("Init stream failed: " + e);
             return;
         }
         image.setValue(new Image(extractImageUrl(IMAGE_SELECTOR)));
+
         streamURL = extractDownloadURL();
+        String title = extractTitle(TITLE_SELECTOR);
+        String subtitle = extractTitle(SUBTITLE_SELECTOR);
         Platform.runLater(() -> {
-            title.setValue(extractTitle(TITLE_SELECTOR));
-            subtitle.setValue(extractTitle(SUBTITLE_SELECTOR));
+            this.title.setValue(title);
+            this.subtitle.setValue(subtitle);
             initializeDownloadFile();
         });
+        playlist = new Playlist(title, streamURL(extractProgrammUrl()));
         initialised.setValue(streamURL != null);
     }
 
@@ -101,6 +106,11 @@ public class StreamInfo {
     private String extractImageUrl(String imageSelector) {
         String imageUrl = doc.select(imageSelector).attr("src");
         return String.format(BASE_URL, imageUrl);
+    }
+
+    private String extractProgrammUrl() {
+        Elements info = doc.select(PRORAMM_SELECTOR);
+        return info.attr("href");
     }
 
     private String extractTitle(String selector) {
@@ -214,5 +224,9 @@ public class StreamInfo {
 
     public boolean isDownloadFinished() {
         return downloadedFileProperty().get() != null;
+    }
+
+    public Playlist getPlaylist() {
+        return playlist;
     }
 }
