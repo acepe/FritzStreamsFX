@@ -33,7 +33,7 @@
                 <children>
                     <ButtonBar AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
                         <buttons>
-                     <Button fx:id="playListButton" disable="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onPlayListPerformed" prefWidth="120.0" styleClass="download-button" text="Playlist" />
+                     <Button fx:id="playListButton" disable="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onPlayListPerformed" prefWidth="140.0" styleClass="download-button" text="keine Playlist" />
                             <StackPane fx:id="downloadStackPane">
                                 <children>
                                     <Button fx:id="downloadButton" disable="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onDownloadPerformed" prefWidth="120.0" styleClass="download-button" text="Download" />

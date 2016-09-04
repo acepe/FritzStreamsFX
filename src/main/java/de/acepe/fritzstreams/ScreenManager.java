@@ -91,7 +91,7 @@ public class ScreenManager extends StackPane {
         return true;
     }
 
-    public boolean showScreenInNewStage(Screens id) {
+    public Stage showScreenInNewStage(Screens id) {
         loadScreen(id);
         BorderPane contentContainer = new BorderPane();
         contentContainer.setCenter(screens.get(id));
@@ -110,7 +110,7 @@ public class ScreenManager extends StackPane {
         stage.setX(mainWindow.getX() + mainWindow.getWidth());
         stage.setY(mainWindow.getY());
         stage.show();
-        return true;
+        return stage;
     }
 
     private boolean changeScreens(Screens id, Direction direction) {

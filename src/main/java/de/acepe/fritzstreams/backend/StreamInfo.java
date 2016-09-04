@@ -75,13 +75,13 @@ public class StreamInfo {
         streamURL = extractDownloadURL();
         String title = extractTitle(TITLE_SELECTOR);
         String subtitle = extractTitle(SUBTITLE_SELECTOR);
+        playlist = new Playlist(title, streamURL(extractProgrammUrl()));
         Platform.runLater(() -> {
             this.title.setValue(title);
             this.subtitle.setValue(subtitle);
             initializeDownloadFile();
+            initialised.setValue(streamURL != null);
         });
-        playlist = new Playlist(title, streamURL(extractProgrammUrl()));
-        initialised.setValue(streamURL != null);
     }
 
     private void initializeDownloadFile() {

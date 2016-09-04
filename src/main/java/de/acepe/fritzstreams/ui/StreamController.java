@@ -1,13 +1,16 @@
 package de.acepe.fritzstreams.ui;
 
+import static javafx.beans.binding.Bindings.createBooleanBinding;
+
 import java.io.IOException;
 
 import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
 
 import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.ScreenManager;
+import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.backend.Downloader;
+import de.acepe.fritzstreams.backend.Playlist;
 import de.acepe.fritzstreams.backend.StreamInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
@@ -25,11 +28,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 
 public class StreamController extends HBox {
 
     private final ObjectProperty<StreamInfo> stream = new SimpleObjectProperty<>();
     private final InvalidationListener changeIconListener = this::updateDownloadButton;
+    private final InvalidationListener updatePlayListTextListener = this::updatePlayListButton;
 
     @FXML
     private ImageView imageView;
@@ -46,6 +51,7 @@ public class StreamController extends HBox {
     @FXML
     private ProgressBar downloadProgress;
     private ScreenManager screenManager;
+    private Stage playListStage;
 
     public StreamController() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("stream_view.fxml"));
@@ -76,16 +82,17 @@ public class StreamController extends HBox {
         titleProperty().bind(streamInfo.titleProperty());
         subTitleProperty().bind(streamInfo.subtitleProperty());
         imageProperty().bind(streamInfo.imageProperty());
-        downloadButton.disableProperty().bind(streamInfo.initialisedProperty().not());
-        playListButton.disableProperty().bind(streamInfo.initialisedProperty().not());
 
+        downloadButton.disableProperty().bind(streamInfo.initialisedProperty().not());
+        playListButton.disableProperty().bind(streamInfo.initialisedProperty().and(createBooleanBinding(() -> {
+            Playlist playlist = streamInfo.getPlaylist();
+            return playlist != null && !playlist.getEntries().isEmpty();
+        }, streamInfo.initialisedProperty())).not());
+
+        streamInfo.initialisedProperty().addListener(updatePlayListTextListener);
         streamInfo.downloadedFileProperty().addListener(changeIconListener);
         updateDownloadButton(null);
-    }
-
-    private String getButtonText() {
-        StreamInfo streamInfo = stream.get();
-        return streamInfo.isDownloadFinished() ? "Play" : "Download";
+        updatePlayListButton(null);
     }
 
     private void unbindStreamInfo() {
@@ -93,9 +100,11 @@ public class StreamController extends HBox {
         subTitleProperty().unbind();
         imageProperty().unbind();
         downloadButton.disableProperty().unbind();
+        playListButton.disableProperty().unbind();
 
         StreamInfo streamInfo = stream.get();
         streamInfo.downloadedFileProperty().removeListener(changeIconListener);
+        streamInfo.initialisedProperty().removeListener(updatePlayListTextListener);
     }
 
     private void updateDownloadButton(Observable observable) {
@@ -104,7 +113,20 @@ public class StreamController extends HBox {
         } else {
             GlyphsDude.setIcon(downloadButton, MaterialDesignIcon.DOWNLOAD, "1.5em");
         }
-        downloadButton.setText(getButtonText());
+        downloadButton.setText(getDownloadButtonText());
+    }
+
+    private void updatePlayListButton(Observable observable) {
+        playListButton.setText(getPlayListButtonText());
+    }
+
+    private String getDownloadButtonText() {
+        return stream.get().isDownloadFinished() ? "Play" : "Download";
+    }
+
+    private String getPlayListButtonText() {
+        Playlist playlist = stream.get().getPlaylist();
+        return playlist != null && playlist.getEntries().isEmpty() ? "keine Playlist" : "PlayList";
     }
 
     private void bindDownloader() {
@@ -128,10 +150,16 @@ public class StreamController extends HBox {
 
     @FXML
     void onPlayListPerformed() {
+        if (playListStage != null) {
+            playListStage.close();
+            playListStage = null;
+            return;
+        }
         StreamInfo streamInfo = stream.get();
-        screenManager.showScreenInNewStage(Screens.PLAYLIST);
+        playListStage = screenManager.showScreenInNewStage(Screens.PLAYLIST);
         ControlledScreen controller = screenManager.getController(Screens.PLAYLIST);
-        ((PlaylistController)controller).setPlayList(streamInfo.getPlaylist());
+        ((PlaylistController) controller).setPlayList(streamInfo.getPlaylist());
+        playListStage.setOnCloseRequest(event -> playListStage = null);
     }
 
     @FXML
@@ -139,7 +167,7 @@ public class StreamController extends HBox {
         StreamInfo streamInfo = stream.get();
         if (streamInfo.isDownloadFinished()) {
             HostServicesFactory.getInstance(screenManager.getApplication())
-                    .showDocument(stream.get().getDownloadedFile().getAbsolutePath());
+                               .showDocument(stream.get().getDownloadedFile().getAbsolutePath());
             return;
         }
         streamInfo.download();
