@@ -30,7 +30,7 @@
 }
 
 .scroll-pane {
-     -fx-background-color: transparent;
+     -fx-background-color: -acepe-fritz-yellow-bright;
 }
 
 .scroll-pane > .viewport {
