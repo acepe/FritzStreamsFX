@@ -3,8 +3,10 @@ package de.acepe.fritzstreams.backend.vk;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
@@ -80,8 +82,15 @@ public final class VkAudioApi {
     }
 
     public AudioSearchResponse searchAudio(String audioQuery, int limit) {
-        String response = invokeApi("audio.search",
-                                    Params.create().add("q", audioQuery).add("count", String.valueOf(limit)));
+        String response = null;
+        try {
+            response = invokeApi("audio.search",
+                                        Params.create()
+                                              .add("q", URLEncoder.encode(audioQuery, "UTF-8"))
+                                              .add("count", String.valueOf(limit)));
+        } catch (UnsupportedEncodingException e) {
+        LOG.error("Cannot escape URL param-.",e);
+        }
         LOG.debug(response);
 
         Gson g = new Gson();
