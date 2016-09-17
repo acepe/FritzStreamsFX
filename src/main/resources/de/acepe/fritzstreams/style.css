@@ -22,7 +22,6 @@
    -fx-spacing: 10;
 }
 
-
 .grid {
     -fx-padding: 10;
     -fx-hgap: 5;
@@ -227,7 +226,6 @@
     -fx-font-size: 14px;
 }
 
-
 .playlistlistview .scroll-bar:horizontal .track,
 .playlistlistview .scroll-bar:vertical .track {
 	-fx-background-color: -acepe-fritz-yellow;
@@ -236,5 +234,27 @@
 .playlistlistview .scroll-bar:horizontal .thumb,
 .playlistlistview .scroll-bar:vertical .thumb {
     -fx-background-color: #D4AB00;
+}
+
+.result-label {
+    -fx-text-fill: gray;
+    -fx-min-height: 30;
+    -fx-pref-height: 30;
+}
+
+.audio-item-artist {
+    -fx-font-size: 14px;
+    -fx-text-fill: -acepe-fritz-red;
+    -fx-font-weight: bold;
+}
+
+.audio-item-title {
+    -fx-font-size: 14px;
+    -fx-text-fill: -acepe-fritz-red;
+}
+
+.audio-item-duration {
+    -fx-font-size: 12px;
+    -fx-text-fill: gray;
 }
 

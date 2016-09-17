@@ -5,6 +5,7 @@ import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
 import de.acepe.fritzstreams.ControlledScreen;
 import de.acepe.fritzstreams.ListUtils;
 import de.acepe.fritzstreams.ScreenManager;
+import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.backend.PlayListEntry;
 import de.acepe.fritzstreams.backend.Playlist;
 import javafx.beans.binding.Bindings;
@@ -21,6 +22,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
 public class PlaylistController implements ControlledScreen {
@@ -29,6 +31,7 @@ public class PlaylistController implements ControlledScreen {
     private static final String VK_TEMPLATE = "https://vk.com/audio?q=%s";
     private static final String GOOGLE_ITEM_TEMPLATE = "Google nach \"%s\" durchsuchen";
     private static final String VK_ITEM_TEMPLATE = "VKontakte nach \"%s\" durchsuchen";
+    private static final String VK_DOWNLOAD_ITEM_TEMPLATE = "VKontakte Downloader für \"%s\" öffnen\u2026";
     private static final String COPY = "Kopieren";
 
     private final ObservableList<PlayListEntry> entriesList = FXCollections.observableArrayList();
@@ -37,6 +40,7 @@ public class PlaylistController implements ControlledScreen {
     private ListView<PlayListEntry> entriesListView;
     @FXML
     private Label titleLabel;
+
     private ScreenManager screenManager;
 
     @FXML
@@ -64,13 +68,23 @@ public class PlaylistController implements ControlledScreen {
             vkItem.textProperty().bind(Bindings.format(VK_ITEM_TEMPLATE, itemtextProperty));
             vkItem.setOnAction(event -> searchTrack(VK_TEMPLATE, cell.itemProperty()));
 
+            MenuItem vkDownloadItem = new MenuItem();
+            vkDownloadItem.textProperty().bind(Bindings.format(VK_DOWNLOAD_ITEM_TEMPLATE, itemtextProperty));
+            vkDownloadItem.setOnAction(event -> openVkDownloader(itemtextProperty.get()));
+
             ContextMenu contextMenu = new ContextMenu();
-            contextMenu.getItems().addAll(copyItem, googleItem, vkItem);
+            contextMenu.getItems().addAll(copyItem, googleItem, vkItem, vkDownloadItem);
             cell.emptyProperty()
                 .addListener((obs, wasEmpty, isNowEmpty) -> cell.setContextMenu(isNowEmpty ? null : contextMenu));
             return cell;
         });
         ListUtils.installCopyPasteHandler(entriesListView, entryConverter);
+    }
+
+    private void openVkDownloader(String queryText) {
+        Stage downloaderStage = screenManager.showScreenInNewStage(Screens.DOWNLOADER);
+        ControlledScreen controller = screenManager.getController(Screens.DOWNLOADER);
+        ((VKDownloaderController) controller).setSearchText(queryText);
     }
 
     private void searchTrack(String template, ObjectProperty<PlayListEntry> itemProperty) {

@@ -13,6 +13,7 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -29,7 +30,7 @@ import javafx.util.Duration;
 
 public class ScreenManager extends StackPane {
     private static final String APP_TITLE = "Fritz Streams";
-    private final StreamsApplication application;
+    private final Application application;
 
     public enum Direction {
         LEFT, RIGHT, NONE
@@ -42,7 +43,7 @@ public class ScreenManager extends StackPane {
     private final Map<Screens, ControlledScreen> controllers;
     private final Set<Stage> stages = new HashSet<>();
 
-    public ScreenManager(StreamsApplication application) {
+    public ScreenManager(Application application) {
         this.application = application;
         screens = new HashMap<>();
         controllers = new HashMap<>();
@@ -177,7 +178,7 @@ public class ScreenManager extends StackPane {
         return controllers.get(id);
     }
 
-    public StreamsApplication getApplication() {
+    public Application getApplication() {
         return application;
     }
 

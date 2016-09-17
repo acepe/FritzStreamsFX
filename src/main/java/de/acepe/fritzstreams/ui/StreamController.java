@@ -9,9 +9,9 @@ import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
 import de.acepe.fritzstreams.ControlledScreen;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.Screens;
-import de.acepe.fritzstreams.backend.Downloader;
+import de.acepe.fritzstreams.backend.stream.StreamDownloader;
 import de.acepe.fritzstreams.backend.Playlist;
-import de.acepe.fritzstreams.backend.StreamInfo;
+import de.acepe.fritzstreams.backend.stream.StreamInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import javafx.beans.InvalidationListener;
@@ -131,15 +131,15 @@ public class StreamController extends HBox {
 
     private void bindDownloader() {
         StreamInfo streamInfo = stream.get();
-        Downloader downloader = streamInfo.getDownloader();
-        if (downloader == null) {
+        StreamDownloader streamDownloader = streamInfo.getStreamDownloader();
+        if (streamDownloader == null) {
             downloadProgress.setVisible(false);
             return;
         }
-        downloadProgress.progressProperty().bind(downloader.progressProperty());
-        downloadProgress.visibleProperty().bind(downloader.runningProperty());
+        downloadProgress.progressProperty().bind(streamDownloader.progressProperty());
+        downloadProgress.visibleProperty().bind(streamDownloader.runningProperty());
         downloadButton.disableProperty().unbind();
-        downloadButton.disableProperty().bind(downloader.runningProperty());
+        downloadButton.disableProperty().bind(streamDownloader.runningProperty());
     }
 
     private void unbindDownloader() {

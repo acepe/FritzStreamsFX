@@ -2,6 +2,6 @@ package de.acepe.fritzstreams;
 
 public interface ControlledScreen {
 
-    void setScreenManager(ScreenManager screenPage);
+    void setScreenManager(ScreenManager screenManager);
 
 }

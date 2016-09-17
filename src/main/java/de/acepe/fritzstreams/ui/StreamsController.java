@@ -1,7 +1,7 @@
 package de.acepe.fritzstreams.ui;
 
-import static de.acepe.fritzstreams.backend.StreamInfo.Stream.NIGHTFLIGHT;
-import static de.acepe.fritzstreams.backend.StreamInfo.Stream.SOUNDGARDEN;
+import static de.acepe.fritzstreams.backend.stream.StreamInfo.Stream.NIGHTFLIGHT;
+import static de.acepe.fritzstreams.backend.stream.StreamInfo.Stream.SOUNDGARDEN;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -17,7 +17,7 @@ import com.google.common.collect.HashBiMap;
 import de.acepe.fritzstreams.ControlledScreen;
 import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.ScreenManager;
-import de.acepe.fritzstreams.backend.StreamInfo;
+import de.acepe.fritzstreams.backend.stream.StreamInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.beans.property.ObjectProperty;
@@ -140,8 +140,8 @@ public class StreamsController implements ControlledScreen {
     }
 
     private void stopDownload(StreamInfo streamInfo) {
-        if (streamInfo != null && streamInfo.getDownloader() != null) {
-            streamInfo.getDownloader().cancel();
+        if (streamInfo != null && streamInfo.getStreamDownloader() != null) {
+            streamInfo.getStreamDownloader().cancel();
         }
     }
 

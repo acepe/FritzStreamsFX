@@ -8,8 +8,10 @@ import org.slf4j.LoggerFactory;
 
 public class Settings {
 
+    public static final String PREFERENCES_ROOT = "FritzStreams";
+    public static final String APP_ID = "5618524";
+
     private static final Logger LOG = LoggerFactory.getLogger(Settings.class);
-    private static final String NODE = "FritzStreams";
     private static final String DOWNLOAD_PATH = "download-path";
 
     private static Settings instance;
@@ -29,7 +31,7 @@ public class Settings {
     }
 
     private void init() {
-        prefs = Preferences.userRoot().node(NODE);
+        prefs = Preferences.userRoot().node(PREFERENCES_ROOT);
         targetpath = prefs.get(DOWNLOAD_PATH, System.getProperty("user.home"));
     }
 

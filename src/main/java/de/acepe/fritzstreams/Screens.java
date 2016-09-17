@@ -3,7 +3,8 @@ package de.acepe.fritzstreams;
 public enum Screens {
     STREAMS("ui/streams.fxml", "Musikstreams", 630, 430),
     SETTINGS("ui/settings.fxml", "Einstellungen", 630, 430),
-    PLAYLIST("ui/playlist.fxml", "Playlist", 480, 430);
+    PLAYLIST("ui/playlist.fxml", "Playlist", 480, 430),
+    DOWNLOADER("ui/vk_search.fxml", "VK Downloader", 800, 430);
 
     private final String resource;
     private final String title;

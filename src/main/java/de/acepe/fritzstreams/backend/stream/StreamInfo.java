@@ -1,4 +1,4 @@
-package de.acepe.fritzstreams.backend;
+package de.acepe.fritzstreams.backend.stream;
 
 import java.io.*;
 import java.net.URL;
@@ -6,6 +6,7 @@ import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+import de.acepe.fritzstreams.backend.download.Downloadable;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -14,21 +15,22 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+import de.acepe.fritzstreams.backend.Playlist;
+import de.acepe.fritzstreams.backend.Settings;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.scene.image.Image;
 
-public class StreamInfo {
+public class StreamInfo implements Downloadable {
 
     public enum Stream {
         SOUNDGARDEN, NIGHTFLIGHT
     }
 
+    private static final Logger LOG = LoggerFactory.getLogger(StreamInfo.class);
+    private static final Charset UTF8 = Charset.forName("UTF-8");
     private static final DateTimeFormatter TARGET_Date_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter URL_DATE_FORMAT = DateTimeFormatter.ofPattern("ddMM");
-    private static final Charset UTF8 = Charset.forName("UTF-8");
-
-    private static final Logger LOG = LoggerFactory.getLogger(StreamInfo.class);
     private static final String BASE_URL = "http://fritz.de%s";
     private static final String NIGHTFLIGHT_URL = "/livestream/liveplayer_nightflight.htm/day=%s.html";
     private static final String SOUNDGARDEN_URL = "/livestream/liveplayer_soundgarden.htm/day=%s.html";
@@ -52,7 +54,7 @@ public class StreamInfo {
 
     private Playlist playlist;
     private String downloadFileName;
-    private Downloader downloader;
+    private StreamDownloader streamDownloader;
     private Document doc;
     private String streamURL;
 
@@ -165,15 +167,15 @@ public class StreamInfo {
 
     public void download() {
         initializeDownloadFile();
-        downloader = new Downloader(this);
-        downloader.download();
+        streamDownloader = new StreamDownloader(this);
+        streamDownloader.download();
     }
 
-    public Downloader getDownloader() {
-        return downloader;
+    public StreamDownloader getStreamDownloader() {
+        return streamDownloader;
     }
 
-    public String getStreamURL() {
+    public String getDownloadURL() {
         return streamURL;
     }
 
@@ -218,7 +220,7 @@ public class StreamInfo {
         this.downloadedFile.set(downloadedFile);
     }
 
-    public String getDownloadFileName() {
+    public String getTargetFileName() {
         return downloadFileName;
     }
 
