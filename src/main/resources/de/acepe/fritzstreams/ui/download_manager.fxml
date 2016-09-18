@@ -55,16 +55,21 @@
                   </HBox>
                </bottom>
                <center>
-                  <VBox fx:id="resultVBox" BorderPane.alignment="CENTER">
+                  <HBox BorderPane.alignment="CENTER">
                      <children>
-                        <Label text="pending" />
-                        <ListView fx:id="pendingList" maxHeight="1.7976931348623157E308" />
-                        <Label text="running" />
-                        <ListView fx:id="runningList" maxHeight="1.7976931348623157E308" />
-                        <Label text="done" />
-                        <ListView fx:id="doneList" maxHeight="1.7976931348623157E308" />
+                        <VBox fx:id="downloadsVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefWidth="400.0" styleClass="spaced" HBox.hgrow="ALWAYS" />
+                        <VBox fx:id="resultVBox">
+                           <children>
+                              <Label text="pending" />
+                              <ListView fx:id="pendingList" maxHeight="1.7976931348623157E308" />
+                              <Label text="running" />
+                              <ListView fx:id="runningList" maxHeight="1.7976931348623157E308" />
+                              <Label text="done" />
+                              <ListView fx:id="doneList" maxHeight="1.7976931348623157E308" />
+                           </children>
+                        </VBox>
                      </children>
-                  </VBox>
+                  </HBox>
                </center>
             </BorderPane>
          </children>

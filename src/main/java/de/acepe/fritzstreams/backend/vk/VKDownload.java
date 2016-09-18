@@ -18,9 +18,9 @@ public class VKDownload implements Downloadable {
     private final BooleanProperty running = new SimpleBooleanProperty();
     private final IntegerProperty size = new SimpleIntegerProperty();
     private final IntegerProperty downloadedSize = new SimpleIntegerProperty();
+    private final String targetFileName;
 
     private AudioItem audioItem;
-    private String targetFileName;
     private DownloadTask<VKDownload> task;
 
     public VKDownload(AudioItem audioItem) {
@@ -55,6 +55,8 @@ public class VKDownload implements Downloadable {
 
             progressProperty().unbind();
             runningProperty().unbind();
+            progressProperty().setValue(1);
+            runningProperty().setValue(false);
         }
     }
 

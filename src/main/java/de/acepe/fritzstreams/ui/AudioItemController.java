@@ -69,22 +69,9 @@ public class AudioItemController extends VBox {
         durationLabel.textProperty().setValue(String.format("%02d:%02d", (duration % 3600) / 60, (duration % 60)));
     }
 
-    private void unbind() {
-
-    }
-
     public void setAudioItem(AudioItem audioItem) {
-        unbind();
         this.audioItem.set(audioItem);
         bind();
-    }
-
-    public AudioItem getAudioItem() {
-        return audioItem.get();
-    }
-
-    public ObjectProperty<AudioItem> audioItemProperty() {
-        return audioItem;
     }
 
     public void setApplication(Application application) {

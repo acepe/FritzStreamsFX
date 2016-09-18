@@ -15,6 +15,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class VKAudioSearchController implements ControlledScreen {
@@ -37,6 +38,8 @@ public class VKAudioSearchController implements ControlledScreen {
     private VBox resultItemsVBox;
     @FXML
     private ProgressBar downloadProgress;
+    @FXML
+    private HBox downloadsHBox;
 
     private ScreenManager screenManager;
 
@@ -44,7 +47,12 @@ public class VKAudioSearchController implements ControlledScreen {
     void initialize() {
         searchButton.disableProperty().bind(searchTextField.textProperty().isEmpty());
         resultVBox.setVisible(false);
-        downloadProgress.progressProperty().bind(DownloadManager.getInstance().progressProperty());
+        DownloadManager downloadManager = DownloadManager.getInstance();
+        downloadProgress.progressProperty().bind(downloadManager.progressProperty());
+        downloadsHBox.visibleProperty()
+                     .bind(downloadManager.progressProperty()
+                                          .greaterThan(0)
+                                          .and(downloadManager.progressProperty().lessThan(1)));
     }
 
     @FXML

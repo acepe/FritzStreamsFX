@@ -40,7 +40,7 @@
                   </VBox>
                </top>
                <bottom>
-                  <HBox styleClass="spaced" BorderPane.alignment="CENTER">
+                  <HBox fx:id="downloadsHBox" styleClass="spaced" BorderPane.alignment="CENTER">
                      <children>
                         <Label maxHeight="1.7976931348623157E308" text="Downloads">
                            <HBox.margin>

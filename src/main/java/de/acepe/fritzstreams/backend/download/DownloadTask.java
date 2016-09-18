@@ -22,7 +22,8 @@ public class DownloadTask<T extends Downloadable> extends Task<Void> {
     private final Consumer<File> downloadedFileConsumer;
 
     public DownloadTask(T downloadable) {
-        this(downloadable, file -> {/* nop */});
+        this(downloadable, file -> {
+            /* nop */});
     }
 
     public DownloadTask(T downloadable, Consumer<File> downloadedFileConsumer) {
@@ -51,6 +52,7 @@ public class DownloadTask<T extends Downloadable> extends Task<Void> {
                 outstream.write(buffer, 0, len);
             }
             outstream.close();
+            updateProgress(size, size);
         }
         return null;
     }

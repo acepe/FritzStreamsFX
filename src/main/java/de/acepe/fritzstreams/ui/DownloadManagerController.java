@@ -1,11 +1,14 @@
 package de.acepe.fritzstreams.ui;
 
+import java.util.List;
+
 import de.acepe.fritzstreams.ControlledScreen;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.backend.vk.VKDownload;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
-import javafx.beans.binding.Bindings;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -38,6 +41,8 @@ public class DownloadManagerController implements ControlledScreen {
     private Label countLabel;
     @FXML
     private ProgressBar downloadProgress;
+    @FXML
+    private VBox downloadsVBox;
 
     private DownloadManager downloadManager;
 
@@ -55,6 +60,28 @@ public class DownloadManagerController implements ControlledScreen {
         doneLabel.textProperty().bind(downloadManager.doneCountProperty().asString());
         countLabel.textProperty().bind(downloadManager.countProperty().asString());
         downloadProgress.progressProperty().bind(downloadManager.progressProperty());
+
+        ObservableList<VKDownload> downloadList = downloadManager.getDownloadList();
+        populateResultList(downloadList);
+        downloadList.addListener(new ListChangeListener<VKDownload>() {
+            @Override
+            public void onChanged(Change<? extends VKDownload> c) {
+                while (c.next()) {
+                    c.getAddedSubList().forEach(DownloadManagerController.this::addDownloadItem);
+                }
+            }
+        });
+    }
+
+    private void populateResultList(List<VKDownload> downloads) {
+        downloadsVBox.getChildren().clear();
+        downloads.forEach(this::addDownloadItem);
+    }
+
+    private void addDownloadItem(VKDownload download) {
+        DownloadItemController downloadItemController = new DownloadItemController();
+        downloadItemController.setDownload(download);
+        downloadsVBox.getChildren().add(downloadItemController);
     }
 
     @FXML

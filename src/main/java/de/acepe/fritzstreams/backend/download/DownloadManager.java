@@ -24,6 +24,7 @@ public class DownloadManager {
     private static DownloadManager instance;
 
     private final List<DownloadTask<VKDownload>> runningTasks = new ArrayList<>(PARALLEL_DOWNLOADS);
+    private final ObservableList<VKDownload> downloadList = FXCollections.observableArrayList();
     private final ObservableList<VKDownload> pendingList = FXCollections.observableArrayList();
     private final ObservableList<VKDownload> runningList = FXCollections.observableArrayList();
     private final ObservableList<VKDownload> finishedList = FXCollections.observableArrayList();
@@ -44,6 +45,12 @@ public class DownloadManager {
     private DownloadManager() {
         count.bind(size(pendingList).add(size(runningList)).add(size(finishedList)));
         doneCount.bind(size(finishedList));
+    }
+
+    public void addDownload(VKDownload download) {
+        downloadList.add(download);
+        pendingList.add(download);
+        scheduleDownload();
     }
 
     public void startDownloads() {
@@ -70,7 +77,7 @@ public class DownloadManager {
 
         if (!pendingList.isEmpty() && taskToStart != 0) {
             for (int i = 0; i < taskToStart; i++) {
-                VKDownload download = pendingList.get(i);
+                VKDownload download = pendingList.get(pendingDownloads - 1 - i);
                 pendingList.remove(download);
                 runningList.add(download);
 
@@ -121,16 +128,22 @@ public class DownloadManager {
         }
     }
 
-    public void addDownload(VKDownload download) {
-        pendingList.add(download);
-        scheduleDownload();
-    }
-
     public void stopDownloads() {
         running.set(false);
         for (int i = runningTasks.size() - 1; i >= 0; i--) {
             runningTasks.get(i).cancel();
         }
+    }
+
+    public void cancel(VKDownload download) {
+        download.cancel();
+        if (pendingList.contains(download)) {
+            pendingList.remove(download);
+        }
+        if (runningList.contains(download)) {
+            pendingList.remove(download);
+        }
+        downloadList.remove(download);
     }
 
     public ObservableList<VKDownload> getPendingList() {
@@ -159,5 +172,9 @@ public class DownloadManager {
 
     public IntegerProperty countProperty() {
         return count;
+    }
+
+    public ObservableList<VKDownload> getDownloadList() {
+        return downloadList;
     }
 }
