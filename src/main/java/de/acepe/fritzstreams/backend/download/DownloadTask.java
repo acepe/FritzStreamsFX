@@ -14,17 +14,21 @@ import org.slf4j.LoggerFactory;
 import de.acepe.fritzstreams.ui.Dialogs;
 import javafx.concurrent.Task;
 
-public class DownloadTask extends Task<Void> {
+public class DownloadTask<T extends Downloadable> extends Task<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(DownloadTask.class);
 
-    private final Downloadable downloadable;
+    private final T downloadable;
     private final File targetFile;
     private final Consumer<File> downloadedFileConsumer;
 
-    public DownloadTask(Downloadable downloadable, Consumer<File> downloadedFileConsumer) {
+    public DownloadTask(T downloadable) {
+        this(downloadable, file -> {/* nop */});
+    }
+
+    public DownloadTask(T downloadable, Consumer<File> downloadedFileConsumer) {
         this.downloadable = downloadable;
-        targetFile = new File(downloadable.getTargetFileName());
         this.downloadedFileConsumer = downloadedFileConsumer;
+        targetFile = new File(downloadable.getTargetFileName());
     }
 
     @Override
@@ -54,21 +58,25 @@ public class DownloadTask extends Task<Void> {
     @Override
     protected void succeeded() {
         downloadedFileConsumer.accept(targetFile);
+        LOG.info("Download {} completed", downloadable);
     }
 
     @Override
     protected void failed() {
-        LOG.error("Failed to download stream {}", downloadable, getException());
+        LOG.error("Failed to download {}", downloadable, getException());
         Throwable ex = getException();
         Dialogs.showErrorDialog(ex);
     }
 
     @Override
     protected void cancelled() {
-        LOG.info("Download was cancelled, deleting partial download.");
+        LOG.info("Download {} was cancelled, deleting partial download.", downloadable);
         if (targetFile.exists()) {
             targetFile.delete();
         }
     }
 
+    public T getDownloadable() {
+        return downloadable;
+    }
 }

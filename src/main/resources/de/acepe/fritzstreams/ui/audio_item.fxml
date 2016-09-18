@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import java.lang.String?>
+<fx:root styleClass="spaced" type="VBox" xmlns="http://javafx.com/javafx/8.0.101" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <javafx.scene.layout.HBox alignment="CENTER_LEFT" minWidth="100.0">
+            <styleClass>
+                <String fx:value="stream"/>
+                <String fx:value="bordered"/>
+                <String fx:value="spaced"/>
+            </styleClass>
+            <children>
+                <Button fx:id="playButton" alignment="TOP_LEFT" minHeight="-Infinity" minWidth="-Infinity"
+                        mnemonicParsing="false" onAction="#onPlayPerformed" text="Play"/>
+                <Button fx:id="downloadButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false"
+                        onAction="#onDownloadPerformed" text="Download"/>
+                <Label fx:id="artistLabel" minWidth="-Infinity" styleClass="audio-item-artist" text="Artist"/>
+                <Label styleClass="audio-item-title" text="-"/>
+                <Label fx:id="titleLabel" layoutX="169.0" layoutY="20.0" maxWidth="1.7976931348623157E308"
+                       minWidth="100.0" styleClass="audio-item-title" text="title" HBox.hgrow="ALWAYS"/>
+                <Label fx:id="durationLabel" minWidth="-Infinity" styleClass="audio-item-duration" text="2:34"
+                       textAlignment="RIGHT"/>
+            </children>
+        </javafx.scene.layout.HBox>
+    </children>
+</fx:root>

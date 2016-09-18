@@ -1,6 +1,7 @@
 package de.acepe.fritzstreams;
 
-import de.acepe.fritzstreams.ui.VKDownloaderController;
+import de.acepe.fritzstreams.backend.download.DownloadManager;
+import de.acepe.fritzstreams.ui.VKAudioSearchController;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -16,7 +17,8 @@ public class DownloaderApplication extends Application {
 
         screenManager = new ScreenManager(this);
         screenManager.loadScreen(Screens.DOWNLOADER);
-        ((VKDownloaderController) screenManager.getController(Screens.DOWNLOADER)).setSearchText("MIA");
+        screenManager.loadScreen(Screens.DOWNLOAD_MANAGERER);
+        ((VKAudioSearchController) screenManager.getController(Screens.DOWNLOADER)).setSearchText("MIA");
 
         BorderPane root = new BorderPane();
         root.setCenter(screenManager);
@@ -26,7 +28,7 @@ public class DownloaderApplication extends Application {
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
 
         primaryStage.setScene(scene);
-        primaryStage.setX(600);
+        primaryStage.setX(0);
         primaryStage.show();
         primaryStage.setOnCloseRequest((event -> {
             // event.consume();
@@ -34,11 +36,12 @@ public class DownloaderApplication extends Application {
         }));
 
         screenManager.setScreen(startScreen);
+        screenManager.showScreenInNewStage(Screens.DOWNLOAD_MANAGERER);
     }
 
     @Override
     public void stop() throws Exception {
-        // ((StreamsController) screenManager.getController(Screens.STREAMS)).stop();
+        DownloadManager.getInstance().stopDownloads();
         super.stop();
     }
 

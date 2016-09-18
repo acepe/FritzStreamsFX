@@ -2,10 +2,15 @@ package de.acepe.fritzstreams.backend.vk;
 
 import java.io.File;
 
+import com.google.common.base.MoreObjects;
+
+import de.acepe.fritzstreams.FileUtil;
 import de.acepe.fritzstreams.backend.Settings;
+import de.acepe.fritzstreams.backend.download.DownloadTask;
 import de.acepe.fritzstreams.backend.download.Downloadable;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
 import javafx.beans.property.*;
+import javafx.concurrent.WorkerStateEvent;
 
 public class VKDownload implements Downloadable {
 
@@ -16,6 +21,7 @@ public class VKDownload implements Downloadable {
 
     private AudioItem audioItem;
     private String targetFileName;
+    private DownloadTask<VKDownload> task;
 
     public VKDownload(AudioItem audioItem) {
         this.audioItem = audioItem;
@@ -24,7 +30,32 @@ public class VKDownload implements Downloadable {
 
     private String createTargetFileName() {
         String targetpath = Settings.getInstance().getTargetpath();
-        return targetpath + File.separator + audioItem.getArtist() + "-" + audioItem.getTitle() + ".mp3";
+        String filename = audioItem.getArtist() + "-" + audioItem.getTitle();
+        filename = FileUtil.escapeStringAsFilename(filename);
+        return targetpath + File.separator + filename + ".mp3";
+    }
+
+    public void setTask(DownloadTask<VKDownload> task) {
+        this.task = task;
+        running.bind(task.runningProperty());
+        progressProperty().bind(task.progressProperty());
+        task.addEventHandler(WorkerStateEvent.ANY, this::onTaskFinished);
+    }
+
+    public void cancel() {
+        if (task != null) {
+            task.cancel();
+        }
+    }
+
+    private void onTaskFinished(WorkerStateEvent evt) {
+        if (evt.getEventType() == WorkerStateEvent.WORKER_STATE_SUCCEEDED
+            || evt.getEventType() == WorkerStateEvent.WORKER_STATE_CANCELLED
+            || evt.getEventType() == WorkerStateEvent.WORKER_STATE_FAILED) {
+
+            progressProperty().unbind();
+            runningProperty().unbind();
+        }
     }
 
     public DoubleProperty progressProperty() {
@@ -61,4 +92,12 @@ public class VKDownload implements Downloadable {
         return targetFileName;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).add("targetFileName", targetFileName).toString();
+    }
+
+    public DownloadTask<VKDownload> getTask() {
+        return task;
+    }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import de.acepe.fritzstreams.ControlledScreen;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.backend.Settings;
+import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.backend.vk.VkAudioApi;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
 import de.acepe.fritzstreams.backend.vk.model.AudioSearchResponse;
@@ -16,7 +17,7 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
-public class VKDownloaderController implements ControlledScreen {
+public class VKAudioSearchController implements ControlledScreen {
 
     private static final String RESULT_TEMPLATE = "Die Suche hat %d Audio-Dateien gefunden";
 
@@ -36,18 +37,24 @@ public class VKDownloaderController implements ControlledScreen {
     private VBox resultItemsVBox;
     @FXML
     private ProgressBar downloadProgress;
+
     private ScreenManager screenManager;
 
     @FXML
     void initialize() {
         searchButton.disableProperty().bind(searchTextField.textProperty().isEmpty());
         resultVBox.setVisible(false);
+        downloadProgress.progressProperty().bind(DownloadManager.getInstance().progressProperty());
     }
 
     @FXML
     void onSearchPerformed() {
         AudioSearchResponse audioSearchResponse = VkAudioApi.with(Settings.APP_ID, Settings.PREFERENCES_ROOT)
                                                             .searchAudio(searchTextField.getText(), 100);
+        if (audioSearchResponse == null) {
+            return;
+        }
+
         List<AudioItem> foundItems = audioSearchResponse.getItems();
 
         audioItems.clear();

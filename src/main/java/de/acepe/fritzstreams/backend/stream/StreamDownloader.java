@@ -20,7 +20,7 @@ public class StreamDownloader {
     }
 
     public void download() {
-        downloadTask = new DownloadTask(streamInfo, streamInfo::setDownloadedFile);
+        downloadTask = new DownloadTask<>(streamInfo, streamInfo::setDownloadedFile);
 
         progress.bind(downloadTask.progressProperty());
         runningProperty().bind(downloadTask.runningProperty());

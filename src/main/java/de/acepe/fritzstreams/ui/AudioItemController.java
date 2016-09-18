@@ -3,6 +3,9 @@ package de.acepe.fritzstreams.ui;
 import java.io.IOException;
 
 import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
+
+import de.acepe.fritzstreams.backend.download.DownloadManager;
+import de.acepe.fritzstreams.backend.vk.VKDownload;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
 import javafx.application.Application;
 import javafx.beans.property.ObjectProperty;
@@ -29,6 +32,7 @@ public class AudioItemController extends VBox {
     private Label durationLabel;
 
     private Application application;
+    private DownloadManager downloadManager;
 
     public AudioItemController() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("audio_item.fxml"));
@@ -44,17 +48,17 @@ public class AudioItemController extends VBox {
 
     @FXML
     private void initialize() {
+        downloadManager = DownloadManager.getInstance();
     }
 
     @FXML
     void onDownloadPerformed() {
-
+        downloadManager.addDownload(new VKDownload(audioItem.get()));
     }
 
     @FXML
     void onPlayPerformed() {
-        HostServicesFactory.getInstance(application)
-                .showDocument(audioItem.get().getUrl());
+        HostServicesFactory.getInstance(application).showDocument(audioItem.get().getUrl());
     }
 
     private void bind() {

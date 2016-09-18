@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToHeight="true" fitToWidth="true" styleClass="bordered" xmlns="http://javafx.com/javafx/8.0.101" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.VKAudioSearchController">
+   <content>
+      <VBox styleClass="spaced">
+         <children>
+            <HBox styleClass="content-pane">
+               <children>
+                  <Label fx:id="titleLabel" text="VK Downloader">
+                     <styleClass>
+                        <String fx:value="playlist-title" />
+                        <String fx:value="back-button" />
+                     </styleClass>
+                  </Label>
+               </children>
+            </HBox>
+            <BorderPane styleClass="spaced" VBox.vgrow="ALWAYS">
+               <top>
+                  <VBox styleClass="content-pane" BorderPane.alignment="CENTER">
+                     <children>
+                        <HBox styleClass="spaced">
+                           <children>
+                              <Label maxHeight="1.7976931348623157E308" text="Suche" />
+                              <TextField fx:id="searchTextField" onAction="#onSearchPerformed" prefWidth="200.0" />
+                              <Button fx:id="searchButton" mnemonicParsing="false" onAction="#onSearchPerformed" text="Suchen" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </top>
+               <bottom>
+                  <HBox styleClass="spaced" BorderPane.alignment="CENTER">
+                     <children>
+                        <Label maxHeight="1.7976931348623157E308" text="Downloads">
+                           <HBox.margin>
+                              <Insets />
+                           </HBox.margin>
+                        </Label>
+                        <ProgressBar fx:id="downloadProgress" maxWidth="1.7976931348623157E308" progress="0.0" HBox.hgrow="ALWAYS" />
+                     </children>
+                  </HBox>
+               </bottom>
+               <center>
+                  <VBox fx:id="resultVBox" BorderPane.alignment="CENTER">
+                     <children>
+                        <Label fx:id="resultsLabel" alignment="BOTTOM_LEFT" styleClass="result-label" text="Die Suche hat 3 Audio-Dateien gefunden" />
+                        <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                           <content>
+                              <VBox fx:id="resultItemsVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="spaced" />
+                           </content>
+                        </ScrollPane>
+                     </children>
+                  </VBox>
+               </center>
+            </BorderPane>
+         </children>
+      </VBox>
+   </content>
+</ScrollPane>

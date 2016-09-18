@@ -84,7 +84,7 @@ public class PlaylistController implements ControlledScreen {
     private void openVkDownloader(String queryText) {
         Stage downloaderStage = screenManager.showScreenInNewStage(Screens.DOWNLOADER);
         ControlledScreen controller = screenManager.getController(Screens.DOWNLOADER);
-        ((VKDownloaderController) controller).setSearchText(queryText);
+        ((VKAudioSearchController) controller).setSearchText(queryText);
     }
 
     private void searchTrack(String template, ObjectProperty<PlayListEntry> itemProperty) {
