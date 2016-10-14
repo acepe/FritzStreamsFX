@@ -18,7 +18,7 @@ public class DownloaderApplication extends Application {
         screenManager = new ScreenManager(this);
         screenManager.loadScreen(Screens.DOWNLOADER);
         screenManager.loadScreen(Screens.DOWNLOAD_MANAGERER);
-        ((VKAudioSearchController) screenManager.getController(Screens.DOWNLOADER)).setSearchText("MIA");
+        ((VKAudioSearchController) screenManager.getController(Screens.DOWNLOADER)).setSearchText("Primordial");
 
         BorderPane root = new BorderPane();
         root.setCenter(screenManager);
@@ -31,7 +31,6 @@ public class DownloaderApplication extends Application {
         primaryStage.setX(0);
         primaryStage.show();
         primaryStage.setOnCloseRequest((event -> {
-            // event.consume();
             screenManager.closeStages();
         }));
 

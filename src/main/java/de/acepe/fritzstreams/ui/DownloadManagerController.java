@@ -56,7 +56,10 @@ public class DownloadManagerController implements ControlledScreen {
         pendingList.setCellFactory(param -> new DowloadListCell());
         runningList.setCellFactory(param -> new DowloadListCell());
         doneList.setCellFactory(param -> new DowloadListCell());
-        runningLabel.textProperty().bind(downloadManager.runningProperty().asString());
+        runningLabel.textProperty()
+                    .bindBidirectional(downloadManager.runningProperty(),
+                                       new ToStringConverter<>(running -> running ? "aktiv" : "gestoppt"));
+
         doneLabel.textProperty().bind(downloadManager.doneCountProperty().asString());
         countLabel.textProperty().bind(downloadManager.countProperty().asString());
         downloadProgress.progressProperty().bind(downloadManager.progressProperty());

@@ -14,8 +14,8 @@ public class VKTest extends Application {
     public void start(Stage primaryStage) throws Exception {
         // Preferences.userRoot().node(PREFERENCE_NODE).clear();
 
-        AudioSearchResponse audioSearchResponseJson = VkAudioApi.with(APP_ID, PREFERENCE_NODE).searchAudio("Ghost - Square Hammer",
-                                                                                                           100);
+        AudioSearchResponse audioSearchResponseJson = VkAudioApi.with(APP_ID, PREFERENCE_NODE)
+                                                                .searchAudio("Ghost - Square Hammer", 100, false);
         audioSearchResponseJson.getItems().forEach(System.out::println);
         System.exit(0);
     }

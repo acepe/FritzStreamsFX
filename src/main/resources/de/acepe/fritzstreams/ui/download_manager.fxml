@@ -33,6 +33,7 @@
                            <children>
                               <Button fx:id="startButton" mnemonicParsing="false" onAction="#onStartPerformed" text="Start" />
                               <Button fx:id="stopButton" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#onStopPerformed" text="Stop" />
+                              <Label text="Status:" />
                               <Label fx:id="runningLabel" text="stopped" />
                            </children>
                         </HBox>

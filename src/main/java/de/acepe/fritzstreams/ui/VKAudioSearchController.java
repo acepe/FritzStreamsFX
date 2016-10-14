@@ -10,24 +10,25 @@ import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.backend.vk.VkAudioApi;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
 import de.acepe.fritzstreams.backend.vk.model.AudioSearchResponse;
+import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class VKAudioSearchController implements ControlledScreen {
 
     private static final String RESULT_TEMPLATE = "Die Suche hat %d Audio-Dateien gefunden";
-
-    private final List<AudioItem> audioItems = new ArrayList<>();
+    private static final String ARTIST_TITLE = "Künstler und Titel";
+    private static final String ONLY_ARTIST = "nur Künstler";
 
     @FXML
     private Label titleLabel;
     @FXML
     private TextField searchTextField;
+    @FXML
+    private ComboBox<String> searchCategoryCombo;
     @FXML
     private Button searchButton;
     @FXML
@@ -45,6 +46,9 @@ public class VKAudioSearchController implements ControlledScreen {
 
     @FXML
     void initialize() {
+        searchCategoryCombo.setItems(FXCollections.observableArrayList(ARTIST_TITLE, ONLY_ARTIST));
+        searchCategoryCombo.getSelectionModel().select(0);
+
         searchButton.disableProperty().bind(searchTextField.textProperty().isEmpty());
         resultVBox.setVisible(false);
         DownloadManager downloadManager = DownloadManager.getInstance();
@@ -57,20 +61,26 @@ public class VKAudioSearchController implements ControlledScreen {
 
     @FXML
     void onSearchPerformed() {
-        AudioSearchResponse audioSearchResponse = VkAudioApi.with(Settings.APP_ID, Settings.PREFERENCES_ROOT)
-                                                            .searchAudio(searchTextField.getText(), 100);
-        if (audioSearchResponse == null) {
-            return;
-        }
+        boolean performerOnly = searchCategoryCombo.getSelectionModel().getSelectedItem().equals(ONLY_ARTIST);
 
-        List<AudioItem> foundItems = audioSearchResponse.getItems();
+        Task<List<AudioItem>> searchTask = new Task<List<AudioItem>>() {
+            @Override
+            protected List<AudioItem> call() throws Exception {
+                AudioSearchResponse response = VkAudioApi.with(Settings.APP_ID, Settings.PREFERENCES_ROOT)
+                                                         .searchAudio(searchTextField.getText(), 300, performerOnly);
+                if (response == null) {
+                    return new ArrayList<>(0);
+                }
+                return response.getItems();
+            }
+        };
+        searchTask.valueProperty().addListener((observable, oldValue, foundItems) -> {
+            resultVBox.setVisible(true);
+            resultsLabel.setText(String.format(RESULT_TEMPLATE, foundItems.size()));
+            populateResultList(foundItems);
+        });
 
-        audioItems.clear();
-        audioItems.addAll(foundItems);
-
-        resultVBox.setVisible(true);
-        resultsLabel.setText(String.format(RESULT_TEMPLATE, foundItems.size()));
-        populateResultList(foundItems);
+        new Thread(searchTask).start();
     }
 
     private void populateResultList(List<AudioItem> audioItems) {

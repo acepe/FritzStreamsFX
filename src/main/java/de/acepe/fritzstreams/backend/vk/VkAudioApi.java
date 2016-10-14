@@ -81,15 +81,16 @@ public final class VkAudioApi {
         }
     }
 
-    public AudioSearchResponse searchAudio(String audioQuery, int limit) {
+    public AudioSearchResponse searchAudio(String audioQuery, int limit, boolean performerOnly) {
         String response = null;
         try {
             response = invokeApi("audio.search",
-                                        Params.create()
-                                              .add("q", URLEncoder.encode(audioQuery, "UTF-8"))
-                                              .add("count", String.valueOf(limit)));
+                                 Params.create()
+                                       .add("q", URLEncoder.encode(audioQuery, "UTF-8"))
+                                       .add("performer_only", performerOnly ? "1" : "0")
+                                       .add("count", String.valueOf(limit)));
         } catch (UnsupportedEncodingException e) {
-        LOG.error("Cannot escape URL param-.",e);
+            LOG.error("Cannot escape URL param-.", e);
         }
         LOG.debug(response);
 

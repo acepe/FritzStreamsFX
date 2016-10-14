@@ -47,6 +47,7 @@ public class DownloadManager {
     private DownloadManager() {
         count.bind(size(pendingList).add(size(runningList)).add(size(finishedList)));
         doneCount.bind(size(finishedList));
+        running.setValue(true);
     }
 
     public void addDownload(VKDownload download) {
