@@ -6,7 +6,6 @@ import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-import de.acepe.fritzstreams.backend.download.Downloadable;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -17,6 +16,7 @@ import com.google.common.base.MoreObjects;
 
 import de.acepe.fritzstreams.backend.Playlist;
 import de.acepe.fritzstreams.backend.Settings;
+import de.acepe.fritzstreams.backend.download.Downloadable;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.scene.image.Image;
@@ -51,6 +51,8 @@ public class StreamInfo implements Downloadable {
     private final StringProperty subtitle = new SimpleStringProperty();
     private final ObjectProperty<Image> image = new SimpleObjectProperty<>();
     private final ReadOnlyBooleanWrapper initialised = new ReadOnlyBooleanWrapper();
+    private final ObjectProperty<Integer> totalSizeInBytes = new SimpleObjectProperty<>();
+    private final ObjectProperty<Integer> downloadedSizeInBytes = new SimpleObjectProperty<>();
 
     private Playlist playlist;
     private String downloadFileName;
@@ -222,6 +224,32 @@ public class StreamInfo implements Downloadable {
 
     public String getTargetFileName() {
         return downloadFileName;
+    }
+
+    @Override
+    public Integer getTotalSizeInBytes() {
+        return totalSizeInBytes.get();
+    }
+
+    public ObjectProperty<Integer> totalSizeInBytesProperty() {
+        return totalSizeInBytes;
+    }
+
+    @Override
+    public Integer getDownloadedSizeInBytes() {
+        return downloadedSizeInBytes.get();
+    }
+
+    public ObjectProperty<Integer> downloadedSizeInBytesProperty() {
+        return downloadedSizeInBytes;
+    }
+
+    public void setDownloadedSizeInBytes(Integer downloadedSizeInBytes) {
+        this.downloadedSizeInBytes.set(downloadedSizeInBytes);
+    }
+
+    public void setTotalSizeInBytes(Integer sizeInBytes) {
+        this.totalSizeInBytes.set(sizeInBytes);
     }
 
     public boolean isDownloadFinished() {

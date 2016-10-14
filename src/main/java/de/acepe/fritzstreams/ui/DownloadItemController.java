@@ -2,6 +2,7 @@ package de.acepe.fritzstreams.ui;
 
 import java.io.IOException;
 
+import de.acepe.fritzstreams.FileUtil;
 import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.backend.vk.VKDownload;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
@@ -10,6 +11,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
@@ -54,20 +56,16 @@ public class DownloadItemController extends VBox {
         updateCancelButton();
     }
 
-    private void updateCancelButton() {
-        VKDownload vkDownload = download.get();
-        if (vkDownload != null && vkDownload.progressProperty().get() == 1) {
-            GlyphsDude.setIcon(cancelButton, MaterialDesignIcon.CHECK, "1.5em");
-        } else {
-            GlyphsDude.setIcon(cancelButton, FontAwesomeIcon.TIMES_CIRCLE, "1.5em");
-        }
-    }
-
     @FXML
     void onCancelPerformed() {
-        downloadManager.cancel(download.get());
+        VKDownload vkDownload = download.get();
+        if (vkDownload.runningProperty().get()) {
+            downloadManager.cancel(vkDownload);
+        } else if (vkDownload.getState() == WorkerStateEvent.WORKER_STATE_CANCELLED
+                   || vkDownload.getState() == WorkerStateEvent.WORKER_STATE_FAILED) {
+            downloadManager.restart(vkDownload);
+        }
     }
-
 
     public void setDownload(VKDownload download) {
         this.download.set(download);
@@ -75,15 +73,38 @@ public class DownloadItemController extends VBox {
     }
 
     private void bind() {
-        downloadProgress.progressProperty().bind(download.get().progressProperty());
-        cancelButton.disableProperty().bind(downloadProgress.progressProperty().isEqualTo(1));
-        downloadProgress.progressProperty().addListener((observable, oldValue, newValue) -> updateCancelButton());
-        // TODO: bind sizes
+        VKDownload vkDownload = this.download.get();
+        downloadProgress.progressProperty().bind(vkDownload.progressProperty());
+        downloadProgress.visibleProperty().bind(vkDownload.runningProperty());
 
-        AudioItem audioItem = this.download.get().getAudioItem();
+        vkDownload.stateProperty().addListener((observable, oldValue, newValue) -> updateCancelButton());
+        vkDownload.downloadedSizeInBytesProperty()
+                  .addListener((observable, oldValue, newValue) -> updateSizeLabel(newValue, downloadedSizeLabel));
+        vkDownload.totalSizeInBytesProperty()
+                  .addListener((observable, oldValue, newValue) -> updateSizeLabel(newValue, totalSizeLabel));
+
+        AudioItem audioItem = vkDownload.getAudioItem();
         artistLabel.textProperty().setValue(audioItem.getArtist());
         titleLabel.textProperty().setValue(audioItem.getTitle());
-        // durationLabel.textProperty().setValue(String.format("%02d:%02d", (duration % 3600) / 60, (duration % 60)));
     }
 
+    private void updateSizeLabel(Integer newValue, Label sizeLabel) {
+        sizeLabel.setText(newValue == null ? "" : FileUtil.humanReadableBytes(newValue, true));
+    }
+
+    private void updateCancelButton() {
+        VKDownload vkDownload = download.get();
+        if (vkDownload == null) {
+            return;
+        }
+        if (vkDownload.getState() == WorkerStateEvent.WORKER_STATE_SUCCEEDED) {
+            GlyphsDude.setIcon(cancelButton, MaterialDesignIcon.CHECK, "1.5em");
+            cancelButton.setDisable(true);
+        } else if (vkDownload.getState() == WorkerStateEvent.WORKER_STATE_CANCELLED
+                   || vkDownload.getState() == WorkerStateEvent.WORKER_STATE_FAILED) {
+            GlyphsDude.setIcon(cancelButton, MaterialDesignIcon.RELOAD, "1.5em");
+        } else {
+            GlyphsDude.setIcon(cancelButton, FontAwesomeIcon.TIMES_CIRCLE, "1.5em");
+        }
+    }
 }

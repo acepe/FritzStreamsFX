@@ -21,6 +21,8 @@ public class DownloadManager {
     private static final Logger LOG = LoggerFactory.getLogger(DownloadManager.class);
 
     private static final int PARALLEL_DOWNLOADS = 3;
+
+    @SuppressWarnings("StaticNonFinalField")
     private static DownloadManager instance;
 
     private final List<DownloadTask<VKDownload>> runningTasks = new ArrayList<>(PARALLEL_DOWNLOADS);
@@ -58,6 +60,13 @@ public class DownloadManager {
             return;
         }
         running.set(true);
+        scheduleDownload();
+    }
+
+    public void restart(VKDownload vkDownload) {
+        finishedList.remove(vkDownload);
+        pendingList.add(vkDownload);
+        vkDownload.reset();
         scheduleDownload();
     }
 
@@ -123,7 +132,6 @@ public class DownloadManager {
             if (finishedList.size() == count.get()) {
                 progress.setValue(1);
             }
-
             scheduleDownload();
         }
     }
@@ -177,4 +185,5 @@ public class DownloadManager {
     public ObservableList<VKDownload> getDownloadList() {
         return downloadList;
     }
+
 }

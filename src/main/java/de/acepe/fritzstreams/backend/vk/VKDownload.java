@@ -11,13 +11,15 @@ import de.acepe.fritzstreams.backend.download.Downloadable;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
 import javafx.beans.property.*;
 import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventType;
 
 public class VKDownload implements Downloadable {
 
     private final DoubleProperty progress = new SimpleDoubleProperty();
     private final BooleanProperty running = new SimpleBooleanProperty();
-    private final IntegerProperty size = new SimpleIntegerProperty();
-    private final IntegerProperty downloadedSize = new SimpleIntegerProperty();
+    private final ObjectProperty<Integer> sizeInBytes = new SimpleObjectProperty<>();
+    private final ObjectProperty<Integer> downloadedSizeInBytes = new SimpleObjectProperty<>();
+    private final ObjectProperty<EventType> state = new SimpleObjectProperty<>();
     private final String targetFileName;
 
     private AudioItem audioItem;
@@ -38,7 +40,7 @@ public class VKDownload implements Downloadable {
     public void setTask(DownloadTask<VKDownload> task) {
         this.task = task;
         running.bind(task.runningProperty());
-        progressProperty().bind(task.progressProperty());
+        progress.bind(task.progressProperty());
         task.addEventHandler(WorkerStateEvent.ANY, this::onTaskFinished);
     }
 
@@ -48,15 +50,22 @@ public class VKDownload implements Downloadable {
         }
     }
 
+    public void reset() {
+        state.setValue(null);
+        progress.setValue(0);
+        downloadedSizeInBytes.setValue(0);
+    }
+
     private void onTaskFinished(WorkerStateEvent evt) {
+        state.setValue(evt.getEventType());
         if (evt.getEventType() == WorkerStateEvent.WORKER_STATE_SUCCEEDED
             || evt.getEventType() == WorkerStateEvent.WORKER_STATE_CANCELLED
             || evt.getEventType() == WorkerStateEvent.WORKER_STATE_FAILED) {
 
-            progressProperty().unbind();
-            runningProperty().unbind();
-            progressProperty().setValue(1);
-            runningProperty().setValue(false);
+            progress.unbind();
+            progress.setValue(1);
+            running.unbind();
+            running.setValue(false);
         }
     }
 
@@ -68,12 +77,30 @@ public class VKDownload implements Downloadable {
         return running;
     }
 
-    public IntegerProperty sizeProperty() {
-        return size;
+    @Override
+    public Integer getTotalSizeInBytes() {
+        return sizeInBytes.get();
     }
 
-    public IntegerProperty downloadedSizeProperty() {
-        return downloadedSize;
+    public ObjectProperty<Integer> totalSizeInBytesProperty() {
+        return sizeInBytes;
+    }
+
+    public void setTotalSizeInBytes(Integer sizeInBytes) {
+        this.sizeInBytes.set(sizeInBytes);
+    }
+
+    @Override
+    public Integer getDownloadedSizeInBytes() {
+        return downloadedSizeInBytes.get();
+    }
+
+    public ObjectProperty<Integer> downloadedSizeInBytesProperty() {
+        return downloadedSizeInBytes;
+    }
+
+    public void setDownloadedSizeInBytes(Integer downloadedSizeInBytes) {
+        this.downloadedSizeInBytes.set(downloadedSizeInBytes);
     }
 
     public AudioItem getAudioItem() {
@@ -94,12 +121,18 @@ public class VKDownload implements Downloadable {
         return targetFileName;
     }
 
+    public EventType getState() {
+        return state.get();
+    }
+
+    public ObjectProperty<EventType> stateProperty() {
+        return state;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this).add("targetFileName", targetFileName).toString();
     }
 
-    public DownloadTask<VKDownload> getTask() {
-        return task;
-    }
+
 }

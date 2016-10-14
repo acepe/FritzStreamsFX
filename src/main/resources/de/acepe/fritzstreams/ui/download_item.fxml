@@ -17,7 +17,7 @@
                 <String fx:value="spaced" />
             </styleClass>
             <children>
-                <Button fx:id="cancelButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#onCancelPerformed" text="Abbrechen" />
+                <Button fx:id="cancelButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#onCancelPerformed" styleClass="download-item-button" />
             <StackPane maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
                <children>
                   <ProgressBar fx:id="downloadProgress" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" progress="0.0" styleClass="download-progress" />
@@ -26,9 +26,9 @@
                             <Label fx:id="artistLabel" minWidth="-Infinity" styleClass="audio-item-artist" text="Artist" />
                             <Label styleClass="audio-item-title" text="-" />
                             <Label fx:id="titleLabel" maxWidth="1.7976931348623157E308" minWidth="100.0" styleClass="audio-item-title" text="title" HBox.hgrow="ALWAYS" />
-                            <Label fx:id="downloadedSizeLabel" minWidth="-Infinity" styleClass="audio-item-duration" text="1.5 MB" textAlignment="RIGHT" />
+                            <Label fx:id="downloadedSizeLabel" minWidth="-Infinity" styleClass="audio-item-duration" text="-" textAlignment="RIGHT" />
                         <Label minWidth="-Infinity" styleClass="audio-item-duration" text="/" textAlignment="RIGHT" />
-                        <Label fx:id="totalSizeLabel" minWidth="-Infinity" styleClass="audio-item-duration" text="2.5 MB" textAlignment="RIGHT" />
+                        <Label fx:id="totalSizeLabel" minWidth="-Infinity" styleClass="audio-item-duration" text="-" textAlignment="RIGHT" />
                      </children>
                   </HBox>
                </children>

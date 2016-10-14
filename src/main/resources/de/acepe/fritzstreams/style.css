@@ -258,3 +258,23 @@
     -fx-text-fill: gray;
 }
 
+.download-item-button {
+    -fx-padding: 10;
+    -fx-background-color: -acepe-fritz-yellow;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-text-fill: white;
+}
+
+.download-item-button > .glyph-icon {
+    -fx-fill: rgba(0,0,0,0.4);
+}
+
+.download-item-button:hover {
+    -fx-background-color: derive(-acepe-fritz-yellow, +30%);
+}
+
+.download-item-button:pressed {
+    -fx-background-color: derive(-acepe-fritz-yellow, -10%);
+}
+

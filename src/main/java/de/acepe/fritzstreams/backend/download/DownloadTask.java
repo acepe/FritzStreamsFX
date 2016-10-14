@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.acepe.fritzstreams.ui.Dialogs;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 
 public class DownloadTask<T extends Downloadable> extends Task<Void> {
@@ -38,6 +39,7 @@ public class DownloadTask<T extends Downloadable> extends Task<Void> {
         try (InputStream is = connection.getInputStream(); OutputStream outstream = new FileOutputStream(targetFile)) {
 
             int size = connection.getContentLength();
+            Platform.runLater(() -> downloadable.setTotalSizeInBytes(size));
             updateProgress(0, size);
 
             byte[] buffer = new byte[4096];
@@ -48,25 +50,25 @@ public class DownloadTask<T extends Downloadable> extends Task<Void> {
                     break;
                 }
                 downloadedSum += len;
+                int finalDownloadedSum = downloadedSum;
+                Platform.runLater(() -> downloadable.setDownloadedSizeInBytes(finalDownloadedSum));
                 updateProgress(downloadedSum, size);
                 outstream.write(buffer, 0, len);
             }
-            outstream.close();
-            updateProgress(size, size);
         }
         return null;
     }
 
     @Override
     protected void succeeded() {
-        downloadedFileConsumer.accept(targetFile);
         LOG.info("Download {} completed", downloadable);
+        downloadedFileConsumer.accept(targetFile);
     }
 
     @Override
     protected void failed() {
-        LOG.error("Failed to download {}", downloadable, getException());
         Throwable ex = getException();
+        LOG.error("Failed to download {}", downloadable, ex);
         Dialogs.showErrorDialog(ex);
     }
 
