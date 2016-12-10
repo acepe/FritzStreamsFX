@@ -1,12 +1,30 @@
 package de.acepe.fritzstreams;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javafx.application.Platform;
 
 public class FileUtil {
 
     private static final Pattern PATTERN = Pattern.compile("[^A-Za-z0-9_\\-. ]");
     private static final int MAX_LENGTH = 127;
+
+    private static final String OS_NAME = System.getProperty("os.name");
+    private static final String _OS_NAME = OS_NAME.toLowerCase(Locale.US);
+    private static final boolean isWindows = _OS_NAME.startsWith("windows");
+    private static final boolean isLinux = _OS_NAME.startsWith("linux");
+    private static final Logger LOG = LoggerFactory.getLogger(FileUtil.class);
+
+    private static Boolean hasXdgOpen() {
+        return new File("/usr/bin/xdg-open").canExecute();
+    }
 
     private FileUtil() {
     }
@@ -26,6 +44,22 @@ public class FileUtil {
         // Truncate the string.
         int end = Math.min(encoded.length(), MAX_LENGTH);
         return encoded.substring(0, end);
+    }
+
+    public static void doOpen(File file) {
+        Platform.runLater(() -> {
+            try {
+                if (isWindows) {
+                    ProcessBuilder pb = new ProcessBuilder("explorer", file.getAbsolutePath());
+                    Process p = pb.start();
+                } else if (hasXdgOpen()) {
+                    ProcessBuilder pb = new ProcessBuilder("/usr/bin/xdg-open", file.getAbsolutePath());
+                    Process p = pb.start();
+                }
+            } catch (IOException e) {
+                LOG.error("Couldn't open {}", file, e);
+            }
+        });
     }
 
     /**

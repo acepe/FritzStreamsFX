@@ -4,13 +4,12 @@ import static javafx.beans.binding.Bindings.createBooleanBinding;
 
 import java.io.IOException;
 
-import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
-
 import de.acepe.fritzstreams.ControlledScreen;
+import de.acepe.fritzstreams.FileUtil;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.Screens;
-import de.acepe.fritzstreams.backend.stream.StreamDownloader;
 import de.acepe.fritzstreams.backend.Playlist;
+import de.acepe.fritzstreams.backend.stream.StreamDownloader;
 import de.acepe.fritzstreams.backend.stream.StreamInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
@@ -166,8 +165,7 @@ public class StreamController extends HBox {
     void onDownloadPerformed() {
         StreamInfo streamInfo = stream.get();
         if (streamInfo.isDownloadFinished()) {
-            HostServicesFactory.getInstance(screenManager.getApplication())
-                               .showDocument(stream.get().getDownloadedFile().getAbsolutePath());
+            FileUtil.doOpen(stream.get().getDownloadedFile());
             return;
         }
         streamInfo.download();

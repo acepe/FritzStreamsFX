@@ -6,6 +6,8 @@ import de.acepe.fritzstreams.ControlledScreen;
 import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.backend.Settings;
+import de.jensd.fx.glyphs.GlyphsDude;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -17,7 +19,7 @@ public class SettingsController implements ControlledScreen {
     @FXML
     private Label settingsLabel;
     @FXML
-    private Button saveSettingsButton;
+    private Button backButton;
     @FXML
     private Button changeDownloadLocationButton;
     @FXML
@@ -29,6 +31,8 @@ public class SettingsController implements ControlledScreen {
     @FXML
     private void initialize() {
         settings = Settings.getInstance();
+        GlyphsDude.setIcon(backButton, FontAwesomeIcon.CHEVRON_LEFT, "1.5em");
+
         downloadLocationTextfield.setText(settings.getTargetpath());
         downloadLocationTextfield.setEditable(false);
     }

@@ -81,18 +81,13 @@
 }
 
 .square-button{
-    -fx-min-height: 51;
-    -fx-pref-width: 51;
-    -fx-pref-height: 51;
-}
-
-.back-button{
-    -fx-min-height: 51;
-    -fx-pref-height: 51;
+    -fx-min-height: 50;
+    -fx-pref-width: 50;
+    -fx-pref-height: 50;
 }
 
 .day-button {
-    -fx-padding: 10;
+    -fx-padding: 5;
     -fx-background-color: -acepe-fritz-red;
     -fx-font-weight: bold;
     -fx-font-size: 16px;
@@ -100,7 +95,7 @@
 }
 
 .day-button:hover {
-    -fx-background-color: derive(-acepe-fritz-red, -10%);
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 0);
 }
 
 .day-button:disabled {
@@ -141,8 +136,31 @@
     -fx-background-color: derive(-acepe-fritz-yellow, -10%);
 }
 
+.image-button {
+    -fx-background-color: transparent;
+    -fx-padding: 2;
+}
+
+
+.back-button {
+    -fx-padding: 2;
+    -fx-font-size: 16px;
+}
+
+.back-button > .glyph-icon {
+    -fx-fill: rgba(0,0,0,0.4);
+}
+
+.back-button:hover > .glyph-icon{
+    -fx-fill: rgba(0,0,0,0.6);
+}
+
+.back-button:pressed > .glyph-icon{
+    -fx-fill: rgba(0,0,0,0.6);
+}
+
 .download-button {
-    -fx-min-height: 30;
+    -fx-min-height: 35;
     -fx-padding: 8;
     -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -10%);
     -fx-background-insets: 0, 1;
@@ -156,8 +174,7 @@
 }
 
 .download-button:hover {
-    -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -8%);
-    -fx-background-insets: 0, 2;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 0);
 }
 
 .download-button:pressed {
