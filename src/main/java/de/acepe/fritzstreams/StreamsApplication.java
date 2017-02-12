@@ -26,7 +26,7 @@ public class StreamsApplication extends Application {
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
 
         primaryStage.setScene(scene);
-        primaryStage.setX(600);
+        primaryStage.setX(0);
         primaryStage.show();
         primaryStage.setOnCloseRequest((event -> {
             // event.consume();

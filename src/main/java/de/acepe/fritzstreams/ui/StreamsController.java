@@ -5,10 +5,7 @@ import static de.acepe.fritzstreams.backend.stream.StreamInfo.Stream.SOUNDGARDEN
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.BiMap;
@@ -105,7 +102,7 @@ public class StreamsController implements ControlledScreen {
     private Void initStreams(Task<Void> task) {
         Collection<LocalDate> values = toggleDayMap.values()
                                                    .stream()
-                                                   .sorted((o1, o2) -> o2.compareTo(o1))
+                                                   .sorted(Comparator.reverseOrder())
                                                    .collect(Collectors.toList());
 
         for (LocalDate day : values) {

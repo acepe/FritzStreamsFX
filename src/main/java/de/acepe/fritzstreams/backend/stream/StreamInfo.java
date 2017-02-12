@@ -33,7 +33,7 @@ public class StreamInfo implements Downloadable {
     private static final DateTimeFormatter URL_DATE_FORMAT = DateTimeFormatter.ofPattern("ddMM");
     private static final String BASE_URL = "http://fritz.de%s";
     private static final String NIGHTFLIGHT_URL = "/livestream/liveplayer_nightflight.htm/day=%s.html";
-    private static final String SOUNDGARDEN_URL = "/livestream/liveplayer_soundgarden.htm/day=%s.html";
+    private static final String SOUNDGARDEN_URL = "/livestream/liveplayer_bestemusik.htm/day=%s.html";
     private static final String TITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > h3 > a > span";
     private static final String SUBTITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > div > p";
     private static final String DOWNLOAD_SELECTOR = "#main > article > div.teaserboxgroup.first.count1.odd.layoutstandard.layouthalf_2_4 > section > article.manualteaser.last.count2.even.layoutmusikstream.layoutbeitrag_av_nur_av.doctypeteaser > div";
@@ -67,25 +67,29 @@ public class StreamInfo implements Downloadable {
     }
 
     public void init() {
-        String contentURL = buildURL();
         try {
-            doc = Jsoup.connect(contentURL).timeout(10000).data("query", "Java").userAgent("Mozilla").get();
-        } catch (IOException e) {
-            LOG.error("Init stream failed: " + e);
-            return;
-        }
-        image.setValue(new Image(extractImageUrl(IMAGE_SELECTOR)));
+            String contentURL = buildURL();
+            try {
+                doc = Jsoup.connect(contentURL).timeout(10000).userAgent("Mozilla").get();
+            } catch (IOException e) {
+                LOG.error("Init stream failed: " + e);
+                return;
+            }
+            image.setValue(new Image(extractImageUrl(IMAGE_SELECTOR)));
 
-        streamURL = extractDownloadURL();
-        String title = extractTitle(TITLE_SELECTOR);
-        String subtitle = extractTitle(SUBTITLE_SELECTOR);
-        playlist = new Playlist(title, streamURL(extractProgrammUrl()));
-        Platform.runLater(() -> {
-            this.title.setValue(title);
-            this.subtitle.setValue(subtitle);
-            initializeDownloadFile();
-            initialised.setValue(streamURL != null);
-        });
+            streamURL = extractDownloadURL();
+            String title = extractTitle(TITLE_SELECTOR);
+            String subtitle = extractTitle(SUBTITLE_SELECTOR);
+            playlist = new Playlist(title, streamURL(extractProgrammUrl()));
+            Platform.runLater(() -> {
+                this.title.setValue(title);
+                this.subtitle.setValue(subtitle);
+                initializeDownloadFile();
+                initialised.setValue(streamURL != null);
+            });
+        } catch (Exception e) {
+            LOG.error("Init Stream {} {} failed", stream, date, e);
+        }
     }
 
     private void initializeDownloadFile() {
