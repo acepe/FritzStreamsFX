@@ -4,6 +4,9 @@ import static javafx.beans.binding.Bindings.createBooleanBinding;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.acepe.fritzstreams.ControlledScreen;
 import de.acepe.fritzstreams.FileUtil;
 import de.acepe.fritzstreams.ScreenManager;
@@ -30,6 +33,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 public class StreamController extends HBox {
+    private static final Logger LOG = LoggerFactory.getLogger(StreamController.class);
 
     private final ObjectProperty<StreamInfo> stream = new SimpleObjectProperty<>();
     private final InvalidationListener changeIconListener = this::updateDownloadButton;
@@ -165,9 +169,11 @@ public class StreamController extends HBox {
     void onDownloadPerformed() {
         StreamInfo streamInfo = stream.get();
         if (streamInfo.isDownloadFinished()) {
+            LOG.info("Opening finished Download {}", streamInfo);
             FileUtil.doOpen(stream.get().getDownloadedFile());
             return;
         }
+        LOG.info("Starting Download {}", streamInfo);
         streamInfo.download();
         bindDownloader();
     }

@@ -4,6 +4,8 @@ import static de.acepe.fritzstreams.backend.stream.StreamInfo.Stream.NIGHTFLIGHT
 import static de.acepe.fritzstreams.backend.stream.StreamInfo.Stream.SOUNDGARDEN;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,8 +14,8 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
 import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.ScreenManager;
+import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.backend.stream.StreamInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -30,7 +32,7 @@ import javafx.scene.layout.VBox;
 
 public class StreamsController implements ControlledScreen {
 
-    private static final int DAYS_PAST = 6;
+    private static final int DAYS_PAST = 7;
     private static final DateTimeFormatter DAY_OF_WEEK = DateTimeFormatter.ofPattern("E").withLocale(Locale.GERMANY);
 
     private final BiMap<ToggleButton, LocalDate> toggleDayMap = HashBiMap.create();
@@ -99,6 +101,14 @@ public class StreamsController implements ControlledScreen {
         selectedDay.setValue(startDay);
     }
 
+    private boolean isTodayBeforeSoundgardenRelease(LocalDate date) {
+        LocalDateTime todayAt2200InGermanTime = LocalDateTime.now(ZoneId.of("Europe/Berlin"))
+                                                             .withHour(22)
+                                                             .withMinute(0);
+        LocalDateTime nowInGermanTime = LocalDateTime.now(ZoneId.of("Europe/Berlin"));
+        return date.isEqual(LocalDate.now()) && nowInGermanTime.isBefore(todayAt2200InGermanTime);
+    }
+
     private Void initStreams(Task<Void> task) {
         Collection<LocalDate> values = toggleDayMap.values()
                                                    .stream()
@@ -109,8 +119,10 @@ public class StreamsController implements ControlledScreen {
             if (task.isCancelled()) {
                 return null;
             }
-            StreamInfo soundgarden = soundgardenStreamMap.get(day);
-            soundgarden.init();
+            if (!isTodayBeforeSoundgardenRelease(day)) {
+                StreamInfo soundgarden = soundgardenStreamMap.get(day);
+                soundgarden.init();
+            }
             StreamInfo nightflight = nightflightStreamMap.get(day);
             nightflight.init();
 

@@ -9,15 +9,20 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-
-  <ScrollPane fitToHeight="true" fitToWidth="true" styleClass="bordered" xmlns="http://javafx.com/javafx/8.0.101" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.StreamsController">
+<ScrollPane fitToHeight="true" fitToWidth="true" styleClass="bordered" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.StreamsController">
       <content>
           <VBox fx:id="streamView" styleClass="spaced">
               <HBox alignment="CENTER_LEFT" prefHeight="70.0" styleClass="content-pane">
-                  <ToggleButton disable="true" text="Mo">
-                      <toggleGroup>
+            <ToggleButton disable="true" text="So">
+               <styleClass>
+                  <String fx:value="day-button" />
+                  <String fx:value="square-button" />
+               </styleClass>
+               <toggleGroup>
                           <ToggleGroup fx:id="daysToggleGroup" />
-                      </toggleGroup>
+               </toggleGroup>
+            </ToggleButton>
+                  <ToggleButton disable="true" text="Mo" toggleGroup="$daysToggleGroup">
                       <styleClass>
                           <String fx:value="day-button" />
                           <String fx:value="square-button" />
