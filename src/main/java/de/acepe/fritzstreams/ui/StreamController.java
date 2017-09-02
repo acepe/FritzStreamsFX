@@ -85,17 +85,24 @@ public class StreamController extends HBox {
     }
 
     private void configurePlayMenu() {
-        MenuItem playExternalMenuItem = new MenuItem("Mit Standard-Player Abspielen");
+        MenuItem playExternalMenuItem = new MenuItem("Mit Standard-Player abspielen");
         playExternalMenuItem.setOnAction(event -> play(true));
 
         MenuItem playInternalMenuItem = new MenuItem("Abspielen");
         playInternalMenuItem.setOnAction(event -> play(false));
 
-        MenuItem deleteDownloadMenuItem = new MenuItem("Download Löschen");
+        MenuItem openFolderMenuItem = new MenuItem("Ordner öffnen");
+        openFolderMenuItem.setOnAction(event -> open());
+
+        MenuItem deleteDownloadMenuItem = new MenuItem("Download löschen");
         deleteDownloadMenuItem.setOnAction(event -> delete());
 
-        playButton.getItems()
-                  .addAll(playInternalMenuItem, playExternalMenuItem, new SeparatorMenuItem(), deleteDownloadMenuItem);
+        playButton.getItems().addAll(playInternalMenuItem,
+                                     playExternalMenuItem,
+                                     new SeparatorMenuItem(),
+                                     openFolderMenuItem,
+                                     new SeparatorMenuItem(),
+                                     deleteDownloadMenuItem);
     }
 
     private void bindStreamInfo() {
@@ -199,6 +206,16 @@ public class StreamController extends HBox {
         } else {
             Player.getInstance().currentFileProperty().setValue(downloadedFile.toPath());
         }
+    }
+
+    private void open() {
+        StreamInfo streamInfo = stream.get();
+        if (!streamInfo.isDownloadFinished()) {
+            return;
+        }
+        LOG.info("Opening download folder {}", streamInfo);
+        File downloadedFile = stream.get().getDownloadedFile();
+        FileUtil.doOpenFolder(downloadedFile);
     }
 
     private void delete() {

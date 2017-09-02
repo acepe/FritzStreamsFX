@@ -62,6 +62,10 @@ public class FileUtil {
         });
     }
 
+    public static void doOpenFolder(File downloadedFile) {
+        doOpen(downloadedFile.getParentFile());
+    }
+
     public static void delete(File file) {
         file.delete();
     }
@@ -96,5 +100,6 @@ public class FileUtil {
         // Return a human readable String
         return String.format("%.2f %sB", newBytes, prefix);
     }
+
 
 }
