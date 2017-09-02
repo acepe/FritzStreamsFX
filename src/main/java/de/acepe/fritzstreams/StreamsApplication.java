@@ -17,6 +17,7 @@ public class StreamsApplication extends Application {
         screenManager = new ScreenManager(this);
         screenManager.loadScreen(Screens.SETTINGS);
         screenManager.loadScreen(Screens.STREAMS);
+        screenManager.loadScreen(Screens.PLAYER);
 
         BorderPane root = new BorderPane();
         root.setCenter(screenManager);
@@ -38,7 +39,8 @@ public class StreamsApplication extends Application {
 
     @Override
     public void stop() throws Exception {
-        ((StreamsController) screenManager.getController(Screens.STREAMS)).stop();
+        StreamsController streamsController = screenManager.getController(Screens.STREAMS);
+        streamsController.stop();
         super.stop();
     }
 

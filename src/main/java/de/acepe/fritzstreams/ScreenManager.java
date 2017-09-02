@@ -53,11 +53,11 @@ public class ScreenManager extends StackPane {
         return screens.get(name);
     }
 
-    public boolean loadScreen(Screens screen) {
+    public <T extends ControlledScreen> boolean loadScreen(Screens screen) {
         try {
             FXMLLoader myLoader = new FXMLLoader(getClass().getResource(screen.getResource()));
             Parent screenView = myLoader.load();
-            ControlledScreen myScreenControler = myLoader.getController();
+            T myScreenControler = myLoader.getController();
             controllers.put(screen, myScreenControler);
             screens.put(screen, screenView);
 
@@ -174,8 +174,9 @@ public class ScreenManager extends StackPane {
         stages.forEach(Stage::close);
     }
 
-    public ControlledScreen getController(Screens id) {
-        return controllers.get(id);
+    @SuppressWarnings("unchecked")
+    public <T extends ControlledScreen> T getController(Screens id) {
+        return (T) controllers.get(id);
     }
 
     public Application getApplication() {

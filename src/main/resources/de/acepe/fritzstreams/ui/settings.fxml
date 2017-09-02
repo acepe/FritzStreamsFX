@@ -39,7 +39,7 @@
                         <GridPane>
                           <columnConstraints>
                             <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="-Infinity" />
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="-Infinity" />
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="-Infinity" />
                               <ColumnConstraints hgrow="SOMETIMES" minWidth="-Infinity" />
                           </columnConstraints>
                           <rowConstraints>

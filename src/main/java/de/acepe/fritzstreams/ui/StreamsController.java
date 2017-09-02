@@ -50,11 +50,17 @@ public class StreamsController implements ControlledScreen {
     private VBox streamList;
     @FXML
     private Button settingsButton;
+    @FXML
+    private VBox playerControlsContainer;
 
     private ScreenManager screenManager;
+    private PlayerController playerController;
 
     @FXML
     private void initialize() {
+        playerController = new PlayerController();
+        playerControlsContainer.getChildren().addAll(playerController);
+
         soundgardenView = new StreamController();
         nightflightView = new StreamController();
 

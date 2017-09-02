@@ -3,7 +3,7 @@ package de.acepe.fritzstreams.ui;
 import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
 
 import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.ListUtils;
+import de.acepe.fritzstreams.util.ListUtils;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.backend.PlayListEntry;

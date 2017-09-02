@@ -2,18 +2,20 @@ package de.acepe.fritzstreams.ui;
 
 import static javafx.beans.binding.Bindings.createBooleanBinding;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.FileUtil;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.Screens;
+import de.acepe.fritzstreams.backend.Player;
 import de.acepe.fritzstreams.backend.Playlist;
 import de.acepe.fritzstreams.backend.stream.StreamDownloader;
 import de.acepe.fritzstreams.backend.stream.StreamInfo;
+import de.acepe.fritzstreams.util.FileUtil;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import javafx.beans.InvalidationListener;
@@ -23,9 +25,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -36,7 +36,6 @@ public class StreamController extends HBox {
     private static final Logger LOG = LoggerFactory.getLogger(StreamController.class);
 
     private final ObjectProperty<StreamInfo> stream = new SimpleObjectProperty<>();
-    private final InvalidationListener changeIconListener = this::updateDownloadButton;
     private final InvalidationListener updatePlayListTextListener = this::updatePlayListButton;
 
     @FXML
@@ -49,6 +48,8 @@ public class StreamController extends HBox {
     private StackPane downloadStackPane;
     @FXML
     private Button playListButton;
+    @FXML
+    private SplitMenuButton playButton;
     @FXML
     private Button downloadButton;
     @FXML
@@ -77,6 +78,24 @@ public class StreamController extends HBox {
             bindStreamInfo();
             bindDownloader();
         });
+        GlyphsDude.setIcon(downloadButton, MaterialDesignIcon.DOWNLOAD, "1.5em");
+        GlyphsDude.setIcon(playButton, MaterialDesignIcon.PLAY, "1.5em");
+
+        configurePlayMenu();
+    }
+
+    private void configurePlayMenu() {
+        MenuItem playExternalMenuItem = new MenuItem("Mit Standard-Player Abspielen");
+        playExternalMenuItem.setOnAction(event -> play(true));
+
+        MenuItem playInternalMenuItem = new MenuItem("Abspielen");
+        playInternalMenuItem.setOnAction(event -> play(false));
+
+        MenuItem deleteDownloadMenuItem = new MenuItem("Download Löschen");
+        deleteDownloadMenuItem.setOnAction(event -> delete());
+
+        playButton.getItems()
+                  .addAll(playInternalMenuItem, playExternalMenuItem, new SeparatorMenuItem(), deleteDownloadMenuItem);
     }
 
     private void bindStreamInfo() {
@@ -87,14 +106,18 @@ public class StreamController extends HBox {
         imageProperty().bind(streamInfo.imageProperty());
 
         downloadButton.disableProperty().bind(streamInfo.initialisedProperty().not());
-        playListButton.disableProperty().bind(streamInfo.initialisedProperty().and(createBooleanBinding(() -> {
+        downloadButton.visibleProperty()
+                      .bind(streamInfo.initialisedProperty().and(streamInfo.downloadedFileProperty().isNull()));
+        playButton.visibleProperty()
+                  .bind(streamInfo.initialisedProperty().and(streamInfo.downloadedFileProperty().isNotNull()));
+
+        playListButton.visibleProperty().bind(streamInfo.initialisedProperty().and(createBooleanBinding(() -> {
             Playlist playlist = streamInfo.getPlaylist();
             return playlist != null && !playlist.getEntries().isEmpty();
-        }, streamInfo.initialisedProperty())).not());
+        }, streamInfo.initialisedProperty())));
 
         streamInfo.initialisedProperty().addListener(updatePlayListTextListener);
-        streamInfo.downloadedFileProperty().addListener(changeIconListener);
-        updateDownloadButton(null);
+
         updatePlayListButton(null);
     }
 
@@ -106,25 +129,11 @@ public class StreamController extends HBox {
         playListButton.disableProperty().unbind();
 
         StreamInfo streamInfo = stream.get();
-        streamInfo.downloadedFileProperty().removeListener(changeIconListener);
         streamInfo.initialisedProperty().removeListener(updatePlayListTextListener);
-    }
-
-    private void updateDownloadButton(Observable observable) {
-        if (stream.get().isDownloadFinished()) {
-            GlyphsDude.setIcon(downloadButton, MaterialDesignIcon.PLAY, "1.5em");
-        } else {
-            GlyphsDude.setIcon(downloadButton, MaterialDesignIcon.DOWNLOAD, "1.5em");
-        }
-        downloadButton.setText(getDownloadButtonText());
     }
 
     private void updatePlayListButton(Observable observable) {
         playListButton.setText(getPlayListButtonText());
-    }
-
-    private String getDownloadButtonText() {
-        return stream.get().isDownloadFinished() ? "Play" : "Download";
     }
 
     private String getPlayListButtonText() {
@@ -168,14 +177,43 @@ public class StreamController extends HBox {
     @FXML
     void onDownloadPerformed() {
         StreamInfo streamInfo = stream.get();
-        if (streamInfo.isDownloadFinished()) {
-            LOG.info("Opening finished Download {}", streamInfo);
-            FileUtil.doOpen(stream.get().getDownloadedFile());
-            return;
-        }
         LOG.info("Starting Download {}", streamInfo);
         streamInfo.download();
         bindDownloader();
+    }
+
+    @FXML
+    void onPlayPerformed() {
+        play(false);
+    }
+
+    private void play(boolean external) {
+        StreamInfo streamInfo = stream.get();
+        if (!streamInfo.isDownloadFinished()) {
+            return;
+        }
+        LOG.info("Opening finished Download {}", streamInfo);
+        File downloadedFile = stream.get().getDownloadedFile();
+        if (external) {
+            FileUtil.doOpen(downloadedFile);
+        } else {
+            Player.getInstance().currentFileProperty().setValue(downloadedFile.toPath());
+        }
+    }
+
+    private void delete() {
+        StreamInfo streamInfo = stream.get();
+        if (!streamInfo.isDownloadFinished()) {
+            return;
+        }
+        LOG.info("Deleting Download {}", streamInfo);
+        File downloadedFile = stream.get().getDownloadedFile();
+
+        Player player = Player.getInstance();
+        player.removePlaylistEntry(downloadedFile.toPath());
+
+        FileUtil.delete(downloadedFile);
+        streamInfo.downloadedFileProperty().setValue(null);
     }
 
     public StringProperty titleProperty() {

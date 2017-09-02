@@ -1,4 +1,4 @@
-package de.acepe.fritzstreams;
+package de.acepe.fritzstreams.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,6 +62,10 @@ public class FileUtil {
         });
     }
 
+    public static void delete(File file) {
+        file.delete();
+    }
+
     /**
      * Convert bytes in a human readable format.
      *
@@ -92,4 +96,5 @@ public class FileUtil {
         // Return a human readable String
         return String.format("%.2f %sB", newBytes, prefix);
     }
+
 }

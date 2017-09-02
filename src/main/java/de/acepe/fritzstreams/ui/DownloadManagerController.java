@@ -7,6 +7,7 @@ import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.backend.vk.VKDownload;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
+import de.acepe.fritzstreams.util.ToStringConverter;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;

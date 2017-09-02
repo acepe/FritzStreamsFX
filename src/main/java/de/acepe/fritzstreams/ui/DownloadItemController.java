@@ -2,7 +2,7 @@ package de.acepe.fritzstreams.ui;
 
 import java.io.IOException;
 
-import de.acepe.fritzstreams.FileUtil;
+import de.acepe.fritzstreams.util.FileUtil;
 import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.backend.vk.VKDownload;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;

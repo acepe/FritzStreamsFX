@@ -1,8 +1,9 @@
 package de.acepe.fritzstreams;
 
 public enum Screens {
-    STREAMS("ui/streams.fxml", "Musikstreams", 630, 430),
+    STREAMS("ui/streams.fxml", "Musikstreams", 630, 505),
     SETTINGS("ui/settings.fxml", "Einstellungen", 630, 430),
+    PLAYER("ui/mp3_player.fxml", "Player", 630, 430),
     PLAYLIST("ui/playlist.fxml", "Playlist", 480, 430),
     DOWNLOADER("ui/vk_audio_search.fxml", "VK Downloader", 800, 930),
     DOWNLOAD_MANAGERER("ui/download_manager.fxml", "Download Manager", 900, 800);

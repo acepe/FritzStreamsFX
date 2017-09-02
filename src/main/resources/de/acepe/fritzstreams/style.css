@@ -4,8 +4,8 @@
     -acepe-fritz-yellow-bright: #FEED00;
     -acepe-fritz-yellow-dark: #FEED00;
 
+    -fx-base: -acepe-fritz-yellow;
     -fx-background: white;
-    -fx-background-color: -acepe-fritz-yellow-bright;
 }
 
 .spaced {
@@ -16,10 +16,10 @@
     -fx-padding: 10;
 }
 
-.content-pane{
-   -fx-background-color: -acepe-fritz-yellow;
-   -fx-padding: 8;
-   -fx-spacing: 10;
+.content-pane {
+    -fx-background-color: -acepe-fritz-yellow;
+    -fx-padding: 8;
+    -fx-spacing: 10;
 }
 
 .grid {
@@ -29,7 +29,7 @@
 }
 
 .scroll-pane {
-     -fx-background-color: -acepe-fritz-yellow-bright;
+    -fx-background-color: -acepe-fritz-yellow-bright;
 }
 
 .scroll-pane > .viewport {
@@ -47,40 +47,40 @@
 
 .scroll-bar:horizontal .track,
 .scroll-bar:vertical .track {
-	-fx-background-color: -acepe-fritz-yellow-bright;
-	-fx-border-color: transparent;
-	-fx-background-radius: 0em;
-	-fx-border-radius: 2em;
+    -fx-background-color: -acepe-fritz-yellow-bright;
+    -fx-border-color: transparent;
+    -fx-background-radius: 0em;
+    -fx-border-radius: 2em;
 }
 
-.scroll-bar:horizontal .increment-button ,
+.scroll-bar:horizontal .increment-button,
 .scroll-bar:horizontal .decrement-button {
     -fx-background-color: transparent;
-	-fx-background-radius: 0em;
-	-fx-padding: 0 0 10 0;
+    -fx-background-radius: 0em;
+    -fx-padding: 0 0 10 0;
 }
 
-.scroll-bar:vertical .increment-button ,
+.scroll-bar:vertical .increment-button,
 .scroll-bar:vertical .decrement-button {
-    -fx-background-color:transparent;
-	-fx-background-radius: 0em;
-	-fx-padding: 0 10 0 0;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0em;
+    -fx-padding: 0 10 0 0;
 }
 
 .scroll-bar .increment-arrow,
 .scroll-bar .decrement-arrow {
     -fx-shape: " ";
-	-fx-padding: 0;
+    -fx-padding: 0;
 }
 
 .scroll-bar:horizontal .thumb,
 .scroll-bar:vertical .thumb {
     -fx-background-color: #D4AB00;
-	-fx-background-insets: 2, 0, 0;
-	-fx-background-radius: 2em;
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
 }
 
-.square-button{
+.square-button {
     -fx-min-height: 50;
     -fx-pref-width: 50;
     -fx-pref-height: 50;
@@ -95,13 +95,13 @@
 }
 
 .day-button:hover {
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 0);
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.5), 10, 0, 0, 0);
 }
 
 .day-button:disabled {
     -fx-background-image: url("rolling.gif");
     -fx-background-repeat: no-repeat;
-    -fx-background-position:center;
+    -fx-background-position: center;
 }
 
 .day-button:selected {
@@ -109,10 +109,10 @@
     -fx-background-insets: 0, 2
 }
 
-.settings-title{
+.settings-title {
     -fx-font-size: 20px;
     -fx-font-weight: bold;
-    -fx-text-fill: rgba(0,0,0,0.8);
+    -fx-text-fill: rgba(0, 0, 0, 0.8);
     -fx-padding: 10;
 }
 
@@ -125,7 +125,7 @@
 }
 
 .settings-button > .glyph-icon {
-    -fx-fill: rgba(0,0,0,0.4);
+    -fx-fill: rgba(0, 0, 0, 0.4);
 }
 
 .settings-button:hover {
@@ -141,26 +141,83 @@
     -fx-padding: 2;
 }
 
-
 .back-button {
     -fx-padding: 2;
     -fx-font-size: 16px;
 }
 
 .back-button > .glyph-icon {
-    -fx-fill: rgba(0,0,0,0.4);
+    -fx-fill: rgba(0, 0, 0, 0.4);
 }
 
-.back-button:hover > .glyph-icon{
-    -fx-fill: rgba(0,0,0,0.6);
+.back-button:hover > .glyph-icon {
+    -fx-fill: rgba(0, 0, 0, 0.6);
 }
 
-.back-button:pressed > .glyph-icon{
-    -fx-fill: rgba(0,0,0,0.6);
+.back-button:pressed > .glyph-icon {
+    -fx-fill: rgba(0, 0, 0, 0.6);
+}
+
+.playlist-button {
+    -fx-min-height: 35;
+    -fx-padding: 8;
+    -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -10%);
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 3, 2;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
 }
 
 .download-button {
     -fx-min-height: 35;
+    -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -10%);
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 3, 2;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+}
+
+.download-button > .label {
+    -fx-text-fill: white;
+    -fx-alignment: center;
+    -fx-background-color: derive(-acepe-fritz-red, -10%);
+    -fx-padding: 3;
+}
+
+.download-button > .arrow-button {
+    -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -10%);
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 0 2 2 0, 0 1 1 0;
+    -fx-padding: 0.5em 0.667em 0.5em 0.667em; /* 6 8 6 8 */
+}
+
+.download-button > .arrow-button, file_combo_box > .arrow {
+    -fx-mark-color: white;
+}
+
+.download-button > .label > .glyph-icon {
+    -fx-fill: white;
+}
+
+.download-button > .glyph-icon {
+    -fx-fill: white;
+}
+
+.download-button:hover, .playlist-button:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.5), 10, 0, 0, 0);
+}
+
+.download-button:pressed {
+    -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -5%);
+    -fx-background-insets: 0, 2;
+}
+
+.player-control-button {
+    -fx-min-height: 35;
+    -fx-pref-width: 35;
+    -fx-pref-height: 35;
     -fx-padding: 8;
     -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -10%);
     -fx-background-insets: 0, 1;
@@ -169,29 +226,60 @@
     -fx-text-fill: white;
 }
 
-.download-button > .glyph-icon {
+.player-control-button > .glyph-icon {
     -fx-fill: white;
 }
 
-.download-button:hover {
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 0);
+.player-control-button:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.5), 10, 0, 0, 0);
 }
 
-.download-button:pressed {
+.player-control-button:pressed {
     -fx-background-color: derive(-acepe-fritz-red, -20%), derive(-acepe-fritz-red, -5%);
     -fx-background-insets: 0, 2;
+}
+
+.file-combo-box {
+    -fx-padding: 3;
+    -fx-background-radius: 1;
+}
+
+.file-combo-box > .list-cell {
+    -fx-font-size: 14px;
+}
+
+.file-combo-box .list-view .list-cell {
+    -fx-background-color: -acepe-fritz-yellow;
+    -fx-font-size: 14px;
+    -fx-padding: 8;
+}
+
+.file-combo-box .list-view .list-cell:hover {
+    -fx-text-fill: -acepe-fritz-red;
+}
+
+.file-combo-box .list-view .list-cell:focused {
+    -fx-text-fill: -acepe-fritz-red;
+}
+
+.file-combo-box:focused {
+    -fx-background-color: -acepe-fritz-yellow;
+}
+
+.file-combo-box > .arrow-button, file_combo_box > .arrow {
+    -fx-mark-color: -acepe-fritz-red;
 }
 
 .download-progress {
 }
 
 .download-progress > .bar {
-  -fx-background-color: #ffffff80;
-  -fx-background-insets: 0,3,0,13;
+    -fx-background-color: #ffffff80;
+    -fx-background-insets: 0, 3, 0, 13;
 }
 
 .download-progress > .track {
-  -fx-background-color: transparent;
+    -fx-background-color: transparent;
 }
 
 .stream {
@@ -199,7 +287,7 @@
 }
 
 .description {
-    -fx-background-color: rgba(0,0,0,0.6);
+    -fx-background-color: rgba(0, 0, 0, 0.6);
 }
 
 .title {
@@ -213,14 +301,14 @@
     -fx-text-fill: white;
 }
 
-.playlist-title{
+.playlist-title {
     -fx-font-size: 20px;
     -fx-font-weight: bold;
-    -fx-text-fill: rgba(0,0,0,0.8);
+    -fx-text-fill: rgba(0, 0, 0, 0.8);
     -fx-padding: 10;
 }
 
-.playlist-stream-title{
+.playlist-stream-title {
     -fx-font-size: 20px;
     -fx-font-weight: bold;
     -fx-text-fill: -acepe-fritz-red;
@@ -245,7 +333,7 @@
 
 .playlistlistview .scroll-bar:horizontal .track,
 .playlistlistview .scroll-bar:vertical .track {
-	-fx-background-color: -acepe-fritz-yellow;
+    -fx-background-color: -acepe-fritz-yellow;
 }
 
 .playlistlistview .scroll-bar:horizontal .thumb,
@@ -284,7 +372,7 @@
 }
 
 .download-item-button > .glyph-icon {
-    -fx-fill: rgba(0,0,0,0.4);
+    -fx-fill: rgba(0, 0, 0, 0.4);
 }
 
 .download-item-button:hover {

@@ -1,4 +1,4 @@
-package de.acepe.fritzstreams;
+package de.acepe.fritzstreams.util;
 
 import java.util.stream.Collectors;
 

@@ -4,7 +4,7 @@ import java.io.File;
 
 import com.google.common.base.MoreObjects;
 
-import de.acepe.fritzstreams.FileUtil;
+import de.acepe.fritzstreams.util.FileUtil;
 import de.acepe.fritzstreams.backend.Settings;
 import de.acepe.fritzstreams.backend.download.DownloadTask;
 import de.acepe.fritzstreams.backend.download.Downloadable;

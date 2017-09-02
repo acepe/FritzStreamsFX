@@ -79,6 +79,11 @@
                         <!--<StreamItem fx:id="soundgardenView"/>
                         <StreamItem fx:id="nightflightView"/>-->
                     </VBox>
+         <HBox>
+            <children>
+               <VBox fx:id="playerControlsContainer" HBox.hgrow="ALWAYS" />
+            </children>
+         </HBox>
           </VBox>
       </content>
   </ScrollPane>

@@ -1,4 +1,4 @@
-package de.acepe.fritzstreams.ui;
+package de.acepe.fritzstreams.util;
 
 import java.util.function.Function;
 
