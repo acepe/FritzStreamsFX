@@ -18,6 +18,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
+import javafx.util.Duration;
 
 public class Player {
     private static Player instance;
@@ -27,6 +28,8 @@ public class Player {
     private final ObjectProperty<Path> currentDirectory = new SimpleObjectProperty<>();
     private final InvalidationListener statusListener = observable -> update();
     private final ObjectProperty<Path> currentFile = new SimpleObjectProperty<>();
+    private final ObjectProperty<Duration> totalDuration = new SimpleObjectProperty<>();
+    private final ObjectProperty<Duration> currentTime = new SimpleObjectProperty<>();
     private final BooleanProperty playing = new SimpleBooleanProperty();
     private final BooleanProperty paused = new SimpleBooleanProperty();
     private final BooleanProperty stopped = new SimpleBooleanProperty();
@@ -36,6 +39,7 @@ public class Player {
 
     private int currentIndex = -1;
     private ObjectProperty<MediaPlayer> player = new SimpleObjectProperty<>();
+    private Runnable onReady;
 
     public static Player getInstance() {
         if (instance == null) {
@@ -74,19 +78,26 @@ public class Player {
     private void updateOnPlayerChange(ObservableValue<? extends MediaPlayer> obs,
                                       MediaPlayer oldPlayer,
                                       MediaPlayer newPlayer) {
+        totalDuration.unbind();
+        currentTime.unbind();
         boolean wasPlaying = false;
+
         if (oldPlayer != null) {
             if (oldPlayer.getStatus() == Status.PLAYING) {
                 wasPlaying = true;
                 oldPlayer.stop();
             }
+            oldPlayer.setOnReady(null);
             oldPlayer.setOnEndOfMedia(null);
             oldPlayer.statusProperty().removeListener(statusListener);
             oldPlayer.dispose();
         }
         if (newPlayer != null) {
+            totalDuration.bind(newPlayer.totalDurationProperty());
+            currentTime.bind(newPlayer.currentTimeProperty());
             newPlayer.setOnEndOfMedia(() -> stopAndDispose(newPlayer));
             newPlayer.statusProperty().addListener(statusListener);
+            newPlayer.setOnReady(this.onReady);
             if (wasPlaying) {
                 newPlayer.play();
             }
@@ -162,6 +173,31 @@ public class Player {
             return;
         }
         stopAndDispose(mp);
+    }
+
+    public void seek(Duration duration) {
+        MediaPlayer mp = player.get();
+        if (mp == null) {
+            return;
+        }
+        mp.seek(duration);
+    }
+
+    public Duration getDuration() {
+        MediaPlayer mp = player.get();
+        if (mp == null) {
+            return null;
+        }
+        return mp.getTotalDuration();
+    }
+
+    public void setOnReady(Runnable onReady) {
+        MediaPlayer mp = player.get();
+        if (mp == null) {
+            return;
+        }
+        mp.setOnReady(onReady);
+        this.onReady=onReady;
     }
 
     public void removePlaylistEntry(Path path) {
@@ -256,4 +292,19 @@ public class Player {
         return files;
     }
 
+    public Duration getCurrentTime() {
+        return currentTime.get();
+    }
+
+    public ObjectProperty<Duration> currentTimeProperty() {
+        return currentTime;
+    }
+
+    public Duration getTotalDuration() {
+        return totalDuration.get();
+    }
+
+    public ObjectProperty<Duration> totalDurationProperty() {
+        return totalDuration;
+    }
 }

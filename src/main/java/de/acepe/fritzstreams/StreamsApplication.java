@@ -17,7 +17,6 @@ public class StreamsApplication extends Application {
         screenManager = new ScreenManager(this);
         screenManager.loadScreen(Screens.SETTINGS);
         screenManager.loadScreen(Screens.STREAMS);
-        screenManager.loadScreen(Screens.PLAYER);
 
         BorderPane root = new BorderPane();
         root.setCenter(screenManager);

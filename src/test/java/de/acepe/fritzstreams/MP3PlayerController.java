@@ -1,4 +1,4 @@
-package de.acepe.fritzstreams.ui;
+package de.acepe.fritzstreams;
 
 import java.io.File;
 import java.io.IOException;

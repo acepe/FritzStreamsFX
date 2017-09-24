@@ -239,6 +239,10 @@
     -fx-background-insets: 0, 2;
 }
 
+.player-time-label {
+    -fx-text-fill: white;
+}
+
 .file-combo-box {
     -fx-padding: 3;
     -fx-background-radius: 1;
