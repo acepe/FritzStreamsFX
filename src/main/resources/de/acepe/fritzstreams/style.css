@@ -329,7 +329,8 @@
     -fx-font-size: 14px;
 }
 
-.playlistlistview .list-cell:selected {
+.playlistlistview .list-cell:selected,
+.playlistlistview .list-cell:hover {
     -fx-background-color: transparent;
     -fx-text-fill: -acepe-fritz-red;
     -fx-font-size: 14px;

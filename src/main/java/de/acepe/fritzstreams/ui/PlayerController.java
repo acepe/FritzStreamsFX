@@ -63,9 +63,14 @@ public class PlayerController extends HBox {
 
         nowPlayingComboBox.itemsProperty().bindBidirectional(player.filesProperty());
         nowPlayingComboBox.getSelectionModel().selectedItemProperty().addListener((obs, old, newSelection) -> {
-            player.stop();
+            boolean wasPlaying = player.isPlaying();
+            if (wasPlaying) {
+                player.stop();
+            }
             player.currentFileProperty().setValue(newSelection);
-            player.playOrPause();
+            if (wasPlaying) {
+                player.playOrPause();
+            }
         });
 
         playPauseButton.disableProperty().bind(player.currentFileProperty().isNull());

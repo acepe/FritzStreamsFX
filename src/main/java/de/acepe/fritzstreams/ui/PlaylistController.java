@@ -1,13 +1,15 @@
 package de.acepe.fritzstreams.ui;
 
+import java.util.stream.Collectors;
+
 import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
 
 import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.util.ListUtils;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.backend.PlayListEntry;
 import de.acepe.fritzstreams.backend.Playlist;
+import de.acepe.fritzstreams.util.ListUtils;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -32,7 +34,8 @@ public class PlaylistController implements ControlledScreen {
     private static final String GOOGLE_ITEM_TEMPLATE = "Google nach \"%s\" durchsuchen";
     private static final String VK_ITEM_TEMPLATE = "VKontakte nach \"%s\" durchsuchen";
     private static final String VK_DOWNLOAD_ITEM_TEMPLATE = "VKontakte Downloader für \"%s\" öffnen\u2026";
-    private static final String COPY = "Kopieren";
+    private static final String COPY_ENTRY = "Eintrag kopieren";
+    private static final String COPY_LIST = "Playlist kopieren";
 
     private final ObservableList<PlayListEntry> entriesList = FXCollections.observableArrayList();
 
@@ -53,10 +56,17 @@ public class PlaylistController implements ControlledScreen {
             StringProperty itemtextProperty = new SimpleStringProperty();
             itemtextProperty.bindBidirectional(itemProperty, entryConverter);
 
-            MenuItem copyItem = new MenuItem(COPY);
+            MenuItem copyItem = new MenuItem(COPY_ENTRY);
             copyItem.setOnAction(event -> {
                 ClipboardContent clipboardContent = new ClipboardContent();
                 clipboardContent.putString(entryConverter.toString(cell.getItem()));
+                Clipboard.getSystemClipboard().setContent(clipboardContent);
+            });
+            MenuItem copyList = new MenuItem(COPY_LIST);
+            copyList.setOnAction(event -> {
+                ClipboardContent clipboardContent = new ClipboardContent();
+                String list = entriesList.stream().map(entryConverter::toString).collect(Collectors.joining("\n"));
+                clipboardContent.putString(list);
                 Clipboard.getSystemClipboard().setContent(clipboardContent);
             });
 
@@ -73,7 +83,7 @@ public class PlaylistController implements ControlledScreen {
             vkDownloadItem.setOnAction(event -> openVkDownloader(itemtextProperty.get()));
 
             ContextMenu contextMenu = new ContextMenu();
-            contextMenu.getItems().addAll(copyItem, googleItem, vkItem, vkDownloadItem);
+            contextMenu.getItems().addAll(copyItem, copyList, googleItem, vkItem, vkDownloadItem);
             cell.emptyProperty()
                 .addListener((obs, wasEmpty, isNowEmpty) -> cell.setContextMenu(isNowEmpty ? null : contextMenu));
             return cell;
