@@ -10,8 +10,9 @@ import java.nio.file.Path;
 import de.acepe.fritzstreams.backend.Player;
 import de.acepe.fritzstreams.util.ToStringConverter;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import javafx.application.Platform;
-import javafx.beans.value.ObservableValue;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
@@ -54,6 +55,10 @@ public class PlayerController extends HBox {
             throw new RuntimeException(exception);
         }
 
+        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(500), ae -> updateValues()));
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.setDelay(Duration.millis(500));
+
         player = Player.getInstance();
 
         nowPlayingComboBox.getSelectionModel().select(player.getCurrentFile());
@@ -74,10 +79,16 @@ public class PlayerController extends HBox {
         });
 
         playPauseButton.disableProperty().bind(player.currentFileProperty().isNull());
-        player.playingProperty()
-              .addListener(o -> setIcon(playPauseButton,
-                                        player.isPlaying() ? FontAwesomeIcon.PAUSE : FontAwesomeIcon.PLAY,
-                                        "1.5em"));
+        player.playingProperty().addListener(o -> {
+            updateValues();
+            if (player.isPlaying()) {
+                timeline.play();
+                setIcon(playPauseButton, FontAwesomeIcon.PAUSE, "1.5em");
+            } else {
+                timeline.stop();
+                setIcon(playPauseButton, FontAwesomeIcon.PLAY, "1.5em");
+            }
+        });
         stopButton.disableProperty().bind(player.playingProperty().or(player.pausedProperty()).not());
         nextButton.disableProperty().bind(player.hasNextProperty().not());
         prevButton.disableProperty().bind(player.hasPrevProperty().not());
@@ -87,14 +98,13 @@ public class PlayerController extends HBox {
             return totalDuration == null ? 0 : totalDuration.toSeconds();
         }, player.totalDurationProperty()));
 
-        player.currentTimeProperty()
-              .addListener((ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) -> {
-                  updateValues();
-              });
         player.setOnReady(this::updateValues);
 
         progressSlider.setOnMouseClicked((MouseEvent mouseEvent) -> {
+            timeline.stop();
             player.seek(Duration.seconds(progressSlider.getValue()));
+            updateLabels();
+            timeline.playFromStart();
         });
 
         progressSlider.valueProperty().addListener(ov -> {
@@ -111,22 +121,23 @@ public class PlayerController extends HBox {
     }
 
     protected void updateValues() {
-        Platform.runLater(() -> {
-            Duration totalDuration = player.getTotalDuration();
-            Duration currentTime = player.getCurrentTime();
+        System.out.println("************* updating ui");
+        updateLabels();
 
-            totalTimeLabel.setText(totalDuration == null ? "---" : formatDuration(totalDuration));
-            currentTimeLabel.setText(currentTime == null || totalDuration == null
-                    ? "---"
-                    : formatDuration(currentTime));
+        progressSlider.setDisable(!player.isPlaying());
 
-            progressSlider.setDisable(!player.isPlaying());
+        Duration duration = player.getDuration();
+        if (player.isPlaying() && duration.greaterThan(Duration.ZERO) && !progressSlider.isValueChanging()) {
+            progressSlider.setValue(player.getCurrentTime().toSeconds());
+        }
+    }
 
-            Duration duration = player.getDuration();
-            if (player.isPlaying() && duration.greaterThan(Duration.ZERO) && !progressSlider.isValueChanging()) {
-                progressSlider.setValue(currentTime.toSeconds());
-            }
-        });
+    private void updateLabels() {
+        Duration totalDuration = player.getTotalDuration();
+        Duration currentTime = player.getCurrentTime();
+
+        totalTimeLabel.setText(totalDuration == null ? "---" : formatDuration(totalDuration));
+        currentTimeLabel.setText(currentTime == null || totalDuration == null ? "---" : formatDuration(currentTime));
     }
 
     private String formatDuration(Duration duration) {

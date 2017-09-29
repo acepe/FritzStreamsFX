@@ -180,7 +180,9 @@ public class Player {
         if (mp == null) {
             return;
         }
+//        mp.pause();
         mp.seek(duration);
+//        mp.play();
     }
 
     public Duration getDuration() {
