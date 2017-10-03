@@ -1,15 +1,5 @@
 package de.acepe.fritzstreams.backend;
 
-import static java.util.stream.Collectors.toCollection;
-
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.Comparator;
-
-import org.fxmisc.easybind.EasyBind;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
 import javafx.beans.value.ObservableValue;
@@ -19,6 +9,15 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
+import org.fxmisc.easybind.EasyBind;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.Comparator;
+
+import static java.util.stream.Collectors.toCollection;
 
 public class Player {
     private static Player instance;
@@ -113,6 +112,7 @@ public class Player {
         Status status = mp.getStatus();
         playing.setValue(status == Status.PLAYING);
         paused.setValue(status == Status.PAUSED);
+        stopped.setValue(status == Status.STOPPED || status == null || status == Status.UNKNOWN);
         hasNext.setValue(!files.isEmpty() && currentIndex < files.size() - 1);
         hasPrev.setValue(!files.isEmpty() && currentIndex > 0);
     }
@@ -132,9 +132,9 @@ public class Player {
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**.{mp3,m4a,aiff,aif,wav}");
         try {
             return Files.list(dir)
-                        .filter(matcher::matches)
-                        .sorted(Comparator.comparing(Path::getFileName))
-                        .collect(toCollection(FXCollections::<Path> observableArrayList));
+                    .filter(matcher::matches)
+                    .sorted(Comparator.comparing(Path::getFileName))
+                    .collect(toCollection(FXCollections::<Path>observableArrayList));
         } catch (IOException exc) {
             return FXCollections.observableArrayList();
         }
@@ -173,6 +173,7 @@ public class Player {
             return;
         }
         stopAndDispose(mp);
+        currentTimeProperty().setValue(Duration.ZERO);
     }
 
     public void seek(Duration duration) {
@@ -199,7 +200,7 @@ public class Player {
             return;
         }
         mp.setOnReady(onReady);
-        this.onReady=onReady;
+        this.onReady = onReady;
     }
 
     public void removePlaylistEntry(Path path) {
