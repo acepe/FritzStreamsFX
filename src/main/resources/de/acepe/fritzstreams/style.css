@@ -12,8 +12,16 @@
     -fx-spacing: 10;
 }
 
+.small-spaced {
+    -fx-spacing: 5;
+}
+
 .bordered {
     -fx-padding: 10;
+}
+
+.small-bordered {
+    -fx-padding: 5;
 }
 
 .content-pane {
@@ -388,3 +396,14 @@
     -fx-background-color: derive(-acepe-fritz-yellow, -10%);
 }
 
+.progress-bar > .bar {
+    -fx-background-color: derive(-acepe-fritz-yellow, -10%);
+    -fx-background-insets: 1 1 1 1;
+    -fx-background-radius: 1;
+    -fx-padding: 0.75em;
+}
+
+.progress-bar > .track {
+    -fx-background-color: derive(-acepe-fritz-yellow, -30%);
+    -fx-background-radius: 1;
+}

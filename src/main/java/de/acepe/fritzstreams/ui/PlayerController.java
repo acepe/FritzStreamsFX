@@ -1,5 +1,11 @@
 package de.acepe.fritzstreams.ui;
 
+import static de.jensd.fx.glyphs.GlyphsDude.setIcon;
+import static java.util.concurrent.TimeUnit.*;
+
+import java.io.IOException;
+import java.nio.file.Path;
+
 import de.acepe.fritzstreams.backend.Player;
 import de.acepe.fritzstreams.util.ToStringConverter;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -13,12 +19,6 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
-
-import java.io.IOException;
-import java.nio.file.Path;
-
-import static de.jensd.fx.glyphs.GlyphsDude.setIcon;
-import static java.util.concurrent.TimeUnit.*;
 
 public class PlayerController extends HBox {
 
@@ -57,7 +57,7 @@ public class PlayerController extends HBox {
 
         nowPlayingComboBox.getSelectionModel().select(player.getCurrentFile());
         player.currentFileProperty()
-                .addListener((observable, oldValue, newValue) -> nowPlayingComboBox.getSelectionModel().select(newValue));
+              .addListener((observable, oldValue, newValue) -> nowPlayingComboBox.getSelectionModel().select(newValue));
         nowPlayingComboBox.setConverter(new ToStringConverter<>(path -> path.getFileName().toString()));
 
         nowPlayingComboBox.itemsProperty().bindBidirectional(player.filesProperty());
@@ -114,7 +114,7 @@ public class PlayerController extends HBox {
 
     protected void updateValues() {
         updateLabels();
-        if (player.isStopped()) {
+        if (player.isStopped() || player.getTotalDuration() == null) {
             return;
         }
 
@@ -127,16 +127,16 @@ public class PlayerController extends HBox {
         Duration totalDuration = player.getTotalDuration();
         Duration currentTime = player.getCurrentTime();
 
-        totalTimeLabel.setText(totalDuration == null ? "---" : formatDuration(totalDuration));
+        totalTimeLabel.setText(totalDuration == null ? "---" : "-"+formatDuration(totalDuration.subtract(currentTime)));
         currentTimeLabel.setText(currentTime == null || totalDuration == null ? "---" : formatDuration(currentTime));
     }
 
     private String formatDuration(Duration duration) {
         long millis = Double.valueOf(duration.toMillis()).longValue();
         return String.format("%d:%02d:%02d ",
-                MILLISECONDS.toHours(millis),
-                MILLISECONDS.toMinutes(millis) - HOURS.toMinutes(MILLISECONDS.toHours(millis)),
-                MILLISECONDS.toSeconds(millis) - MINUTES.toSeconds(MILLISECONDS.toMinutes(millis)));
+                             MILLISECONDS.toHours(millis),
+                             MILLISECONDS.toMinutes(millis) - HOURS.toMinutes(MILLISECONDS.toHours(millis)),
+                             MILLISECONDS.toSeconds(millis) - MINUTES.toSeconds(MILLISECONDS.toMinutes(millis)));
     }
 
     @FXML
