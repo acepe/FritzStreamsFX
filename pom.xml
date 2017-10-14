@@ -70,6 +70,7 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
+                    <finalName>FritzStreams</finalName>
                     <archive>
                         <manifest>
                             <mainClass>de.acepe.fritzstreams.StreamsApplication</mainClass>
@@ -78,6 +79,7 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
                 <executions>
                     <execution>
