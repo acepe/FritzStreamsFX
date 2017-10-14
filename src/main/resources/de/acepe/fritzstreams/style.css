@@ -88,6 +88,18 @@
     -fx-background-radius: 2em;
 }
 
+.progress-bar > .bar {
+    -fx-background-color: derive(-acepe-fritz-yellow, -10%);
+    -fx-background-insets: 1 1 1 1;
+    -fx-background-radius: 1;
+    -fx-padding: 0.75em;
+}
+
+.progress-bar > .track {
+    -fx-background-color: derive(-acepe-fritz-yellow, -30%);
+    -fx-background-radius: 1;
+}
+
 .square-button {
     -fx-min-height: 50;
     -fx-pref-width: 50;
@@ -394,16 +406,4 @@
 
 .download-item-button:pressed {
     -fx-background-color: derive(-acepe-fritz-yellow, -10%);
-}
-
-.progress-bar > .bar {
-    -fx-background-color: derive(-acepe-fritz-yellow, -10%);
-    -fx-background-insets: 1 1 1 1;
-    -fx-background-radius: 1;
-    -fx-padding: 0.75em;
-}
-
-.progress-bar > .track {
-    -fx-background-color: derive(-acepe-fritz-yellow, -30%);
-    -fx-background-radius: 1;
 }
