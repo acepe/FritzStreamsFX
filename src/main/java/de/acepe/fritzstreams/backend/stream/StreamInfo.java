@@ -1,6 +1,7 @@
 package de.acepe.fritzstreams.backend.stream;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
@@ -20,8 +21,13 @@ import de.acepe.fritzstreams.backend.download.Downloadable;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.scene.image.Image;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class StreamInfo implements Downloadable {
+
+    private final OkHttpClient okHttpClient;
 
     public enum Stream {
         SOUNDGARDEN, NIGHTFLIGHT
@@ -60,7 +66,8 @@ public class StreamInfo implements Downloadable {
     private Document doc;
     private String streamURL;
 
-    public StreamInfo(LocalDate date, Stream stream) {
+    public StreamInfo(OkHttpClient okHttpClient, LocalDate date, Stream stream) {
+        this.okHttpClient = okHttpClient;
         this.settings = Settings.getInstance();
         this.date = date;
         this.stream = stream;
@@ -70,12 +77,18 @@ public class StreamInfo implements Downloadable {
         try {
             String contentURL = buildURL();
             try {
-                doc = Jsoup.connect(contentURL).timeout(10000).userAgent("Mozilla").get();
+                Request request = new Request.Builder().url(contentURL).build();
+                Response response = okHttpClient.newCall(request).execute();
+                String content = response.body().string();
+                doc = Jsoup.parse(content);
+
+                Request imgRequest = new Request.Builder().url(extractImageUrl(IMAGE_SELECTOR)).build();
+                Response imgResponse = okHttpClient.newCall(imgRequest).execute();
+                image.setValue(new Image(imgResponse.body().byteStream()));
             } catch (IOException e) {
                 LOG.error("Init stream failed: " + e);
                 return;
             }
-            image.setValue(new Image(extractImageUrl(IMAGE_SELECTOR)));
 
             streamURL = extractDownloadURL();
             String title = extractTitle(TITLE_SELECTOR);
@@ -132,9 +145,10 @@ public class StreamInfo implements Downloadable {
             return null;
         }
 
-        try (BufferedReader rd = new BufferedReader(new InputStreamReader(new URL(streamURL(downloadDescriptorURL)).openStream(),
-                                                                          UTF8))) {
-            String jsonText = readAll(rd);
+        try {
+            Request request = new Request.Builder().url(new URL(streamURL(downloadDescriptorURL))).build();
+            Response response = okHttpClient.newCall(request).execute();
+            String jsonText = response.body().string();
 
             int beginIndex = jsonText.indexOf(STREAM_TOKEN) + STREAM_TOKEN.length();
             int endIndex = jsonText.indexOf(MP3_TOKEN) + MP3_TOKEN.length();
@@ -149,15 +163,6 @@ public class StreamInfo implements Downloadable {
     private String extractDownloadDescriptorUrl() {
         Elements info = doc.select(DOWNLOAD_SELECTOR);
         return info.attr(DOWNLOAD_DESCRIPTOR_ATTRIBUTE);
-    }
-
-    private static String readAll(Reader rd) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        int cp;
-        while ((cp = rd.read()) != -1) {
-            sb.append((char) cp);
-        }
-        return sb.toString();
     }
 
     private String createDownloadFileName() {
