@@ -40,7 +40,6 @@ public class PlayerController extends HBox {
     private Label totalTimeLabel;
     @FXML
     private Label currentTimeLabel;
-    private final EventHandler<MouseEvent> seekOnClickListener;
 
     public PlayerController() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("player_controls.fxml"));
@@ -87,7 +86,7 @@ public class PlayerController extends HBox {
 
         player.setOnReady(this::updateValues);
 
-        seekOnClickListener = (MouseEvent mouseEvent) -> {
+        EventHandler<MouseEvent> seekOnClickListener = (MouseEvent mouseEvent) -> {
             if (!player.isPlaying()) {
                 return;
             }

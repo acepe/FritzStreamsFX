@@ -204,7 +204,11 @@ public class StreamController extends HBox {
         if (external) {
             FileUtil.doOpen(downloadedFile);
         } else {
-            Player.getInstance().currentFileProperty().setValue(downloadedFile.toPath());
+            Player player = Player.getInstance();
+            player.currentFileProperty().setValue(downloadedFile.toPath());
+            if (!player.isPlaying()) {
+                player.playOrPause();
+            }
         }
     }
 
