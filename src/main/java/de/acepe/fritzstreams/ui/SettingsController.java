@@ -2,9 +2,11 @@ package de.acepe.fritzstreams.ui;
 
 import java.io.File;
 
+import javax.inject.Inject;
+
 import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.ScreenManager;
+import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.backend.Settings;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -16,6 +18,9 @@ import javafx.stage.DirectoryChooser;
 
 public class SettingsController implements ControlledScreen {
 
+    private final ScreenManager screenManager;
+    private final Settings settings;
+
     @FXML
     private Label settingsLabel;
     @FXML
@@ -25,12 +30,14 @@ public class SettingsController implements ControlledScreen {
     @FXML
     private TextField downloadLocationTextfield;
 
-    private ScreenManager screenManager;
-    private Settings settings;
+    @Inject
+    public SettingsController(Settings settings, ScreenManager screenManager) {
+        this.settings = settings;
+        this.screenManager = screenManager;
+    }
 
     @FXML
     private void initialize() {
-        settings = Settings.getInstance();
         GlyphsDude.setIcon(backButton, FontAwesomeIcon.CHEVRON_LEFT, "1.5em");
 
         downloadLocationTextfield.setText(settings.getTargetpath());
@@ -55,8 +62,4 @@ public class SettingsController implements ControlledScreen {
         screenManager.setScreen(Screens.STREAMS, ScreenManager.Direction.RIGHT);
     }
 
-    @Override
-    public void setScreenManager(ScreenManager screenManager) {
-        this.screenManager = screenManager;
-    }
 }

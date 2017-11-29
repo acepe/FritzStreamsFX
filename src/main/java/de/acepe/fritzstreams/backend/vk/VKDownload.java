@@ -4,11 +4,11 @@ import java.io.File;
 
 import com.google.common.base.MoreObjects;
 
-import de.acepe.fritzstreams.util.FileUtil;
 import de.acepe.fritzstreams.backend.Settings;
 import de.acepe.fritzstreams.backend.download.DownloadTask;
 import de.acepe.fritzstreams.backend.download.Downloadable;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
+import de.acepe.fritzstreams.util.FileUtil;
 import javafx.beans.property.*;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventType;
@@ -23,15 +23,17 @@ public class VKDownload implements Downloadable {
     private final String targetFileName;
 
     private AudioItem audioItem;
+    private final Settings settings;
     private DownloadTask<VKDownload> task;
 
-    public VKDownload(AudioItem audioItem) {
+    public VKDownload(AudioItem audioItem, Settings settings) {
         this.audioItem = audioItem;
+        this.settings = settings;
         targetFileName = createTargetFileName();
     }
 
     private String createTargetFileName() {
-        String targetpath = Settings.getInstance().getTargetpath();
+        String targetpath = settings.getTargetpath();
         String filename = audioItem.getArtist() + "-" + audioItem.getTitle();
         filename = FileUtil.escapeStringAsFilename(filename);
         return targetpath + File.separator + filename + ".mp3";
@@ -133,6 +135,5 @@ public class VKDownload implements Downloadable {
     public String toString() {
         return MoreObjects.toStringHelper(this).add("targetFileName", targetFileName).toString();
     }
-
 
 }

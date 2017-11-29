@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<fx:root maxWidth="1.7976931348623157E308" type="javafx.scene.layout.HBox" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1">
+<HBox fx:id="root" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/9" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.PlayerController">
     <styleClass>
         <String fx:value="stream" />
         <String fx:value="bordered" />
@@ -39,4 +39,4 @@
             </HBox>
         </VBox>
     </children>
-</fx:root>
+</HBox>

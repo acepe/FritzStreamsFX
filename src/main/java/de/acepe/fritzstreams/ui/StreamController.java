@@ -3,7 +3,8 @@ package de.acepe.fritzstreams.ui;
 import static javafx.beans.binding.Bindings.createBooleanBinding;
 
 import java.io.File;
-import java.io.IOException;
+
+import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -32,12 +33,16 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-public class StreamController extends HBox {
+public class StreamController {
     private static final Logger LOG = LoggerFactory.getLogger(StreamController.class);
 
     private final ObjectProperty<StreamInfo> stream = new SimpleObjectProperty<>();
     private final InvalidationListener updatePlayListTextListener = this::updatePlayListButton;
+    private final Player player;
+    private final ScreenManager screenManager;
 
+    @FXML
+    private HBox root;
     @FXML
     private ImageView imageView;
     @FXML
@@ -54,19 +59,12 @@ public class StreamController extends HBox {
     private Button downloadButton;
     @FXML
     private ProgressBar downloadProgress;
-    private ScreenManager screenManager;
     private Stage playListStage;
 
-    public StreamController() {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("stream_view.fxml"));
-        fxmlLoader.setRoot(this);
-        fxmlLoader.setController(this);
-
-        try {
-            fxmlLoader.load();
-        } catch (IOException exception) {
-            throw new RuntimeException(exception);
-        }
+    @Inject
+    public StreamController(Player player, ScreenManager screenManager) {
+        this.player = player;
+        this.screenManager = screenManager;
     }
 
     @FXML
@@ -204,7 +202,6 @@ public class StreamController extends HBox {
         if (external) {
             FileUtil.doOpen(downloadedFile);
         } else {
-            Player player = Player.getInstance();
             player.currentFileProperty().setValue(downloadedFile.toPath());
             if (!player.isPlaying()) {
                 player.playOrPause();
@@ -230,7 +227,6 @@ public class StreamController extends HBox {
         LOG.info("Deleting Download {}", streamInfo);
         File downloadedFile = stream.get().getDownloadedFile();
 
-        Player player = Player.getInstance();
         player.removePlaylistEntry(downloadedFile.toPath());
 
         FileUtil.delete(downloadedFile);
@@ -253,7 +249,8 @@ public class StreamController extends HBox {
         return stream;
     }
 
-    public void setScreenManager(ScreenManager screenManager) {
-        this.screenManager = screenManager;
+    public Parent getContent() {
+        return root;
     }
+
 }

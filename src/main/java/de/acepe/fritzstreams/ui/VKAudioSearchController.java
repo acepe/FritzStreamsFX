@@ -3,6 +3,8 @@ package de.acepe.fritzstreams.ui;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import de.acepe.fritzstreams.ControlledScreen;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.backend.Settings;
@@ -22,6 +24,7 @@ public class VKAudioSearchController implements ControlledScreen {
     private static final String RESULT_TEMPLATE = "Die Suche hat %d Audio-Dateien gefunden";
     private static final String ARTIST_TITLE = "Künstler und Titel";
     private static final String ONLY_ARTIST = "nur Künstler";
+    private final Settings settings;
 
     @FXML
     private Label titleLabel;
@@ -43,6 +46,12 @@ public class VKAudioSearchController implements ControlledScreen {
     private HBox downloadsHBox;
 
     private ScreenManager screenManager;
+
+    @Inject
+    public VKAudioSearchController(Settings settings, ScreenManager screenManager) {
+        this.settings = settings;
+        this.screenManager = screenManager;
+    }
 
     @FXML
     void initialize() {
@@ -89,7 +98,7 @@ public class VKAudioSearchController implements ControlledScreen {
     }
 
     private void addAudioItem(AudioItem audioItem) {
-        AudioItemController audioItemController = new AudioItemController();
+        AudioItemController audioItemController = new AudioItemController(settings);
         audioItemController.setAudioItem(audioItem);
         audioItemController.setApplication(screenManager.getApplication());
         resultItemsVBox.getChildren().add(audioItemController);
@@ -99,8 +108,4 @@ public class VKAudioSearchController implements ControlledScreen {
         searchTextField.setText(searchText);
     }
 
-    @Override
-    public void setScreenManager(ScreenManager screenManager) {
-        this.screenManager = screenManager;
-    }
 }

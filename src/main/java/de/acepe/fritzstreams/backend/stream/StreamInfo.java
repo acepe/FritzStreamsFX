@@ -7,6 +7,8 @@ import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+import javax.inject.Inject;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -14,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
+import com.google.inject.assistedinject.Assisted;
 
 import de.acepe.fritzstreams.backend.Playlist;
 import de.acepe.fritzstreams.backend.Settings;
@@ -66,11 +69,12 @@ public class StreamInfo implements Downloadable {
     private Document doc;
     private String streamURL;
 
-    public StreamInfo(OkHttpClient okHttpClient, LocalDate date, Stream stream) {
+    @Inject
+    public StreamInfo(OkHttpClient okHttpClient, Settings settings, @Assisted LocalDate date, @Assisted Stream stream) {
         this.okHttpClient = okHttpClient;
-        this.settings = Settings.getInstance();
         this.date = date;
         this.stream = stream;
+        this.settings = settings;
     }
 
     public void init() {

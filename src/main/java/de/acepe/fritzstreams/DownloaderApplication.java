@@ -1,5 +1,10 @@
 package de.acepe.fritzstreams;
 
+import javax.inject.Inject;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.ui.VKAudioSearchController;
 import javafx.application.Application;
@@ -9,13 +14,17 @@ import javafx.stage.Stage;
 
 public class DownloaderApplication extends Application {
 
+    @Inject
     private ScreenManager screenManager;
+    private Injector injector;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         System.setProperty("prism.lcdtext", "false");
 
-        screenManager = new ScreenManager(this);
+        injector = Guice.createInjector(new AppModule(this, this::getInjector));
+        injector.injectMembers(this);
+
         screenManager.loadScreen(Screens.DOWNLOADER);
         screenManager.loadScreen(Screens.DOWNLOAD_MANAGERER);
         ((VKAudioSearchController) screenManager.getController(Screens.DOWNLOADER)).setSearchText("Primordial");
@@ -46,5 +55,9 @@ public class DownloaderApplication extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    Injector getInjector() {
+        return injector;
     }
 }

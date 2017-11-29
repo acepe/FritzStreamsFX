@@ -3,7 +3,6 @@ package de.acepe.fritzstreams.ui;
 import java.util.List;
 
 import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.backend.vk.VKDownload;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
@@ -67,12 +66,9 @@ public class DownloadManagerController implements ControlledScreen {
 
         ObservableList<VKDownload> downloadList = downloadManager.getDownloadList();
         populateResultList(downloadList);
-        downloadList.addListener(new ListChangeListener<VKDownload>() {
-            @Override
-            public void onChanged(Change<? extends VKDownload> c) {
-                while (c.next()) {
-                    c.getAddedSubList().forEach(DownloadManagerController.this::addDownloadItem);
-                }
+        downloadList.addListener((ListChangeListener<VKDownload>) c -> {
+            while (c.next()) {
+                c.getAddedSubList().forEach(DownloadManagerController.this::addDownloadItem);
             }
         });
     }
@@ -96,11 +92,6 @@ public class DownloadManagerController implements ControlledScreen {
     @FXML
     void onStopPerformed() {
         downloadManager.stopDownloads();
-    }
-
-    @Override
-    public void setScreenManager(ScreenManager screenManager) {
-
     }
 
     private class DowloadListCell extends TextFieldListCell<VKDownload> {

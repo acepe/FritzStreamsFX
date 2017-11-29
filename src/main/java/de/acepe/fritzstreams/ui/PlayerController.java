@@ -3,15 +3,16 @@ package de.acepe.fritzstreams.ui;
 import static de.jensd.fx.glyphs.GlyphsDude.setIcon;
 import static java.util.concurrent.TimeUnit.*;
 
-import java.io.IOException;
 import java.nio.file.Path;
+
+import javax.inject.Inject;
 
 import de.acepe.fritzstreams.backend.Player;
 import de.acepe.fritzstreams.util.ToStringConverter;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -20,10 +21,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
 
-public class PlayerController extends HBox {
+public class PlayerController {
 
     private final Player player;
 
+    @FXML
+    private HBox root;
     @FXML
     private Button prevButton;
     @FXML
@@ -41,19 +44,13 @@ public class PlayerController extends HBox {
     @FXML
     private Label currentTimeLabel;
 
-    public PlayerController() {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("player_controls.fxml"));
-        fxmlLoader.setRoot(this);
-        fxmlLoader.setController(this);
+    @Inject
+    public PlayerController(Player player) {
+        this.player = player;
+    }
 
-        try {
-            fxmlLoader.load();
-        } catch (IOException exception) {
-            throw new RuntimeException(exception);
-        }
-
-        player = Player.getInstance();
-
+    @FXML
+    private void initialize() {
         nowPlayingComboBox.getSelectionModel().select(player.getCurrentFile());
         player.currentFileProperty()
               .addListener((observable, oldValue, newValue) -> nowPlayingComboBox.getSelectionModel().select(newValue));
@@ -126,7 +123,9 @@ public class PlayerController extends HBox {
         Duration totalDuration = player.getTotalDuration();
         Duration currentTime = player.getCurrentTime();
 
-        totalTimeLabel.setText(totalDuration == null ? "---" : "-"+formatDuration(totalDuration.subtract(currentTime)));
+        totalTimeLabel.setText(totalDuration == null
+                ? "---"
+                : "-" + formatDuration(totalDuration.subtract(currentTime)));
         currentTimeLabel.setText(currentTime == null || totalDuration == null ? "---" : formatDuration(currentTime));
     }
 
@@ -156,6 +155,10 @@ public class PlayerController extends HBox {
     @FXML
     void onStopPerformed() {
         player.stop();
+    }
+
+    public Parent getContent() {
+        return root;
     }
 
 }

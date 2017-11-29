@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
 
+import de.acepe.fritzstreams.backend.Settings;
 import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.backend.vk.VKDownload;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
@@ -16,9 +17,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
+import javax.inject.Inject;
+
 public class AudioItemController extends VBox {
 
     private final ObjectProperty<AudioItem> audioItem = new SimpleObjectProperty<>();
+    private final Settings settings;
 
     @FXML
     private Button playButton;
@@ -34,7 +38,9 @@ public class AudioItemController extends VBox {
     private Application application;
     private DownloadManager downloadManager;
 
-    public AudioItemController() {
+    @Inject
+    public AudioItemController(Settings settings) {
+        this.settings = settings;
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("audio_item.fxml"));
         fxmlLoader.setRoot(this);
         fxmlLoader.setController(this);
@@ -53,7 +59,7 @@ public class AudioItemController extends VBox {
 
     @FXML
     void onDownloadPerformed() {
-        downloadManager.addDownload(new VKDownload(audioItem.get()));
+        downloadManager.addDownload(new VKDownload(audioItem.get(), settings));
     }
 
     @FXML

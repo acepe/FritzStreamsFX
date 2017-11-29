@@ -1,8 +1,9 @@
 package de.acepe.fritzstreams.ui;
 
+import static de.acepe.fritzstreams.Fragments.PLAYER;
+import static de.acepe.fritzstreams.Fragments.STREAM;
 import static de.acepe.fritzstreams.backend.stream.StreamInfo.Stream.NIGHTFLIGHT;
 import static de.acepe.fritzstreams.backend.stream.StreamInfo.Stream.SOUNDGARDEN;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,6 +12,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +24,9 @@ import com.google.common.collect.HashBiMap;
 import de.acepe.fritzstreams.ControlledScreen;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.Screens;
+import de.acepe.fritzstreams.StreamInfoFactory;
+import de.acepe.fritzstreams.backend.Player;
+import de.acepe.fritzstreams.backend.Settings;
 import de.acepe.fritzstreams.backend.stream.StreamInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -43,14 +49,19 @@ public class StreamsController implements ControlledScreen {
     private static final int DAYS_PAST = 7;
     private static final DateTimeFormatter DAY_OF_WEEK = DateTimeFormatter.ofPattern("E").withLocale(Locale.GERMANY);
 
+    private final List<Task<Void>> initTasks = new ArrayList<>(NUM_THREADS);
     private final BiMap<ToggleButton, LocalDate> toggleDayMap = HashBiMap.create();
     private final Map<LocalDate, StreamInfo> soundgardenStreamMap = new HashMap<>();
     private final Map<LocalDate, StreamInfo> nightflightStreamMap = new HashMap<>();
     private final ObjectProperty<LocalDate> selectedDay = new SimpleObjectProperty<>();
+    private final Settings settings;
+    private final OkHttpClient client;
+    private final Player player;
+    private final ScreenManager screenManager;
+    private final StreamInfoFactory streamInfoFactory;
 
     private StreamController soundgardenView;
     private StreamController nightflightView;
-    private List<Task<Void>> initTasks = new ArrayList<>(NUM_THREADS);
 
     @FXML
     private ToggleGroup daysToggleGroup;
@@ -61,23 +72,29 @@ public class StreamsController implements ControlledScreen {
     @FXML
     private VBox playerControlsContainer;
 
-    private ScreenManager screenManager;
+    @Inject
+    public StreamsController(Settings settings,
+            OkHttpClient client,
+            Player player,
+            ScreenManager screenManager,
+            StreamInfoFactory streamInfoFactory) {
+        this.settings = settings;
+        this.client = client;
+        this.player = player;
+        this.screenManager = screenManager;
+        this.streamInfoFactory = streamInfoFactory;
+    }
 
     @FXML
     private void initialize() {
-        PlayerController playerController = new PlayerController();
-        playerControlsContainer.getChildren().addAll(playerController);
+        soundgardenView = screenManager.loadFragment(STREAM);
+        streamList.getChildren().add(soundgardenView.getContent());
 
-        soundgardenView = new StreamController();
-        nightflightView = new StreamController();
+        nightflightView = screenManager.loadFragment(STREAM);
+        streamList.getChildren().add(nightflightView.getContent());
 
-        streamList.getChildren().add(soundgardenView);
-        streamList.getChildren().add(nightflightView);
-
-        OkHttpClient client = new OkHttpClient().newBuilder()
-                                                .connectTimeout(5, SECONDS)
-                                                .readTimeout(10, SECONDS)
-                                                .build();
+        PlayerController playerController = screenManager.loadFragment(PLAYER);
+        playerControlsContainer.getChildren().addAll(playerController.getContent());
 
         LocalDate startDay = LocalDate.now();
         ObservableList<Toggle> toggles = daysToggleGroup.getToggles();
@@ -88,8 +105,8 @@ public class StreamsController implements ControlledScreen {
             toggle.setText(date.format(DAY_OF_WEEK));
             toggleDayMap.put(toggle, date);
 
-            soundgardenStreamMap.put(date, new StreamInfo(client, date, SOUNDGARDEN));
-            nightflightStreamMap.put(date, new StreamInfo(client, date, NIGHTFLIGHT));
+            soundgardenStreamMap.put(date, streamInfoFactory.create(date, SOUNDGARDEN));
+            nightflightStreamMap.put(date, streamInfoFactory.create(date, NIGHTFLIGHT));
         }
 
         daysToggleGroup.selectedToggleProperty().addListener((oldSelectedDay, oldValue, selectedDay) -> {
@@ -200,10 +217,4 @@ public class StreamsController implements ControlledScreen {
         screenManager.setScreen(Screens.SETTINGS, ScreenManager.Direction.LEFT);
     }
 
-    @Override
-    public void setScreenManager(ScreenManager screenManager) {
-        this.screenManager = screenManager;
-        soundgardenView.setScreenManager(screenManager);
-        nightflightView.setScreenManager(screenManager);
-    }
 }

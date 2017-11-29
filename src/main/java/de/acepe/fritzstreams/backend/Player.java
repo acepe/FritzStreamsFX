@@ -1,5 +1,17 @@
 package de.acepe.fritzstreams.backend;
 
+import static java.util.stream.Collectors.toCollection;
+
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.Comparator;
+
+import javax.inject.Inject;
+
+import org.fxmisc.easybind.EasyBind;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
 import javafx.beans.value.ObservableValue;
@@ -9,18 +21,8 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
-import org.fxmisc.easybind.EasyBind;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.Comparator;
-
-import static java.util.stream.Collectors.toCollection;
 
 public class Player {
-    private static Player instance;
 
     private static final Logger LOG = LoggerFactory.getLogger(Player.class);
 
@@ -35,19 +37,15 @@ public class Player {
     private final BooleanProperty hasPrev = new SimpleBooleanProperty();
     private final BooleanProperty hasNext = new SimpleBooleanProperty();
     private final ListProperty<Path> files = new SimpleListProperty<>();
+    private final Settings settings;
 
     private int currentIndex = -1;
     private ObjectProperty<MediaPlayer> player = new SimpleObjectProperty<>();
     private Runnable onReady;
 
-    public static Player getInstance() {
-        if (instance == null) {
-            instance = new Player();
-        }
-        return instance;
-    }
-
-    private Player() {
+    @Inject
+    public Player(Settings settings) {
+        this.settings = settings;
         initialize();
     }
 
@@ -118,7 +116,7 @@ public class Player {
     }
 
     private void configureCurrentDirectory() {
-        Path downloadFolder = Paths.get(Settings.getInstance().getTargetpath());
+        Path downloadFolder = Paths.get(settings.getTargetpath());
         Path file = Files.exists(downloadFolder) ? downloadFolder : Paths.get(System.getProperty("user.home"));
         currentDirectory.set(file);
         files.bind(EasyBind.map(currentDirectory, this::listFiles).orElse(FXCollections.emptyObservableList()));
@@ -132,9 +130,9 @@ public class Player {
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**.{mp3,m4a,aiff,aif,wav}");
         try {
             return Files.list(dir)
-                    .filter(matcher::matches)
-                    .sorted(Comparator.comparing(Path::getFileName))
-                    .collect(toCollection(FXCollections::<Path>observableArrayList));
+                        .filter(matcher::matches)
+                        .sorted(Comparator.comparing(Path::getFileName))
+                        .collect(toCollection(FXCollections::<Path> observableArrayList));
         } catch (IOException exc) {
             return FXCollections.observableArrayList();
         }
@@ -181,9 +179,9 @@ public class Player {
         if (mp == null) {
             return;
         }
-//        mp.pause();
+        // mp.pause();
         mp.seek(duration);
-//        mp.play();
+        // mp.play();
     }
 
     public Duration getDuration() {

@@ -6,6 +6,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.inject.Inject;
+import javax.inject.Provider;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +34,7 @@ import javafx.util.Duration;
 public class ScreenManager extends StackPane {
     private static final String APP_TITLE = "Fritz Streams";
     private final Application application;
+    private final Provider<FXMLLoader> fxmlLoaderProvider;
 
     public enum Direction {
         LEFT, RIGHT, NONE
@@ -43,8 +47,11 @@ public class ScreenManager extends StackPane {
     private final Map<Screens, ControlledScreen> controllers;
     private final Set<Stage> stages = new HashSet<>();
 
-    public ScreenManager(Application application) {
+    @Inject
+    public ScreenManager(Application application, Provider<FXMLLoader> fxmlLoaderProvider) {
         this.application = application;
+        this.fxmlLoaderProvider = fxmlLoaderProvider;
+
         screens = new HashMap<>();
         controllers = new HashMap<>();
     }
@@ -55,17 +62,30 @@ public class ScreenManager extends StackPane {
 
     public <T extends ControlledScreen> boolean loadScreen(Screens screen) {
         try {
-            FXMLLoader myLoader = new FXMLLoader(getClass().getResource(screen.getResource()));
-            Parent screenView = myLoader.load();
-            T myScreenControler = myLoader.getController();
+            FXMLLoader fxmlLoader = fxmlLoaderProvider.get();
+            fxmlLoader.setLocation(getClass().getResource(screen.getResource()));
+
+            Parent screenView = fxmlLoader.load();
+            T myScreenControler = fxmlLoader.getController();
             controllers.put(screen, myScreenControler);
             screens.put(screen, screenView);
 
-            myScreenControler.setScreenManager(this);
             return true;
         } catch (IOException e) {
             LOG.error("Couldn't load FXML-View {}", screen, e);
             return false;
+        }
+    }
+
+    public <T> T loadFragment(Fragments fragment) {
+        try {
+            FXMLLoader fxmlLoader = fxmlLoaderProvider.get();
+            fxmlLoader.setLocation(getClass().getResource(fragment.getResource()));
+            Object load = fxmlLoader.load();
+            return fxmlLoader.getController();
+        } catch (IOException e) {
+            LOG.error("Couldn't load FXML-View-Fragment {}", fragment, e);
+            return null;
         }
     }
 

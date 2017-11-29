@@ -2,6 +2,8 @@ package de.acepe.fritzstreams.ui;
 
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
+
 import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
 
 import de.acepe.fritzstreams.ControlledScreen;
@@ -45,6 +47,11 @@ public class PlaylistController implements ControlledScreen {
     private Label titleLabel;
 
     private ScreenManager screenManager;
+
+    @Inject
+    public PlaylistController(ScreenManager screenManager) {
+        this.screenManager = screenManager;
+    }
 
     @FXML
     private void initialize() {
@@ -104,11 +111,6 @@ public class PlaylistController implements ControlledScreen {
 
     private String itemToString(ObjectProperty<PlayListEntry> itemProperty) {
         return entryConverter.toString(itemProperty.get());
-    }
-
-    @Override
-    public void setScreenManager(ScreenManager screenManager) {
-        this.screenManager = screenManager;
     }
 
     public void setPlayList(Playlist playlist) {
