@@ -6,7 +6,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import de.acepe.fritzstreams.app.AppModule;
-import de.acepe.fritzstreams.app.Fragments;
 import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.app.Screens;
 import de.acepe.fritzstreams.ui.StreamsController;
@@ -23,13 +22,11 @@ public class StreamsApplication extends Application {
     private Injector injector;
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         System.setProperty("prism.lcdtext", "false");
 
         injector = Guice.createInjector(new AppModule(this, this::getInjector));
         injector.injectMembers(this);
-
-        screenManager.loadFragment(Fragments.PLAYER);
 
         screenManager.loadScreen(Screens.SETTINGS);
         screenManager.loadScreen(Screens.STREAMS);
@@ -44,10 +41,7 @@ public class StreamsApplication extends Application {
         primaryStage.setScene(scene);
         primaryStage.setX(0);
         primaryStage.show();
-        primaryStage.setOnCloseRequest((event -> {
-            // event.consume();
-            screenManager.closeStages();
-        }));
+        primaryStage.setOnCloseRequest((event -> screenManager.closeStages()));
 
         screenManager.setScreen(startScreen);
     }

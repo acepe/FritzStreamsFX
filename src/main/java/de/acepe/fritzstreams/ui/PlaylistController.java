@@ -1,16 +1,20 @@
 package de.acepe.fritzstreams.ui;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.net.UrlEscapers;
 
 import de.acepe.fritzstreams.app.ControlledScreen;
-import de.acepe.fritzstreams.app.ScreenManager;
-import de.acepe.fritzstreams.app.Screens;
 import de.acepe.fritzstreams.backend.PlayListEntry;
 import de.acepe.fritzstreams.backend.Playlist;
+import de.acepe.fritzstreams.util.FileUtil;
 import de.acepe.fritzstreams.util.ListUtils;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
@@ -26,7 +30,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
 public class PlaylistController implements ControlledScreen {
@@ -35,9 +38,9 @@ public class PlaylistController implements ControlledScreen {
     private static final String VK_TEMPLATE = "https://vk.com/audio?q=%s";
     private static final String GOOGLE_ITEM_TEMPLATE = "Google nach \"%s\" durchsuchen";
     private static final String VK_ITEM_TEMPLATE = "VKontakte nach \"%s\" durchsuchen";
-    private static final String VK_DOWNLOAD_ITEM_TEMPLATE = "VKontakte Downloader für \"%s\" öffnen\u2026";
     private static final String COPY_ENTRY = "Eintrag kopieren";
     private static final String COPY_LIST = "Playlist kopieren";
+    private static final Logger LOG = LoggerFactory.getLogger(PlaylistController.class);
 
     private final ObservableList<PlayListEntry> entriesList = FXCollections.observableArrayList();
 
@@ -46,11 +49,8 @@ public class PlaylistController implements ControlledScreen {
     @FXML
     private Label titleLabel;
 
-    private ScreenManager screenManager;
-
     @Inject
-    public PlaylistController(ScreenManager screenManager) {
-        this.screenManager = screenManager;
+    public PlaylistController() {
     }
 
     @FXML
@@ -85,12 +85,8 @@ public class PlaylistController implements ControlledScreen {
             vkItem.textProperty().bind(Bindings.format(VK_ITEM_TEMPLATE, itemtextProperty));
             vkItem.setOnAction(event -> searchTrack(VK_TEMPLATE, cell.itemProperty()));
 
-            MenuItem vkDownloadItem = new MenuItem();
-            vkDownloadItem.textProperty().bind(Bindings.format(VK_DOWNLOAD_ITEM_TEMPLATE, itemtextProperty));
-            vkDownloadItem.setOnAction(event -> openVkDownloader(itemtextProperty.get()));
-
             ContextMenu contextMenu = new ContextMenu();
-            contextMenu.getItems().addAll(copyItem, copyList, googleItem, vkItem, vkDownloadItem);
+            contextMenu.getItems().addAll(copyItem, copyList, googleItem, vkItem);
             cell.emptyProperty()
                 .addListener((obs, wasEmpty, isNowEmpty) -> cell.setContextMenu(isNowEmpty ? null : contextMenu));
             return cell;
@@ -98,15 +94,14 @@ public class PlaylistController implements ControlledScreen {
         ListUtils.installCopyPasteHandler(entriesListView, entryConverter);
     }
 
-    private void openVkDownloader(String queryText) {
-        Stage downloaderStage = screenManager.showScreenInNewStage(Screens.DOWNLOADER);
-        ControlledScreen controller = screenManager.getController(Screens.DOWNLOADER);
-        ((VKAudioSearchController) controller).setSearchText(queryText);
-    }
-
     private void searchTrack(String template, ObjectProperty<PlayListEntry> itemProperty) {
-        String searchUri = String.format(template, itemToString(itemProperty));
-        HostServicesFactory.getInstance(screenManager.getApplication()).showDocument(searchUri);
+        String searchUri = String.format(template,
+                                         UrlEscapers.urlFormParameterEscaper().escape(itemToString(itemProperty)));
+        try {
+            FileUtil.doOpen(new URI(searchUri));
+        } catch (URISyntaxException e) {
+            LOG.error("Error opening URL: ", e);
+        }
     }
 
     private String itemToString(ObjectProperty<PlayListEntry> itemProperty) {

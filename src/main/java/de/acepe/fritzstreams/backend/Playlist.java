@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -11,23 +13,31 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 public class Playlist {
     private static final Logger LOG = LoggerFactory.getLogger(Playlist.class);
     private static final String TABLE_SELECTOR = "#main > div.playlist_tables > div > table > tbody";
+    private final OkHttpClient httpClient;
 
-    private final String title;
-    private final String programmUrl;
-    private List<PlayListEntry> entries;
+    private String title;
+    private List<PlayListEntry> entries = new LinkedList<>();
 
-    public Playlist(String title, String programmUrl) {
-        this.title = title;
-        this.programmUrl = programmUrl;
-        init();
+    @Inject
+    public Playlist(OkHttpClient httpClient) {
+        this.httpClient = httpClient;
     }
 
-    private void init() {
+    public void init(String title, String url) {
+        this.title = title;
         try {
-            Document doc = Jsoup.connect(programmUrl).timeout(10000).data("query", "Java").userAgent("Mozilla").get();
+            Request request = new Request.Builder().url(url).build();
+            Response response = httpClient.newCall(request).execute();
+            String content = response.body().string();
+
+            Document doc = Jsoup.parse(content);
             Elements table = doc.select(TABLE_SELECTOR);
 
             entries = extractPlayListEntries(table);
@@ -37,7 +47,6 @@ public class Playlist {
     }
 
     private List<PlayListEntry> extractPlayListEntries(Elements table) {
-        List<PlayListEntry> entries = new LinkedList<>();
         for (Element row : table.select("tr")) {
             if (!row.hasClass("play_track")) {
                 continue;

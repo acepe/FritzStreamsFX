@@ -1,4 +1,4 @@
-package de.acepe.fritzstreams.backend.stream;
+package de.acepe.fritzstreams.backend;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,9 +18,6 @@ import com.google.common.base.MoreObjects;
 import com.google.inject.assistedinject.Assisted;
 
 import de.acepe.fritzstreams.app.DownloadTaskFactory;
-import de.acepe.fritzstreams.backend.Playlist;
-import de.acepe.fritzstreams.backend.Settings;
-import de.acepe.fritzstreams.backend.download.Downloadable;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.concurrent.Task;
@@ -29,7 +26,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class StreamInfo implements Downloadable {
+public class StreamInfo {
 
     private final OkHttpClient okHttpClient;
 
@@ -53,9 +50,10 @@ public class StreamInfo implements Downloadable {
     private static final String MP3_TOKEN = ".mp3";
 
     private final Settings settings;
-    private final DownloadTaskFactory<StreamInfo> downloadTaskFactory;
+    private final DownloadTaskFactory downloadTaskFactory;
     private final LocalDate date;
     private final Stream stream;
+    private final Playlist playlist;
     private final ObjectProperty<File> downloadedFile = new SimpleObjectProperty<>();
     private final StringProperty title = new SimpleStringProperty();
     private final StringProperty subtitle = new SimpleStringProperty();
@@ -66,7 +64,6 @@ public class StreamInfo implements Downloadable {
     private final DoubleProperty progress = new SimpleDoubleProperty();
     private final BooleanProperty downloading = new SimpleBooleanProperty();
 
-    private Playlist playlist;
     private String downloadFileName;
     private Task<Void> downloadTask;
     private Document doc;
@@ -75,11 +72,13 @@ public class StreamInfo implements Downloadable {
     @Inject
     public StreamInfo(OkHttpClient okHttpClient,
             Settings settings,
-            DownloadTaskFactory<StreamInfo> downloadTaskFactory,
+            DownloadTaskFactory downloadTaskFactory,
+            Playlist playlist,
             @Assisted LocalDate date,
             @Assisted Stream stream) {
         this.okHttpClient = okHttpClient;
         this.downloadTaskFactory = downloadTaskFactory;
+        this.playlist = playlist;
         this.date = date;
         this.stream = stream;
         this.settings = settings;
@@ -105,7 +104,8 @@ public class StreamInfo implements Downloadable {
             streamURL = extractDownloadURL();
             String title = extractTitle(TITLE_SELECTOR);
             String subtitle = extractTitle(SUBTITLE_SELECTOR);
-            playlist = new Playlist(title, streamURL(extractProgrammUrl()));
+
+            playlist.init(title, streamURL(extractProgrammUrl()));
             Platform.runLater(() -> {
                 this.title.setValue(title);
                 this.subtitle.setValue(subtitle);
@@ -253,7 +253,6 @@ public class StreamInfo implements Downloadable {
         return downloadFileName;
     }
 
-    @Override
     public Long getTotalSizeInBytes() {
         return totalSizeInBytes.get();
     }
@@ -262,7 +261,6 @@ public class StreamInfo implements Downloadable {
         return totalSizeInBytes;
     }
 
-    @Override
     public Long getDownloadedSizeInBytes() {
         return downloadedSizeInBytes.get();
     }

@@ -2,6 +2,7 @@ package de.acepe.fritzstreams.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -48,17 +49,21 @@ public final class FileUtil {
     }
 
     public static void doOpen(File file) {
+        doOpen(file.toURI());
+    }
+
+    public static void doOpen(URI uri) {
         Platform.runLater(() -> {
             try {
                 if (isWindows) {
-                    ProcessBuilder pb = new ProcessBuilder("explorer", file.getAbsolutePath());
+                    ProcessBuilder pb = new ProcessBuilder("explorer", uri.toString());
                     pb.start();
                 } else if (hasXdgOpen()) {
-                    ProcessBuilder pb = new ProcessBuilder("/usr/bin/xdg-open", file.getAbsolutePath());
+                    ProcessBuilder pb = new ProcessBuilder("/usr/bin/xdg-open", uri.toString());
                     pb.start();
                 }
             } catch (IOException e) {
-                LOG.error("Couldn't open {}", file, e);
+                LOG.error("Couldn't open {}", uri, e);
             }
         });
     }

@@ -1,4 +1,4 @@
-package de.acepe.fritzstreams.backend.download;
+package de.acepe.fritzstreams.backend;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -17,33 +17,25 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
-import de.acepe.fritzstreams.backend.PlayListEntry;
-import de.acepe.fritzstreams.backend.Playlist;
 import de.acepe.fritzstreams.ui.Dialogs;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import okhttp3.*;
 
-public class DownloadTask<T extends Downloadable> extends Task<Void> {
+public class DownloadTask extends Task<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(DownloadTask.class);
 
     private final OkHttpClient httpClient;
     private final Dialogs dialogs;
-    private final T downloadable;
+    private final StreamInfo downloadable;
     private final File targetFile;
     private final Playlist playlist;
     private final Consumer<File> downloadedFileConsumer;
 
     @AssistedInject
-    public DownloadTask(OkHttpClient httpClient, Dialogs dialogs, @Assisted T downloadable) {
-        this(httpClient, dialogs, downloadable, file -> {
-            /* nop */}, null);
-    }
-
-    @AssistedInject
     public DownloadTask(OkHttpClient httpClient,
             Dialogs dialogs,
-            @Assisted T downloadable,
+            @Assisted StreamInfo downloadable,
             @Assisted Consumer<File> downloadedFileConsumer,
             @Assisted Playlist playlist) {
         this.httpClient = httpClient;
@@ -131,7 +123,4 @@ public class DownloadTask<T extends Downloadable> extends Task<Void> {
         }
     }
 
-    public T getDownloadable() {
-        return downloadable;
-    }
 }

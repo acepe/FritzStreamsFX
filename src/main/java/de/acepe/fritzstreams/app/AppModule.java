@@ -5,17 +5,17 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import com.google.inject.*;
+import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
-import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
-import com.sun.javafx.application.HostServicesDelegate;
 
 import de.acepe.fritzstreams.backend.Player;
 import de.acepe.fritzstreams.backend.Settings;
-import de.acepe.fritzstreams.backend.download.DownloadTask;
-import de.acepe.fritzstreams.backend.stream.StreamInfo;
-import de.acepe.fritzstreams.backend.vk.VKDownload;
+import de.acepe.fritzstreams.backend.DownloadTask;
+import de.acepe.fritzstreams.backend.StreamInfo;
 import de.acepe.fritzstreams.ui.Dialogs;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -35,20 +35,18 @@ public class AppModule extends AbstractModule {
 
     @Override
     protected void configure() {
+        bind(Application.class).toInstance(application);
         bind(String.class).annotatedWith(Names.named("APP_TITLE")).toInstance(APP_TITLE);
+
         bind(Settings.class).in(Singleton.class);
         bind(Player.class).in(Singleton.class);
         bind(ScreenManager.class).in(Singleton.class);
         bind(Dialogs.class).in(Singleton.class);
-        bind(Application.class).toInstance(application);
+
         install(new FactoryModuleBuilder().implement(StreamInfo.class, StreamInfo.class)
                                           .build(StreamInfoFactory.class));
         install(new FactoryModuleBuilder().implement(DownloadTask.class, DownloadTask.class)
-                                          .build(new TypeLiteral<DownloadTaskFactory<StreamInfo>>() {}));
-        install(new FactoryModuleBuilder().implement(DownloadTask.class, DownloadTask.class)
-                                          .build(new TypeLiteral<DownloadTaskFactory<VKDownload>>() {}));
-
-        bind(HostServicesDelegate.class).toInstance(HostServicesFactory.getInstance(application));
+                                          .build(DownloadTaskFactory.class));
 
     }
 

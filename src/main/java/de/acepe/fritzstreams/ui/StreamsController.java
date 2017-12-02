@@ -2,8 +2,8 @@ package de.acepe.fritzstreams.ui;
 
 import static de.acepe.fritzstreams.app.Fragments.PLAYER;
 import static de.acepe.fritzstreams.app.Fragments.STREAM;
-import static de.acepe.fritzstreams.backend.stream.StreamInfo.Stream.NIGHTFLIGHT;
-import static de.acepe.fritzstreams.backend.stream.StreamInfo.Stream.SOUNDGARDEN;
+import static de.acepe.fritzstreams.backend.StreamInfo.Stream.NIGHTFLIGHT;
+import static de.acepe.fritzstreams.backend.StreamInfo.Stream.SOUNDGARDEN;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,7 +25,7 @@ import de.acepe.fritzstreams.app.ControlledScreen;
 import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.app.Screens;
 import de.acepe.fritzstreams.app.StreamInfoFactory;
-import de.acepe.fritzstreams.backend.stream.StreamInfo;
+import de.acepe.fritzstreams.backend.StreamInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.beans.property.ObjectProperty;

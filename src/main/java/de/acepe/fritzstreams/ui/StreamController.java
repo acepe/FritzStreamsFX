@@ -14,7 +14,7 @@ import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.app.Screens;
 import de.acepe.fritzstreams.backend.Player;
 import de.acepe.fritzstreams.backend.Playlist;
-import de.acepe.fritzstreams.backend.stream.StreamInfo;
+import de.acepe.fritzstreams.backend.StreamInfo;
 import de.acepe.fritzstreams.util.FileUtil;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
@@ -142,7 +142,7 @@ public class StreamController {
 
     private String getPlayListButtonText() {
         Playlist playlist = stream.get().getPlaylist();
-        return playlist != null && playlist.getEntries().isEmpty() ? "keine Playlist" : "PlayList";
+        return playlist.getEntries().isEmpty() ? "keine Playlist" : "PlayList";
     }
 
     private void bindDownloader() {
