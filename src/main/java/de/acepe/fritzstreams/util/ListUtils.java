@@ -7,7 +7,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.input.*;
 import javafx.util.StringConverter;
 
-public class ListUtils {
+public final class ListUtils {
 
     /**
      * Install the keyboard handler: CTRL + C = copy to clipboard
@@ -28,7 +28,7 @@ public class ListUtils {
             this.converter = converter;
         }
 
-        public void handle(final KeyEvent keyEvent) {
+        public void handle(KeyEvent keyEvent) {
             if (!copyKeyCodeCompination.match(keyEvent)) {
                 return;
             }
@@ -51,7 +51,7 @@ public class ListUtils {
                           .map(converter::toString)
                           .collect(Collectors.joining("\n"));
 
-        final ClipboardContent clipboardContent = new ClipboardContent();
+        ClipboardContent clipboardContent = new ClipboardContent();
         clipboardContent.putString(text);
         Clipboard.getSystemClipboard().setContent(clipboardContent);
     }

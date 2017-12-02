@@ -25,8 +25,6 @@ import de.acepe.fritzstreams.ControlledScreen;
 import de.acepe.fritzstreams.ScreenManager;
 import de.acepe.fritzstreams.Screens;
 import de.acepe.fritzstreams.StreamInfoFactory;
-import de.acepe.fritzstreams.backend.Player;
-import de.acepe.fritzstreams.backend.Settings;
 import de.acepe.fritzstreams.backend.stream.StreamInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -40,7 +38,6 @@ import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.VBox;
-import okhttp3.OkHttpClient;
 
 public class StreamsController implements ControlledScreen {
     private static final Logger LOG = LoggerFactory.getLogger(StreamsController.class);
@@ -54,9 +51,6 @@ public class StreamsController implements ControlledScreen {
     private final Map<LocalDate, StreamInfo> soundgardenStreamMap = new HashMap<>();
     private final Map<LocalDate, StreamInfo> nightflightStreamMap = new HashMap<>();
     private final ObjectProperty<LocalDate> selectedDay = new SimpleObjectProperty<>();
-    private final Settings settings;
-    private final OkHttpClient client;
-    private final Player player;
     private final ScreenManager screenManager;
     private final StreamInfoFactory streamInfoFactory;
 
@@ -73,14 +67,7 @@ public class StreamsController implements ControlledScreen {
     private VBox playerControlsContainer;
 
     @Inject
-    public StreamsController(Settings settings,
-            OkHttpClient client,
-            Player player,
-            ScreenManager screenManager,
-            StreamInfoFactory streamInfoFactory) {
-        this.settings = settings;
-        this.client = client;
-        this.player = player;
+    public StreamsController(ScreenManager screenManager, StreamInfoFactory streamInfoFactory) {
         this.screenManager = screenManager;
         this.streamInfoFactory = streamInfoFactory;
     }
@@ -136,7 +123,7 @@ public class StreamsController implements ControlledScreen {
             int finalI = i;
             Task<Void> initTask = new Task<Void>() {
                 @Override
-                protected Void call() throws Exception {
+                protected Void call() {
                     return initStreams(this, finalI);
                 }
 

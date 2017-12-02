@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 
 import org.slf4j.Logger;
@@ -32,9 +33,10 @@ import javafx.stage.Window;
 import javafx.util.Duration;
 
 public class ScreenManager extends StackPane {
-    private static final String APP_TITLE = "Fritz Streams";
+
     private final Application application;
     private final Provider<FXMLLoader> fxmlLoaderProvider;
+    private final String appTitle;
 
     public enum Direction {
         LEFT, RIGHT, NONE
@@ -48,9 +50,12 @@ public class ScreenManager extends StackPane {
     private final Set<Stage> stages = new HashSet<>();
 
     @Inject
-    public ScreenManager(Application application, Provider<FXMLLoader> fxmlLoaderProvider) {
+    public ScreenManager(Application application,
+            Provider<FXMLLoader> fxmlLoaderProvider,
+            @Named("APP_TITLE") String appTitle) {
         this.application = application;
         this.fxmlLoaderProvider = fxmlLoaderProvider;
+        this.appTitle = appTitle;
 
         screens = new HashMap<>();
         controllers = new HashMap<>();
@@ -60,7 +65,7 @@ public class ScreenManager extends StackPane {
         return screens.get(name);
     }
 
-    public <T extends ControlledScreen> boolean loadScreen(Screens screen) {
+    public <T extends ControlledScreen> void loadScreen(Screens screen) {
         try {
             FXMLLoader fxmlLoader = fxmlLoaderProvider.get();
             fxmlLoader.setLocation(getClass().getResource(screen.getResource()));
@@ -70,10 +75,8 @@ public class ScreenManager extends StackPane {
             controllers.put(screen, myScreenControler);
             screens.put(screen, screenView);
 
-            return true;
         } catch (IOException e) {
             LOG.error("Couldn't load FXML-View {}", screen, e);
-            return false;
         }
     }
 
@@ -81,7 +84,7 @@ public class ScreenManager extends StackPane {
         try {
             FXMLLoader fxmlLoader = fxmlLoaderProvider.get();
             fxmlLoader.setLocation(getClass().getResource(fragment.getResource()));
-            Object load = fxmlLoader.load();
+            fxmlLoader.load();
             return fxmlLoader.getController();
         } catch (IOException e) {
             LOG.error("Couldn't load FXML-View-Fragment {}", fragment, e);
@@ -108,7 +111,7 @@ public class ScreenManager extends StackPane {
     private boolean showScreen(Screens id) {
         getChildren().setAll(screens.get(id));
         Stage stage = (Stage) getScene().getWindow();
-        stage.setTitle(APP_TITLE + " - " + id.getTitle());
+        stage.setTitle(appTitle + " - " + id.getTitle());
         return true;
     }
 
@@ -127,7 +130,7 @@ public class ScreenManager extends StackPane {
         stages.add(stage);
 
         stage.setScene(scene);
-        stage.setTitle(APP_TITLE + " - " + id.getTitle());
+        stage.setTitle(appTitle + " - " + id.getTitle());
         stage.setX(mainWindow.getX() + mainWindow.getWidth());
         stage.setY(mainWindow.getY());
         stage.show();
@@ -165,7 +168,7 @@ public class ScreenManager extends StackPane {
         newImageTimeline.setOnFinished(t -> {
             getChildren().setAll(newNode);
             Stage stage = (Stage) getScene().getWindow();
-            stage.setTitle(APP_TITLE + " - " + id.getTitle());
+            stage.setTitle(appTitle + " - " + id.getTitle());
         });
 
         double endValue = direction == Direction.LEFT ? -oldNodeBounds.getWidth() : oldNodeBounds.getWidth();

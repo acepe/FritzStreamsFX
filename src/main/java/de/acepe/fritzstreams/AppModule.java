@@ -9,7 +9,7 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.assistedinject.FactoryProvider;
+import com.google.inject.name.Names;
 
 import de.acepe.fritzstreams.backend.Player;
 import de.acepe.fritzstreams.backend.Settings;
@@ -20,6 +20,7 @@ import okhttp3.OkHttpClient;
 
 public class AppModule extends AbstractModule {
 
+    private static final String APP_TITLE = "Fritz Streams";
     private final Application application;
     private final Supplier<Injector> injectorSupplier;
 
@@ -30,13 +31,13 @@ public class AppModule extends AbstractModule {
 
     @Override
     protected void configure() {
+        bind(String.class).annotatedWith(Names.named("APP_TITLE")).toInstance(APP_TITLE);
         bind(Settings.class).in(Singleton.class);
         bind(Player.class).in(Singleton.class);
         bind(ScreenManager.class).in(Singleton.class);
         bind(Application.class).toInstance(application);
-        install(new FactoryModuleBuilder()
-                .implement(StreamInfo.class, StreamInfo.class)
-                .build(StreamInfoFactory.class));
+        install(new FactoryModuleBuilder().implement(StreamInfo.class, StreamInfo.class)
+                                          .build(StreamInfoFactory.class));
     }
 
     @Provides
@@ -51,10 +52,5 @@ public class AppModule extends AbstractModule {
         fxmlLoader.setControllerFactory(injectorSupplier.get()::getInstance);
         return fxmlLoader;
     }
-
-    // @Provides
-    // public StreamController createStreamController(ScreenManager screenManager) {
-    // return screenManager.loadFragment(Fragments.STREAM);
-    // }
 
 }

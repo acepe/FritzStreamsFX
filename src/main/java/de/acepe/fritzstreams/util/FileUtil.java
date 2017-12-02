@@ -2,6 +2,7 @@ package de.acepe.fritzstreams.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import javafx.application.Platform;
 
-public class FileUtil {
+public final class FileUtil {
 
     private static final Pattern PATTERN = Pattern.compile("[^A-Za-z0-9_\\-. ]");
     private static final int MAX_LENGTH = 127;
@@ -51,10 +52,10 @@ public class FileUtil {
             try {
                 if (isWindows) {
                     ProcessBuilder pb = new ProcessBuilder("explorer", file.getAbsolutePath());
-                    Process p = pb.start();
+                    pb.start();
                 } else if (hasXdgOpen()) {
                     ProcessBuilder pb = new ProcessBuilder("/usr/bin/xdg-open", file.getAbsolutePath());
-                    Process p = pb.start();
+                    pb.start();
                 }
             } catch (IOException e) {
                 LOG.error("Couldn't open {}", file, e);
@@ -67,7 +68,11 @@ public class FileUtil {
     }
 
     public static void delete(File file) {
-        file.delete();
+        try {
+            Files.delete(file.toPath());
+        } catch (IOException e) {
+            LOG.error("Couldn't delete File {}.", file, e);
+        }
     }
 
     /**
@@ -100,6 +105,5 @@ public class FileUtil {
         // Return a human readable String
         return String.format("%.2f %sB", newBytes, prefix);
     }
-
 
 }

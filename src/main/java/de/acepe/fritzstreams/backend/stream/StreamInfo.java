@@ -3,7 +3,6 @@ package de.acepe.fritzstreams.backend.stream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -37,7 +36,6 @@ public class StreamInfo implements Downloadable {
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(StreamInfo.class);
-    private static final Charset UTF8 = Charset.forName("UTF-8");
     private static final DateTimeFormatter TARGET_Date_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter URL_DATE_FORMAT = DateTimeFormatter.ofPattern("ddMM");
     private static final String BASE_URL = "http://fritz.de%s";
