@@ -16,10 +16,13 @@ public class DownloaderApplication extends Application {
 
     @Inject
     private ScreenManager screenManager;
+    @Inject
+    private DownloadManager downloadManager;
+
     private Injector injector;
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         System.setProperty("prism.lcdtext", "false");
 
         injector = Guice.createInjector(new AppModule(this, this::getInjector));
@@ -49,7 +52,7 @@ public class DownloaderApplication extends Application {
 
     @Override
     public void stop() throws Exception {
-        DownloadManager.getInstance().stopDownloads();
+        downloadManager.stopDownloads();
         super.stop();
     }
 

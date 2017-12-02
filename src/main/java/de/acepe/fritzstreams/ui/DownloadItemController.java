@@ -2,10 +2,12 @@ package de.acepe.fritzstreams.ui;
 
 import java.io.IOException;
 
-import de.acepe.fritzstreams.util.FileUtil;
+import javax.inject.Inject;
+
 import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.backend.vk.VKDownload;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
+import de.acepe.fritzstreams.util.FileUtil;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
@@ -22,6 +24,7 @@ import javafx.scene.layout.VBox;
 public class DownloadItemController extends VBox {
 
     private final ObjectProperty<VKDownload> download = new SimpleObjectProperty<>();
+    private final DownloadManager downloadManager;
 
     @FXML
     private Button cancelButton;
@@ -36,9 +39,12 @@ public class DownloadItemController extends VBox {
     @FXML
     private ProgressBar downloadProgress;
 
-    private DownloadManager downloadManager;
 
-    public DownloadItemController() {
+    @Inject
+    public DownloadItemController(DownloadManager downloadManager) {
+        this.downloadManager = downloadManager;
+
+        // FIXME: Fragment
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("download_item.fxml"));
         fxmlLoader.setRoot(this);
         fxmlLoader.setController(this);
@@ -52,7 +58,6 @@ public class DownloadItemController extends VBox {
 
     @FXML
     private void initialize() {
-        downloadManager = DownloadManager.getInstance();
         updateCancelButton();
     }
 
@@ -88,7 +93,7 @@ public class DownloadItemController extends VBox {
         titleLabel.textProperty().setValue(audioItem.getTitle());
     }
 
-    private void updateSizeLabel(Integer newValue, Label sizeLabel) {
+    private void updateSizeLabel(Long newValue, Label sizeLabel) {
         sizeLabel.setText(newValue == null ? "" : FileUtil.humanReadableBytes(newValue, true));
     }
 

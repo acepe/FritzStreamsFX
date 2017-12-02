@@ -58,8 +58,8 @@ public class StreamInfo implements Downloadable {
     private final StringProperty subtitle = new SimpleStringProperty();
     private final ObjectProperty<Image> image = new SimpleObjectProperty<>();
     private final ReadOnlyBooleanWrapper initialised = new ReadOnlyBooleanWrapper();
-    private final ObjectProperty<Integer> totalSizeInBytes = new SimpleObjectProperty<>();
-    private final ObjectProperty<Integer> downloadedSizeInBytes = new SimpleObjectProperty<>();
+    private final ObjectProperty<Long> totalSizeInBytes = new SimpleObjectProperty<>();
+    private final ObjectProperty<Long> downloadedSizeInBytes = new SimpleObjectProperty<>();
 
     private Playlist playlist;
     private String downloadFileName;
@@ -180,7 +180,8 @@ public class StreamInfo implements Downloadable {
 
     public void download() {
         initializeDownloadFile();
-        streamDownloader = new StreamDownloader(this);
+        // FIXME: inject
+        streamDownloader = new StreamDownloader(okHttpClient, this);
         streamDownloader.download();
     }
 
@@ -238,28 +239,28 @@ public class StreamInfo implements Downloadable {
     }
 
     @Override
-    public Integer getTotalSizeInBytes() {
+    public Long getTotalSizeInBytes() {
         return totalSizeInBytes.get();
     }
 
-    public ObjectProperty<Integer> totalSizeInBytesProperty() {
+    public ObjectProperty<Long> totalSizeInBytesProperty() {
         return totalSizeInBytes;
     }
 
     @Override
-    public Integer getDownloadedSizeInBytes() {
+    public Long getDownloadedSizeInBytes() {
         return downloadedSizeInBytes.get();
     }
 
-    public ObjectProperty<Integer> downloadedSizeInBytesProperty() {
+    public ObjectProperty<Long> downloadedSizeInBytesProperty() {
         return downloadedSizeInBytes;
     }
 
-    public void setDownloadedSizeInBytes(Integer downloadedSizeInBytes) {
+    public void setDownloadedSizeInBytes(Long downloadedSizeInBytes) {
         this.downloadedSizeInBytes.set(downloadedSizeInBytes);
     }
 
-    public void setTotalSizeInBytes(Integer sizeInBytes) {
+    public void setTotalSizeInBytes(Long sizeInBytes) {
         this.totalSizeInBytes.set(sizeInBytes);
     }
 

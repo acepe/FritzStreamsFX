@@ -24,7 +24,10 @@ public class VKAudioSearchController implements ControlledScreen {
     private static final String RESULT_TEMPLATE = "Die Suche hat %d Audio-Dateien gefunden";
     private static final String ARTIST_TITLE = "Künstler und Titel";
     private static final String ONLY_ARTIST = "nur Künstler";
+
     private final Settings settings;
+    private final ScreenManager screenManager;
+    private final DownloadManager downloadManager;
 
     @FXML
     private Label titleLabel;
@@ -45,12 +48,11 @@ public class VKAudioSearchController implements ControlledScreen {
     @FXML
     private HBox downloadsHBox;
 
-    private ScreenManager screenManager;
-
     @Inject
-    public VKAudioSearchController(Settings settings, ScreenManager screenManager) {
+    public VKAudioSearchController(Settings settings, ScreenManager screenManager, DownloadManager downloadManager) {
         this.settings = settings;
         this.screenManager = screenManager;
+        this.downloadManager = downloadManager;
     }
 
     @FXML
@@ -60,7 +62,6 @@ public class VKAudioSearchController implements ControlledScreen {
 
         searchButton.disableProperty().bind(searchTextField.textProperty().isEmpty());
         resultVBox.setVisible(false);
-        DownloadManager downloadManager = DownloadManager.getInstance();
         downloadProgress.progressProperty().bind(downloadManager.progressProperty());
         downloadsHBox.visibleProperty()
                      .bind(downloadManager.progressProperty()
@@ -98,7 +99,8 @@ public class VKAudioSearchController implements ControlledScreen {
     }
 
     private void addAudioItem(AudioItem audioItem) {
-        AudioItemController audioItemController = new AudioItemController(settings);
+        // FIXME: inject
+        AudioItemController audioItemController = new AudioItemController(settings, downloadManager);
         audioItemController.setAudioItem(audioItem);
         audioItemController.setApplication(screenManager.getApplication());
         resultItemsVBox.getChildren().add(audioItemController);

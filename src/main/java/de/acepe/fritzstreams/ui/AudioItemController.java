@@ -2,6 +2,8 @@ package de.acepe.fritzstreams.ui;
 
 import java.io.IOException;
 
+import javax.inject.Inject;
+
 import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
 
 import de.acepe.fritzstreams.backend.Settings;
@@ -17,12 +19,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
-import javax.inject.Inject;
-
 public class AudioItemController extends VBox {
 
     private final ObjectProperty<AudioItem> audioItem = new SimpleObjectProperty<>();
     private final Settings settings;
+    private final DownloadManager downloadManager;
 
     @FXML
     private Button playButton;
@@ -36,11 +37,12 @@ public class AudioItemController extends VBox {
     private Label durationLabel;
 
     private Application application;
-    private DownloadManager downloadManager;
 
     @Inject
-    public AudioItemController(Settings settings) {
+    public AudioItemController(Settings settings, DownloadManager downloadManager) {
         this.settings = settings;
+        this.downloadManager = downloadManager;
+        //FIXME: fragment
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("audio_item.fxml"));
         fxmlLoader.setRoot(this);
         fxmlLoader.setController(this);
@@ -54,7 +56,6 @@ public class AudioItemController extends VBox {
 
     @FXML
     private void initialize() {
-        downloadManager = DownloadManager.getInstance();
     }
 
     @FXML

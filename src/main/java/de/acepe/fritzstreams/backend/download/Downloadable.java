@@ -6,11 +6,11 @@ public interface Downloadable {
 
     String getTargetFileName();
 
-    void setTotalSizeInBytes(Integer size);
+    void setTotalSizeInBytes(Long size);
 
-    Integer getTotalSizeInBytes();
+    Long getTotalSizeInBytes();
 
-    void setDownloadedSizeInBytes(Integer size);
+    void setDownloadedSizeInBytes(Long size);
 
-    Integer getDownloadedSizeInBytes();
+    Long getDownloadedSizeInBytes();
 }

@@ -2,6 +2,8 @@ package de.acepe.fritzstreams.ui;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import de.acepe.fritzstreams.ControlledScreen;
 import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.backend.vk.VKDownload;
@@ -18,6 +20,8 @@ import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.layout.VBox;
 
 public class DownloadManagerController implements ControlledScreen {
+
+    private final DownloadManager downloadManager;
 
     @FXML
     private Label titleLabel;
@@ -44,11 +48,13 @@ public class DownloadManagerController implements ControlledScreen {
     @FXML
     private VBox downloadsVBox;
 
-    private DownloadManager downloadManager;
+    @Inject
+    public DownloadManagerController(DownloadManager downloadManager) {
+        this.downloadManager = downloadManager;
+    }
 
     @FXML
     void initialize() {
-        downloadManager = DownloadManager.getInstance();
         pendingList.setItems(downloadManager.getPendingList());
         runningList.setItems(downloadManager.getRunningList());
         doneList.setItems(downloadManager.getFinishedList());
@@ -79,7 +85,8 @@ public class DownloadManagerController implements ControlledScreen {
     }
 
     private void addDownloadItem(VKDownload download) {
-        DownloadItemController downloadItemController = new DownloadItemController();
+        // Fixme: inject
+        DownloadItemController downloadItemController = new DownloadItemController(downloadManager);
         downloadItemController.setDownload(download);
         downloadsVBox.getChildren().add(downloadItemController);
     }

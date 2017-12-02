@@ -17,8 +17,8 @@ public class VKDownload implements Downloadable {
 
     private final DoubleProperty progress = new SimpleDoubleProperty();
     private final BooleanProperty running = new SimpleBooleanProperty();
-    private final ObjectProperty<Integer> sizeInBytes = new SimpleObjectProperty<>();
-    private final ObjectProperty<Integer> downloadedSizeInBytes = new SimpleObjectProperty<>();
+    private final ObjectProperty<Long> sizeInBytes = new SimpleObjectProperty<>();
+    private final ObjectProperty<Long> downloadedSizeInBytes = new SimpleObjectProperty<>();
     private final ObjectProperty<EventType> state = new SimpleObjectProperty<>();
     private final String targetFileName;
 
@@ -55,7 +55,7 @@ public class VKDownload implements Downloadable {
     public void reset() {
         state.setValue(null);
         progress.setValue(0);
-        downloadedSizeInBytes.setValue(0);
+        downloadedSizeInBytes.setValue(0L);
     }
 
     private void onTaskFinished(WorkerStateEvent evt) {
@@ -80,28 +80,28 @@ public class VKDownload implements Downloadable {
     }
 
     @Override
-    public Integer getTotalSizeInBytes() {
+    public Long getTotalSizeInBytes() {
         return sizeInBytes.get();
     }
 
-    public ObjectProperty<Integer> totalSizeInBytesProperty() {
+    public ObjectProperty<Long> totalSizeInBytesProperty() {
         return sizeInBytes;
     }
 
-    public void setTotalSizeInBytes(Integer sizeInBytes) {
+    public void setTotalSizeInBytes(Long sizeInBytes) {
         this.sizeInBytes.set(sizeInBytes);
     }
 
     @Override
-    public Integer getDownloadedSizeInBytes() {
+    public Long getDownloadedSizeInBytes() {
         return downloadedSizeInBytes.get();
     }
 
-    public ObjectProperty<Integer> downloadedSizeInBytesProperty() {
+    public ObjectProperty<Long> downloadedSizeInBytesProperty() {
         return downloadedSizeInBytes;
     }
 
-    public void setDownloadedSizeInBytes(Integer downloadedSizeInBytes) {
+    public void setDownloadedSizeInBytes(Long downloadedSizeInBytes) {
         this.downloadedSizeInBytes.set(downloadedSizeInBytes);
     }
 

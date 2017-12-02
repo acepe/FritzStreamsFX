@@ -5,6 +5,8 @@ import static javafx.beans.binding.Bindings.size;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +18,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
+import okhttp3.OkHttpClient;
 
 public class DownloadManager {
     private static final Logger LOG = LoggerFactory.getLogger(DownloadManager.class);
@@ -36,15 +39,12 @@ public class DownloadManager {
     private final IntegerProperty count = new SimpleIntegerProperty();
     private final ChangeListener<Number> trackTaskProgress = this::trackTaskProgress;
     private final EventHandler<WorkerStateEvent> onTaskFinished = this::onTaskFinished;
+    private final OkHttpClient httpClient;
 
-    public static DownloadManager getInstance() {
-        if (instance == null) {
-            instance = new DownloadManager();
-        }
-        return instance;
-    }
+    @Inject
+    public DownloadManager(OkHttpClient httpClient) {
+        this.httpClient = httpClient;
 
-    private DownloadManager() {
         count.bind(size(pendingList).add(size(runningList)).add(size(finishedList)));
         doneCount.bind(size(finishedList));
         running.setValue(true);
@@ -91,7 +91,7 @@ public class DownloadManager {
                 pendingList.remove(download);
                 runningList.add(download);
 
-                DownloadTask<VKDownload> task = new DownloadTask<>(download);
+                DownloadTask<VKDownload> task = new DownloadTask<>(httpClient, download);
                 download.setTask(task);
 
                 task.progressProperty().addListener(trackTaskProgress);
