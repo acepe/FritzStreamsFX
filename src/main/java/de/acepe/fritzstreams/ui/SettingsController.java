@@ -4,9 +4,9 @@ import java.io.File;
 
 import javax.inject.Inject;
 
-import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.ScreenManager;
-import de.acepe.fritzstreams.Screens;
+import de.acepe.fritzstreams.app.ControlledScreen;
+import de.acepe.fritzstreams.app.ScreenManager;
+import de.acepe.fritzstreams.app.Screens;
 import de.acepe.fritzstreams.backend.Settings;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -14,11 +14,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.stage.DirectoryChooser;
 
 public class SettingsController implements ControlledScreen {
 
     private final ScreenManager screenManager;
+    private final Dialogs dialogs;
     private final Settings settings;
 
     @FXML
@@ -31,9 +31,10 @@ public class SettingsController implements ControlledScreen {
     private TextField downloadLocationTextfield;
 
     @Inject
-    public SettingsController(Settings settings, ScreenManager screenManager) {
+    public SettingsController(Settings settings, ScreenManager screenManager, Dialogs dialogs) {
         this.settings = settings;
         this.screenManager = screenManager;
+        this.dialogs = dialogs;
     }
 
     @FXML
@@ -46,10 +47,7 @@ public class SettingsController implements ControlledScreen {
 
     @FXML
     void onChangeDownloadLocationPerformed() {
-        DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Zielordner festlegen");
-        chooser.setInitialDirectory(new File(settings.getTargetpath()));
-        File selectedDir = chooser.showDialog(screenManager.getScene().getWindow());
+        File selectedDir = dialogs.showDirChooser();
         if (selectedDir != null) {
             downloadLocationTextfield.setText(selectedDir.getAbsolutePath());
         }

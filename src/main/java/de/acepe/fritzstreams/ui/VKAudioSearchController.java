@@ -1,12 +1,14 @@
 package de.acepe.fritzstreams.ui;
 
+import static de.acepe.fritzstreams.app.Fragments.AUDIO_ITEM;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.ScreenManager;
+import de.acepe.fritzstreams.app.ControlledScreen;
+import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.backend.Settings;
 import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.backend.vk.VkAudioApi;
@@ -25,7 +27,6 @@ public class VKAudioSearchController implements ControlledScreen {
     private static final String ARTIST_TITLE = "Künstler und Titel";
     private static final String ONLY_ARTIST = "nur Künstler";
 
-    private final Settings settings;
     private final ScreenManager screenManager;
     private final DownloadManager downloadManager;
 
@@ -49,8 +50,7 @@ public class VKAudioSearchController implements ControlledScreen {
     private HBox downloadsHBox;
 
     @Inject
-    public VKAudioSearchController(Settings settings, ScreenManager screenManager, DownloadManager downloadManager) {
-        this.settings = settings;
+    public VKAudioSearchController(ScreenManager screenManager, DownloadManager downloadManager) {
         this.screenManager = screenManager;
         this.downloadManager = downloadManager;
     }
@@ -99,11 +99,9 @@ public class VKAudioSearchController implements ControlledScreen {
     }
 
     private void addAudioItem(AudioItem audioItem) {
-        // FIXME: inject
-        AudioItemController audioItemController = new AudioItemController(settings, downloadManager);
+        AudioItemController audioItemController = screenManager.loadFragment(AUDIO_ITEM);
         audioItemController.setAudioItem(audioItem);
-        audioItemController.setApplication(screenManager.getApplication());
-        resultItemsVBox.getChildren().add(audioItemController);
+        resultItemsVBox.getChildren().add(audioItemController.getContent());
     }
 
     public void setSearchText(String searchText) {

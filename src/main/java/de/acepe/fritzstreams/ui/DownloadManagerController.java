@@ -4,7 +4,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import de.acepe.fritzstreams.ControlledScreen;
+import de.acepe.fritzstreams.app.ControlledScreen;
+import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.backend.vk.VKDownload;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
@@ -19,8 +20,11 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.layout.VBox;
 
+import static de.acepe.fritzstreams.app.Fragments.DOWNLOAD_ITEM;
+
 public class DownloadManagerController implements ControlledScreen {
 
+    private final ScreenManager screenManager;
     private final DownloadManager downloadManager;
 
     @FXML
@@ -49,7 +53,8 @@ public class DownloadManagerController implements ControlledScreen {
     private VBox downloadsVBox;
 
     @Inject
-    public DownloadManagerController(DownloadManager downloadManager) {
+    public DownloadManagerController(ScreenManager screenManager, DownloadManager downloadManager) {
+        this.screenManager = screenManager;
         this.downloadManager = downloadManager;
     }
 
@@ -85,10 +90,9 @@ public class DownloadManagerController implements ControlledScreen {
     }
 
     private void addDownloadItem(VKDownload download) {
-        // Fixme: inject
-        DownloadItemController downloadItemController = new DownloadItemController(downloadManager);
+        DownloadItemController downloadItemController = screenManager.loadFragment(DOWNLOAD_ITEM);
         downloadItemController.setDownload(download);
-        downloadsVBox.getChildren().add(downloadItemController);
+        downloadsVBox.getChildren().add(downloadItemController.getContent());
     }
 
     @FXML

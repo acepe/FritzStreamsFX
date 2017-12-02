@@ -1,7 +1,5 @@
 package de.acepe.fritzstreams.ui;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 
 import de.acepe.fritzstreams.backend.download.DownloadManager;
@@ -15,17 +13,19 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.VBox;
 
-public class DownloadItemController extends VBox {
+public class DownloadItemController {
 
     private final ObjectProperty<VKDownload> download = new SimpleObjectProperty<>();
     private final DownloadManager downloadManager;
 
+    @FXML
+    private VBox root;
     @FXML
     private Button cancelButton;
     @FXML
@@ -39,21 +39,9 @@ public class DownloadItemController extends VBox {
     @FXML
     private ProgressBar downloadProgress;
 
-
     @Inject
     public DownloadItemController(DownloadManager downloadManager) {
         this.downloadManager = downloadManager;
-
-        // FIXME: Fragment
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("download_item.fxml"));
-        fxmlLoader.setRoot(this);
-        fxmlLoader.setController(this);
-
-        try {
-            fxmlLoader.load();
-        } catch (IOException exception) {
-            throw new RuntimeException(exception);
-        }
     }
 
     @FXML
@@ -111,5 +99,9 @@ public class DownloadItemController extends VBox {
         } else {
             GlyphsDude.setIcon(cancelButton, FontAwesomeIcon.TIMES_CIRCLE, "1.5em");
         }
+    }
+
+    public Parent getContent() {
+        return root;
     }
 }

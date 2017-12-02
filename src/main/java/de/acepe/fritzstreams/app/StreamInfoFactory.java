@@ -1,4 +1,4 @@
-package de.acepe.fritzstreams;
+package de.acepe.fritzstreams.app;
 
 import java.time.LocalDate;
 

@@ -14,6 +14,9 @@ import org.jaudiotagger.tag.FieldKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+
 import de.acepe.fritzstreams.backend.PlayListEntry;
 import de.acepe.fritzstreams.backend.Playlist;
 import de.acepe.fritzstreams.ui.Dialogs;
@@ -25,21 +28,26 @@ public class DownloadTask<T extends Downloadable> extends Task<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(DownloadTask.class);
 
     private final OkHttpClient httpClient;
+    private final Dialogs dialogs;
     private final T downloadable;
     private final File targetFile;
     private final Playlist playlist;
     private final Consumer<File> downloadedFileConsumer;
 
-    public DownloadTask(OkHttpClient httpClient, T downloadable) {
-        this(httpClient, downloadable, file -> {
+    @AssistedInject
+    public DownloadTask(OkHttpClient httpClient, Dialogs dialogs, @Assisted T downloadable) {
+        this(httpClient, dialogs, downloadable, file -> {
             /* nop */}, null);
     }
 
+    @AssistedInject
     public DownloadTask(OkHttpClient httpClient,
-            T downloadable,
-            Consumer<File> downloadedFileConsumer,
-            Playlist playlist) {
+            Dialogs dialogs,
+            @Assisted T downloadable,
+            @Assisted Consumer<File> downloadedFileConsumer,
+            @Assisted Playlist playlist) {
         this.httpClient = httpClient;
+        this.dialogs = dialogs;
         this.downloadable = downloadable;
         this.downloadedFileConsumer = downloadedFileConsumer;
         targetFile = new File(downloadable.getTargetFileName());
@@ -112,7 +120,7 @@ public class DownloadTask<T extends Downloadable> extends Task<Void> {
     protected void failed() {
         Throwable ex = getException();
         LOG.error("Failed to download {}", downloadable, ex);
-        Dialogs.showErrorDialog(ex);
+        dialogs.showErrorDialog(ex);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package de.acepe.fritzstreams;
+package de.acepe.fritzstreams.app;
 
 public enum Screens {
     STREAMS("ui/streams.fxml", "Musikstreams", 630, 533),

@@ -1,4 +1,4 @@
-package de.acepe.fritzstreams;
+package de.acepe.fritzstreams.app;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -34,10 +34,6 @@ import javafx.util.Duration;
 
 public class ScreenManager extends StackPane {
 
-    private final Application application;
-    private final Provider<FXMLLoader> fxmlLoaderProvider;
-    private final String appTitle;
-
     public enum Direction {
         LEFT, RIGHT, NONE
     }
@@ -45,9 +41,15 @@ public class ScreenManager extends StackPane {
     private static final Logger LOG = LoggerFactory.getLogger(ScreenManager.class);
     private static final Duration FADE_DURATION = new Duration(400);
 
+    private final Application application;
+    private final Provider<FXMLLoader> fxmlLoaderProvider;
+    private final String appTitle;
     private final Map<Screens, Node> screens;
     private final Map<Screens, ControlledScreen> controllers;
     private final Set<Stage> stages = new HashSet<>();
+    private final String css;
+
+    private Screens activeScreen;
 
     @Inject
     public ScreenManager(Application application,
@@ -57,6 +59,7 @@ public class ScreenManager extends StackPane {
         this.fxmlLoaderProvider = fxmlLoaderProvider;
         this.appTitle = appTitle;
 
+        css = application.getClass().getResource("style.css").toExternalForm();
         screens = new HashMap<>();
         controllers = new HashMap<>();
     }
@@ -68,7 +71,7 @@ public class ScreenManager extends StackPane {
     public <T extends ControlledScreen> void loadScreen(Screens screen) {
         try {
             FXMLLoader fxmlLoader = fxmlLoaderProvider.get();
-            fxmlLoader.setLocation(getClass().getResource(screen.getResource()));
+            fxmlLoader.setLocation(application.getClass().getResource(screen.getResource()));
 
             Parent screenView = fxmlLoader.load();
             T myScreenControler = fxmlLoader.getController();
@@ -83,36 +86,45 @@ public class ScreenManager extends StackPane {
     public <T> T loadFragment(Fragments fragment) {
         try {
             FXMLLoader fxmlLoader = fxmlLoaderProvider.get();
-            fxmlLoader.setLocation(getClass().getResource(fragment.getResource()));
+            fxmlLoader.setLocation(application.getClass().getResource(fragment.getResource()));
             fxmlLoader.load();
             return fxmlLoader.getController();
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOG.error("Couldn't load FXML-View-Fragment {}", fragment, e);
             return null;
         }
     }
 
-    public boolean setScreen(Screens id) {
-        return setScreen(id, Direction.NONE);
+    public void setScreen(Screens id) {
+        setScreen(id, Direction.NONE);
     }
 
-    public boolean setScreen(Screens id, Direction direction) {
+    public void setScreen(Screens id, Direction direction) {
         if (screens.get(id) == null) {
             LOG.error("Screen {} hasn't been loaded", id);
-            return false;
+            return;
         }
         if (getChildren().isEmpty() || direction == Direction.NONE) {
-            return showScreen(id);
+            showScreen(id);
+            return;
         }
 
-        return changeScreens(id, direction);
+        changeScreens(id, direction);
     }
 
-    private boolean showScreen(Screens id) {
+    private void showScreen(Screens id) {
+        notifyActiveScreenHidden();
         getChildren().setAll(screens.get(id));
         Stage stage = (Stage) getScene().getWindow();
         stage.setTitle(appTitle + " - " + id.getTitle());
-        return true;
+        activeScreen = id;
+        controllers.get(id).onScreenShown();
+    }
+
+    private void notifyActiveScreenHidden() {
+        if (activeScreen != null) {
+            controllers.get(activeScreen).onScreenHidden();
+        }
     }
 
     public Stage showScreenInNewStage(Screens id) {
@@ -121,12 +133,16 @@ public class ScreenManager extends StackPane {
         contentContainer.setCenter(screens.get(id));
 
         Scene scene = new Scene(contentContainer, id.getWidth(), id.getHeight());
-        scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        scene.getStylesheets().add(css);
 
         Window mainWindow = getScene().getWindow();
 
         Stage stage = new Stage();
-        stage.setOnCloseRequest(event -> stages.remove(stage));
+        stage.setOnCloseRequest(event -> {
+            controllers.get(id).onScreenHidden();
+            unloadScreen(id);
+            stages.remove(stage);
+        });
         stages.add(stage);
 
         stage.setScene(scene);
@@ -134,10 +150,11 @@ public class ScreenManager extends StackPane {
         stage.setX(mainWindow.getX() + mainWindow.getWidth());
         stage.setY(mainWindow.getY());
         stage.show();
+        controllers.get(id).onScreenShown();
         return stage;
     }
 
-    private boolean changeScreens(Screens id, Direction direction) {
+    private void changeScreens(Screens id, Direction direction) {
         Node oldNode = getChildren().get(0);
         Bounds oldNodeBounds = oldNode.getBoundsInParent();
         ImageView oldImage = new ImageView(oldNode.snapshot(new SnapshotParameters(),
@@ -163,12 +180,14 @@ public class ScreenManager extends StackPane {
                                                  new KeyValue(newImage.translateXProperty(),
                                                               0,
                                                               Interpolator.EASE_BOTH));
-        Timeline newImageTimeline = new Timeline();
-        newImageTimeline.getKeyFrames().add(newImageKeyFrame);
+        Timeline newImageTimeline = new Timeline(newImageKeyFrame);
         newImageTimeline.setOnFinished(t -> {
+            notifyActiveScreenHidden();
+            activeScreen = id;
             getChildren().setAll(newNode);
             Stage stage = (Stage) getScene().getWindow();
             stage.setTitle(appTitle + " - " + id.getTitle());
+            controllers.get(id).onScreenShown();
         });
 
         double endValue = direction == Direction.LEFT ? -oldNodeBounds.getWidth() : oldNodeBounds.getWidth();
@@ -176,21 +195,15 @@ public class ScreenManager extends StackPane {
                                                  new KeyValue(oldImage.translateXProperty(),
                                                               endValue,
                                                               Interpolator.EASE_BOTH));
-        Timeline oldImageTimeLine = new Timeline();
-        oldImageTimeLine.getKeyFrames().add(oldImageKeyFrame);
+        Timeline oldImageTimeLine = new Timeline(oldImageKeyFrame);
 
         newImageTimeline.play();
         oldImageTimeLine.play();
-        return true;
     }
 
-    public boolean unloadScreen(Screens id) {
-        if (screens.remove(id) == null) {
-            LOG.error("Couldn't unload Screen {}, as it was not loaded...");
-            return false;
-        } else {
-            return true;
-        }
+    public void unloadScreen(Screens id) {
+        controllers.remove(id);
+        screens.remove(id);
     }
 
     public void closeStages() {

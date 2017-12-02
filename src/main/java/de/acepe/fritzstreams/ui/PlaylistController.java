@@ -6,9 +6,9 @@ import javax.inject.Inject;
 
 import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
 
-import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.ScreenManager;
-import de.acepe.fritzstreams.Screens;
+import de.acepe.fritzstreams.app.ControlledScreen;
+import de.acepe.fritzstreams.app.ScreenManager;
+import de.acepe.fritzstreams.app.Screens;
 import de.acepe.fritzstreams.backend.PlayListEntry;
 import de.acepe.fritzstreams.backend.Playlist;
 import de.acepe.fritzstreams.util.ListUtils;

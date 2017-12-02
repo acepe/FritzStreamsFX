@@ -3,23 +3,35 @@ package de.acepe.fritzstreams.ui;
 import static javafx.scene.layout.GridPane.setHgrow;
 import static javafx.scene.layout.VBox.setVgrow;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import javax.inject.Inject;
+
+import de.acepe.fritzstreams.app.ScreenManager;
+import de.acepe.fritzstreams.backend.Settings;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class Dialogs {
 
-    private Dialogs() {
+    private final Settings settings;
+    private final ScreenManager screenManager;
+
+    @Inject
+    public Dialogs(Settings settings, ScreenManager screenManager) {
+        this.settings = settings;
+        this.screenManager = screenManager;
     }
 
-    public static void showErrorDialog(Throwable ex) {
+    public void showErrorDialog(Throwable ex) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         ex.printStackTrace(pw);
@@ -58,5 +70,12 @@ public class Dialogs {
             });
         });
         alert.showAndWait();
+    }
+
+    public File showDirChooser() {
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("Zielordner festlegen");
+        chooser.setInitialDirectory(new File(settings.getTargetpath()));
+        return chooser.showDialog(screenManager.getScene().getWindow());
     }
 }

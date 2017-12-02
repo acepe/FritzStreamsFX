@@ -1,30 +1,29 @@
 package de.acepe.fritzstreams.ui;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 
-import com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory;
+import com.sun.javafx.application.HostServicesDelegate;
 
 import de.acepe.fritzstreams.backend.Settings;
 import de.acepe.fritzstreams.backend.download.DownloadManager;
 import de.acepe.fritzstreams.backend.vk.VKDownload;
 import de.acepe.fritzstreams.backend.vk.model.AudioItem;
-import javafx.application.Application;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
-public class AudioItemController extends VBox {
+public class AudioItemController {
 
     private final ObjectProperty<AudioItem> audioItem = new SimpleObjectProperty<>();
     private final Settings settings;
     private final DownloadManager downloadManager;
+    private final HostServicesDelegate hostServices;
 
+    @FXML
+    private VBox root;
     @FXML
     private Button playButton;
     @FXML
@@ -36,22 +35,11 @@ public class AudioItemController extends VBox {
     @FXML
     private Label durationLabel;
 
-    private Application application;
-
     @Inject
-    public AudioItemController(Settings settings, DownloadManager downloadManager) {
+    public AudioItemController(Settings settings, DownloadManager downloadManager, HostServicesDelegate hostServices) {
         this.settings = settings;
         this.downloadManager = downloadManager;
-        //FIXME: fragment
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("audio_item.fxml"));
-        fxmlLoader.setRoot(this);
-        fxmlLoader.setController(this);
-
-        try {
-            fxmlLoader.load();
-        } catch (IOException exception) {
-            throw new RuntimeException(exception);
-        }
+        this.hostServices = hostServices;
     }
 
     @FXML
@@ -65,7 +53,7 @@ public class AudioItemController extends VBox {
 
     @FXML
     void onPlayPerformed() {
-        HostServicesFactory.getInstance(application).showDocument(audioItem.get().getUrl());
+        hostServices.showDocument(audioItem.get().getUrl());
     }
 
     private void bind() {
@@ -81,7 +69,7 @@ public class AudioItemController extends VBox {
         bind();
     }
 
-    public void setApplication(Application application) {
-        this.application = application;
+    public VBox getContent() {
+        return root;
     }
 }

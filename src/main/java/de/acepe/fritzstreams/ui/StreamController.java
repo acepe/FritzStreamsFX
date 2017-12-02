@@ -9,12 +9,11 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.ScreenManager;
-import de.acepe.fritzstreams.Screens;
+import de.acepe.fritzstreams.app.ControlledScreen;
+import de.acepe.fritzstreams.app.ScreenManager;
+import de.acepe.fritzstreams.app.Screens;
 import de.acepe.fritzstreams.backend.Player;
 import de.acepe.fritzstreams.backend.Playlist;
-import de.acepe.fritzstreams.backend.stream.StreamDownloader;
 import de.acepe.fritzstreams.backend.stream.StreamInfo;
 import de.acepe.fritzstreams.util.FileUtil;
 import de.jensd.fx.glyphs.GlyphsDude;
@@ -148,15 +147,12 @@ public class StreamController {
 
     private void bindDownloader() {
         StreamInfo streamInfo = stream.get();
-        StreamDownloader streamDownloader = streamInfo.getStreamDownloader();
-        if (streamDownloader == null) {
-            downloadProgress.setVisible(false);
-            return;
-        }
-        downloadProgress.progressProperty().bind(streamDownloader.progressProperty());
-        downloadProgress.visibleProperty().bind(streamDownloader.runningProperty());
+
+        downloadProgress.progressProperty().bind(streamInfo.progressProperty());
+        downloadProgress.visibleProperty().bind(streamInfo.downloadingProperty());
+
         downloadButton.disableProperty().unbind();
-        downloadButton.disableProperty().bind(streamDownloader.runningProperty());
+        downloadButton.disableProperty().bind(streamInfo.downloadingProperty());
     }
 
     private void unbindDownloader() {

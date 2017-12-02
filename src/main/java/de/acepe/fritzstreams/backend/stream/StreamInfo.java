@@ -17,11 +17,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.MoreObjects;
 import com.google.inject.assistedinject.Assisted;
 
+import de.acepe.fritzstreams.app.DownloadTaskFactory;
 import de.acepe.fritzstreams.backend.Playlist;
 import de.acepe.fritzstreams.backend.Settings;
 import de.acepe.fritzstreams.backend.download.Downloadable;
 import javafx.application.Platform;
 import javafx.beans.property.*;
+import javafx.concurrent.Task;
 import javafx.scene.image.Image;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -51,6 +53,7 @@ public class StreamInfo implements Downloadable {
     private static final String MP3_TOKEN = ".mp3";
 
     private final Settings settings;
+    private final DownloadTaskFactory<StreamInfo> downloadTaskFactory;
     private final LocalDate date;
     private final Stream stream;
     private final ObjectProperty<File> downloadedFile = new SimpleObjectProperty<>();
@@ -60,16 +63,23 @@ public class StreamInfo implements Downloadable {
     private final ReadOnlyBooleanWrapper initialised = new ReadOnlyBooleanWrapper();
     private final ObjectProperty<Long> totalSizeInBytes = new SimpleObjectProperty<>();
     private final ObjectProperty<Long> downloadedSizeInBytes = new SimpleObjectProperty<>();
+    private final DoubleProperty progress = new SimpleDoubleProperty();
+    private final BooleanProperty downloading = new SimpleBooleanProperty();
 
     private Playlist playlist;
     private String downloadFileName;
-    private StreamDownloader streamDownloader;
+    private Task<Void> downloadTask;
     private Document doc;
     private String streamURL;
 
     @Inject
-    public StreamInfo(OkHttpClient okHttpClient, Settings settings, @Assisted LocalDate date, @Assisted Stream stream) {
+    public StreamInfo(OkHttpClient okHttpClient,
+            Settings settings,
+            DownloadTaskFactory<StreamInfo> downloadTaskFactory,
+            @Assisted LocalDate date,
+            @Assisted Stream stream) {
         this.okHttpClient = okHttpClient;
+        this.downloadTaskFactory = downloadTaskFactory;
         this.date = date;
         this.stream = stream;
         this.settings = settings;
@@ -180,13 +190,18 @@ public class StreamInfo implements Downloadable {
 
     public void download() {
         initializeDownloadFile();
-        // FIXME: inject
-        streamDownloader = new StreamDownloader(okHttpClient, this);
-        streamDownloader.download();
+        downloadTask = downloadTaskFactory.create(this, this::setDownloadedFile, getPlaylist());
+
+        progress.bind(downloadTask.progressProperty());
+        downloading.bind(downloadTask.runningProperty());
+
+        new Thread(downloadTask).start();
     }
 
-    public StreamDownloader getStreamDownloader() {
-        return streamDownloader;
+    public void cancelDownload() {
+        if (downloadTask != null) {
+            downloadTask.cancel();
+        }
     }
 
     public String getDownloadURL() {
@@ -270,5 +285,21 @@ public class StreamInfo implements Downloadable {
 
     public Playlist getPlaylist() {
         return playlist;
+    }
+
+    public double getProgress() {
+        return progress.get();
+    }
+
+    public DoubleProperty progressProperty() {
+        return progress;
+    }
+
+    public boolean isDownloading() {
+        return downloading.get();
+    }
+
+    public BooleanProperty downloadingProperty() {
+        return downloading;
     }
 }

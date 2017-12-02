@@ -1,7 +1,7 @@
 package de.acepe.fritzstreams.ui;
 
-import static de.acepe.fritzstreams.Fragments.PLAYER;
-import static de.acepe.fritzstreams.Fragments.STREAM;
+import static de.acepe.fritzstreams.app.Fragments.PLAYER;
+import static de.acepe.fritzstreams.app.Fragments.STREAM;
 import static de.acepe.fritzstreams.backend.stream.StreamInfo.Stream.NIGHTFLIGHT;
 import static de.acepe.fritzstreams.backend.stream.StreamInfo.Stream.SOUNDGARDEN;
 
@@ -21,10 +21,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
-import de.acepe.fritzstreams.ControlledScreen;
-import de.acepe.fritzstreams.ScreenManager;
-import de.acepe.fritzstreams.Screens;
-import de.acepe.fritzstreams.StreamInfoFactory;
+import de.acepe.fritzstreams.app.ControlledScreen;
+import de.acepe.fritzstreams.app.ScreenManager;
+import de.acepe.fritzstreams.app.Screens;
+import de.acepe.fritzstreams.app.StreamInfoFactory;
 import de.acepe.fritzstreams.backend.stream.StreamInfo;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -167,7 +167,7 @@ public class StreamsController implements ControlledScreen {
 
             toggleDayMap.inverse().get(day).disableProperty().setValue(false);
         }
-        LOG.info("Initializing streams took: {} seconds", ChronoUnit.SECONDS.between(started, LocalDateTime.now()));
+        LOG.debug("Initializing streams took: {} seconds", ChronoUnit.SECONDS.between(started, LocalDateTime.now()));
         return null;
     }
 
@@ -194,8 +194,8 @@ public class StreamsController implements ControlledScreen {
     }
 
     private void stopDownload(StreamInfo streamInfo) {
-        if (streamInfo != null && streamInfo.getStreamDownloader() != null) {
-            streamInfo.getStreamDownloader().cancel();
+        if (streamInfo != null) {
+            streamInfo.cancelDownload();
         }
     }
 

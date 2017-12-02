@@ -5,7 +5,10 @@ import javax.inject.Inject;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import de.acepe.fritzstreams.app.ScreenManager;
+import de.acepe.fritzstreams.app.Screens;
 import de.acepe.fritzstreams.backend.download.DownloadManager;
+import de.acepe.fritzstreams.app.AppModule;
 import de.acepe.fritzstreams.ui.VKAudioSearchController;
 import javafx.application.Application;
 import javafx.scene.Scene;

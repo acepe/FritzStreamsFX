@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.acepe.fritzstreams.app.DownloadTaskFactory;
 import de.acepe.fritzstreams.backend.vk.VKDownload;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
@@ -18,15 +19,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
-import okhttp3.OkHttpClient;
 
 public class DownloadManager {
     private static final Logger LOG = LoggerFactory.getLogger(DownloadManager.class);
 
     private static final int PARALLEL_DOWNLOADS = 3;
-
-    @SuppressWarnings("StaticNonFinalField")
-    private static DownloadManager instance;
 
     private final List<DownloadTask<VKDownload>> runningTasks = new ArrayList<>(PARALLEL_DOWNLOADS);
     private final ObservableList<VKDownload> downloadList = FXCollections.observableArrayList();
@@ -39,11 +36,11 @@ public class DownloadManager {
     private final IntegerProperty count = new SimpleIntegerProperty();
     private final ChangeListener<Number> trackTaskProgress = this::trackTaskProgress;
     private final EventHandler<WorkerStateEvent> onTaskFinished = this::onTaskFinished;
-    private final OkHttpClient httpClient;
+    private final DownloadTaskFactory<VKDownload> downloadTaskFactory;
 
     @Inject
-    public DownloadManager(OkHttpClient httpClient) {
-        this.httpClient = httpClient;
+    public DownloadManager(DownloadTaskFactory<VKDownload> downloadTaskFactory) {
+        this.downloadTaskFactory = downloadTaskFactory;
 
         count.bind(size(pendingList).add(size(runningList)).add(size(finishedList)));
         doneCount.bind(size(finishedList));
@@ -91,7 +88,7 @@ public class DownloadManager {
                 pendingList.remove(download);
                 runningList.add(download);
 
-                DownloadTask<VKDownload> task = new DownloadTask<>(httpClient, download);
+                DownloadTask<VKDownload> task = downloadTaskFactory.create(download);
                 download.setTask(task);
 
                 task.progressProperty().addListener(trackTaskProgress);

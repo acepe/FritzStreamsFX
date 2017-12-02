@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<fx:root styleClass="spaced" type="VBox" xmlns="http://javafx.com/javafx/8.0.101" xmlns:fx="http://javafx.com/fxml/1">
+<VBox fx:id="root" styleClass="spaced" xmlns="http://javafx.com/javafx/9" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.DownloadItemController">
     <children>
         <javafx.scene.layout.HBox alignment="CENTER_LEFT" minWidth="100.0">
             <styleClass>
@@ -36,4 +36,4 @@
             </children>
         </javafx.scene.layout.HBox>
     </children>
-</fx:root>
+</VBox>
