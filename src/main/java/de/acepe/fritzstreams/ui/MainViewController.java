@@ -39,12 +39,13 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.VBox;
 
-public class StreamsController implements ControlledScreen {
-    private static final Logger LOG = LoggerFactory.getLogger(StreamsController.class);
+public class MainViewController implements ControlledScreen {
+    private static final Logger LOG = LoggerFactory.getLogger(MainViewController.class);
 
     private static final int NUM_THREADS = 8;
     private static final int DAYS_PAST = 7;
     private static final DateTimeFormatter DAY_OF_WEEK = DateTimeFormatter.ofPattern("E").withLocale(Locale.GERMANY);
+    private static final ZoneId ZONE_BERLIN = ZoneId.of("Europe/Berlin");
 
     private final List<Task<Void>> initTasks = new ArrayList<>(NUM_THREADS);
     private final BiMap<ToggleButton, LocalDate> toggleDayMap = HashBiMap.create();
@@ -67,7 +68,7 @@ public class StreamsController implements ControlledScreen {
     private VBox playerControlsContainer;
 
     @Inject
-    public StreamsController(ScreenManager screenManager, StreamInfoFactory streamInfoFactory) {
+    public MainViewController(ScreenManager screenManager, StreamInfoFactory streamInfoFactory) {
         this.screenManager = screenManager;
         this.streamInfoFactory = streamInfoFactory;
     }
@@ -139,10 +140,8 @@ public class StreamsController implements ControlledScreen {
     }
 
     private boolean isTodayBeforeSoundgardenRelease(LocalDate date) {
-        LocalDateTime todayAt2200InGermanTime = LocalDateTime.now(ZoneId.of("Europe/Berlin"))
-                                                             .withHour(22)
-                                                             .withMinute(0);
-        LocalDateTime nowInGermanTime = LocalDateTime.now(ZoneId.of("Europe/Berlin"));
+        LocalDateTime todayAt2200InGermanTime = LocalDateTime.now(ZONE_BERLIN).withHour(22).withMinute(0);
+        LocalDateTime nowInGermanTime = LocalDateTime.now(ZONE_BERLIN);
         return date.isEqual(LocalDate.now()) && nowInGermanTime.isBefore(todayAt2200InGermanTime);
     }
 
@@ -158,8 +157,10 @@ public class StreamsController implements ControlledScreen {
             if (task.isCancelled()) {
                 return null;
             }
-            if (!isTodayBeforeSoundgardenRelease(day)) {
                 StreamInfo soundgarden = soundgardenStreamMap.get(day);
+            if (isTodayBeforeSoundgardenRelease(day)) {
+                soundgarden.titleProperty().setValue("Noch nicht verfügbar");
+            } else {
                 soundgarden.init();
             }
             StreamInfo nightflight = nightflightStreamMap.get(day);
@@ -179,7 +180,7 @@ public class StreamsController implements ControlledScreen {
     }
 
     public void stop() {
-        // reverse order, so we don't run into concurrent-modification exceprions, because tasks remove themselves from
+        // reverse order, so we don't run into concurrent-modification exceptions, because tasks remove themselves from
         // the list
         for (int i = initTasks.size() - 1; i >= 0; i--) {
             Task<Void> initTask = initTasks.get(i);

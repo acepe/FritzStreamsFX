@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" styleClass="bordered" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.StreamsController">
+<ScrollPane fitToHeight="true" fitToWidth="true" styleClass="bordered" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.MainViewController">
       <content>
           <VBox fx:id="streamView" styleClass="spaced">
               <HBox alignment="CENTER_LEFT" prefHeight="70.0" styleClass="content-pane">

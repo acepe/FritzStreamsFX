@@ -89,7 +89,7 @@
                     <finalName>FritzStreams</finalName>
                     <archive>
                         <manifest>
-                            <mainClass>de.acepe.fritzstreams.StreamsApplication</mainClass>
+                            <mainClass>de.acepe.fritzstreams.FritzStreamsApp</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

@@ -8,13 +8,13 @@ import com.google.inject.Injector;
 import de.acepe.fritzstreams.app.AppModule;
 import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.app.Screens;
-import de.acepe.fritzstreams.ui.StreamsController;
+import de.acepe.fritzstreams.ui.MainViewController;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-public class StreamsApplication extends Application {
+public class FritzStreamsApp extends Application {
 
     @Inject
     private ScreenManager screenManager;
@@ -48,8 +48,8 @@ public class StreamsApplication extends Application {
 
     @Override
     public void stop() throws Exception {
-        StreamsController streamsController = screenManager.getController(Screens.STREAMS);
-        streamsController.stop();
+        MainViewController mainViewController = screenManager.getController(Screens.STREAMS);
+        mainViewController.stop();
         super.stop();
     }
 
