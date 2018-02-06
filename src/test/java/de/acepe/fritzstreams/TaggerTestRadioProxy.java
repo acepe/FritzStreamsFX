@@ -9,7 +9,7 @@ import java.io.File;
 
 import static org.junit.Assert.*;
 
-public class TaggerTestTest {
+public class TaggerTestRadioProxy {
 
     @Test
     public void test() throws Exception {

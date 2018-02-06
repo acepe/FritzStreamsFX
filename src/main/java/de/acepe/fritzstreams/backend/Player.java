@@ -38,9 +38,9 @@ public class Player {
     private final BooleanProperty hasNext = new SimpleBooleanProperty();
     private final ListProperty<Path> files = new SimpleListProperty<>();
     private final Settings settings;
+    private final ObjectProperty<MediaPlayer> player = new SimpleObjectProperty<>();
 
     private int currentIndex = -1;
-    private ObjectProperty<MediaPlayer> player = new SimpleObjectProperty<>();
     private Runnable onReady;
 
     @Inject
@@ -257,10 +257,6 @@ public class Player {
         return playing;
     }
 
-    public boolean isPaused() {
-        return paused.get();
-    }
-
     public BooleanProperty pausedProperty() {
         return paused;
     }
@@ -269,20 +265,8 @@ public class Player {
         return stopped.get();
     }
 
-    public BooleanProperty stoppedProperty() {
-        return stopped;
-    }
-
-    public boolean isHasPrev() {
-        return hasPrev.get();
-    }
-
     public BooleanProperty hasPrevProperty() {
         return hasPrev;
-    }
-
-    public boolean isHasNext() {
-        return hasNext.get();
     }
 
     public BooleanProperty hasNextProperty() {
@@ -305,7 +289,4 @@ public class Player {
         return totalDuration.get();
     }
 
-    public ObjectProperty<Duration> totalDurationProperty() {
-        return totalDuration;
-    }
 }

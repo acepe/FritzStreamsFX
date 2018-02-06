@@ -1,6 +1,8 @@
 package de.acepe.fritzstreams.ui;
 
 import static de.jensd.fx.glyphs.GlyphsDude.setIcon;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PAUSE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY;
 import static java.util.concurrent.TimeUnit.*;
 
 import java.nio.file.Path;
@@ -71,11 +73,7 @@ public class PlayerController {
         playPauseButton.disableProperty().bind(player.currentFileProperty().isNull());
         player.playingProperty().addListener(o -> {
             updateValues();
-            if (player.isPlaying()) {
-                setIcon(playPauseButton, FontAwesomeIcon.PAUSE, "1.5em");
-            } else {
-                setIcon(playPauseButton, FontAwesomeIcon.PLAY, "1.5em");
-            }
+            setIcon(playPauseButton, player.isPlaying() ? PAUSE : PLAY, "1.5em");
         });
         stopButton.disableProperty().bind(player.playingProperty().or(player.pausedProperty()).not());
         nextButton.disableProperty().bind(player.hasNextProperty().not());
@@ -104,7 +102,7 @@ public class PlayerController {
         setIcon(prevButton, FontAwesomeIcon.STEP_BACKWARD, "1.5em");
         setIcon(nextButton, FontAwesomeIcon.STEP_FORWARD, "1.5em");
         setIcon(stopButton, FontAwesomeIcon.STOP, "1.5em");
-        setIcon(playPauseButton, FontAwesomeIcon.PLAY, "1.5em");
+        setIcon(playPauseButton, PLAY, "1.5em");
         updateValues();
     }
 
