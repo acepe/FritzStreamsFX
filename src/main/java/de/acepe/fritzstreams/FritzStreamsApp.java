@@ -24,6 +24,7 @@ public class FritzStreamsApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         System.setProperty("prism.lcdtext", "false");
+        System.setProperty("https.protocols", "TLSv1.2");
 
         injector = Guice.createInjector(new AppModule(this, this::getInjector));
         injector.injectMembers(this);

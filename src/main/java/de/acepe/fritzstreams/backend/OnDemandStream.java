@@ -26,7 +26,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class StreamInfo {
+public class OnDemandStream {
 
     private final OkHttpClient okHttpClient;
 
@@ -34,7 +34,7 @@ public class StreamInfo {
         SOUNDGARDEN, NIGHTFLIGHT
     }
 
-    private static final Logger LOG = LoggerFactory.getLogger(StreamInfo.class);
+    private static final Logger LOG = LoggerFactory.getLogger(OnDemandStream.class);
     private static final DateTimeFormatter TARGET_Date_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter URL_DATE_FORMAT = DateTimeFormatter.ofPattern("ddMM");
     private static final String BASE_URL = "https://fritz.de%s";
@@ -45,7 +45,8 @@ public class StreamInfo {
     private static final String DOWNLOAD_SELECTOR = "#main > article > div.teaserboxgroup.first.count1.odd.layoutstandard.layouthalf_2_4 > section > article.manualteaser.last.count2.even.layoutmusikstream.layoutbeitrag_av_nur_av.doctypeteaser > div";
     private static final String PRORAMM_SELECTOR = "#sendungslink";
     private static final String DOWNLOAD_DESCRIPTOR_ATTRIBUTE = "data-media-ref";
-    private static final String IMAGE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.last.count2.even.layoutstandard.doctypeteaser > aside > div > a > img";
+    private static final String IMAGE_SELECTOR = "#main .layoutlivestream .layouthalf_2_4.count2 .layoutlivestream_info .manualteaser .manualteaserpicture img";
+
     private static final String STREAM_TOKEN = "_stream\":\"";
     private static final String MP3_TOKEN = ".mp3";
 
@@ -70,12 +71,12 @@ public class StreamInfo {
     private String streamURL;
 
     @Inject
-    public StreamInfo(OkHttpClient okHttpClient,
-            Settings settings,
-            DownloadTaskFactory downloadTaskFactory,
-            Playlist playlist,
-            @Assisted LocalDate date,
-            @Assisted Stream stream) {
+    public OnDemandStream(OkHttpClient okHttpClient,
+                          Settings settings,
+                          DownloadTaskFactory downloadTaskFactory,
+                          Playlist playlist,
+                          @Assisted LocalDate date,
+                          @Assisted Stream stream) {
         this.okHttpClient = okHttpClient;
         this.downloadTaskFactory = downloadTaskFactory;
         this.playlist = playlist;

@@ -110,7 +110,7 @@ public class Player {
         Status status = mp.getStatus();
         playing.setValue(status == Status.PLAYING);
         paused.setValue(status == Status.PAUSED);
-        stopped.setValue(status == Status.STOPPED || status == null || status == Status.UNKNOWN);
+        stopped.setValue(status == Status.DISPOSED ||status == Status.STOPPED || status == Status.READY || status == null || status == Status.UNKNOWN);
         hasNext.setValue(!files.isEmpty() && currentIndex < files.size() - 1);
         hasPrev.setValue(!files.isEmpty() && currentIndex > 0);
     }
@@ -263,6 +263,10 @@ public class Player {
 
     public boolean isStopped() {
         return stopped.get();
+    }
+
+    public BooleanProperty stoppedProperty() {
+        return stopped;
     }
 
     public BooleanProperty hasPrevProperty() {

@@ -1,10 +1,7 @@
 package de.acepe.fritzstreams.app;
 
 public enum Fragments {
-    STREAM("ui/stream_view.fxml"),
-    PLAYER("ui/player_controls.fxml"),
-    AUDIO_ITEM("ui/audio_item.fxml"),
-    DOWNLOAD_ITEM("ui/download_item.fxml");
+    ONDEMAND_STREAM("ui/stream_fragment.fxml"), PLAYER("ui/player_controls.fxml"), LIVE_STREAM("ui/live_fragment.fxml");
 
     private final String resource;
 

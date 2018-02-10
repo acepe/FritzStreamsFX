@@ -1,9 +1,8 @@
 package de.acepe.fritzstreams.ui;
 
-import static de.acepe.fritzstreams.app.Fragments.PLAYER;
-import static de.acepe.fritzstreams.app.Fragments.STREAM;
-import static de.acepe.fritzstreams.backend.StreamInfo.Stream.NIGHTFLIGHT;
-import static de.acepe.fritzstreams.backend.StreamInfo.Stream.SOUNDGARDEN;
+import static de.acepe.fritzstreams.app.Fragments.*;
+import static de.acepe.fritzstreams.backend.OnDemandStream.Stream.NIGHTFLIGHT;
+import static de.acepe.fritzstreams.backend.OnDemandStream.Stream.SOUNDGARDEN;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,11 +24,11 @@ import de.acepe.fritzstreams.app.ControlledScreen;
 import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.app.Screens;
 import de.acepe.fritzstreams.app.StreamInfoFactory;
-import de.acepe.fritzstreams.backend.StreamInfo;
+import de.acepe.fritzstreams.backend.LiveStream;
+import de.acepe.fritzstreams.backend.OnDemandStream;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -49,17 +48,21 @@ public class MainViewController implements ControlledScreen {
 
     private final List<Task<Void>> initTasks = new ArrayList<>(NUM_THREADS);
     private final BiMap<ToggleButton, LocalDate> toggleDayMap = HashBiMap.create();
-    private final Map<LocalDate, StreamInfo> soundgardenStreamMap = new HashMap<>();
-    private final Map<LocalDate, StreamInfo> nightflightStreamMap = new HashMap<>();
-    private final ObjectProperty<LocalDate> selectedDay = new SimpleObjectProperty<>();
+    private final Map<LocalDate, OnDemandStream> soundgardenStreamMap = new HashMap<>();
+    private final Map<LocalDate, OnDemandStream> nightflightStreamMap = new HashMap<>();
+    // private final ObjectProperty<LocalDate> selectedDay = new SimpleObjectProperty<>();
     private final ScreenManager screenManager;
     private final StreamInfoFactory streamInfoFactory;
+    private final LiveStream liveStream;
 
-    private StreamController soundgardenView;
-    private StreamController nightflightView;
+    private StreamFragmentController soundgardenView;
+    private StreamFragmentController nightflightView;
+    private LiveFragmentController liveStreamView;
 
     @FXML
     private ToggleGroup daysToggleGroup;
+    @FXML
+    private ToggleButton liveButton;
     @FXML
     private VBox streamList;
     @FXML
@@ -68,18 +71,20 @@ public class MainViewController implements ControlledScreen {
     private VBox playerControlsContainer;
 
     @Inject
-    public MainViewController(ScreenManager screenManager, StreamInfoFactory streamInfoFactory) {
+    public MainViewController(ScreenManager screenManager, StreamInfoFactory streamInfoFactory, LiveStream liveStream) {
         this.screenManager = screenManager;
         this.streamInfoFactory = streamInfoFactory;
+        this.liveStream = liveStream;
     }
 
     @FXML
     private void initialize() {
-        soundgardenView = screenManager.loadFragment(STREAM);
-        streamList.getChildren().add(soundgardenView.getContent());
+        GlyphsDude.setIcon(settingsButton, FontAwesomeIcon.COG, "1.5em");
 
-        nightflightView = screenManager.loadFragment(STREAM);
-        streamList.getChildren().add(nightflightView.getContent());
+        liveStreamView = screenManager.loadFragment(LIVE_STREAM);
+        soundgardenView = screenManager.loadFragment(ONDEMAND_STREAM);
+        nightflightView = screenManager.loadFragment(ONDEMAND_STREAM);
+        streamList.getChildren().setAll(soundgardenView.getContent(), nightflightView.getContent());
 
         PlayerController playerController = screenManager.loadFragment(PLAYER);
         playerControlsContainer.getChildren().addAll(playerController.getContent());
@@ -97,26 +102,20 @@ public class MainViewController implements ControlledScreen {
             nightflightStreamMap.put(date, streamInfoFactory.create(date, NIGHTFLIGHT));
         }
 
-        daysToggleGroup.selectedToggleProperty().addListener((oldSelectedDay, oldValue, selectedDay) -> {
-            if (selectedDay != null) {
-                // noinspection SuspiciousMethodCalls
-                this.selectedDay.set(toggleDayMap.get(selectedDay));
+        daysToggleGroup.selectedToggleProperty().addListener((obs, ov, toggle) -> {
+            if (toggle == liveButton) {
+                streamList.getChildren().setAll(liveStreamView.getContent());
             } else {
-                daysToggleGroup.selectToggle(oldValue);
+                streamList.getChildren().setAll(soundgardenView.getContent(), nightflightView.getContent());
+                // noinspection SuspiciousMethodCalls
+                LocalDate selectedDay = toggleDayMap.get(toggle);
+                soundgardenView.streamProperty().setValue(soundgardenStreamMap.get(selectedDay));
+                nightflightView.streamProperty().setValue(nightflightStreamMap.get(selectedDay));
             }
         });
 
-        selectedDay.addListener((observable, oldValue, selectedDate) -> {
-            selectToggleForDay(selectedDate);
-            soundgardenView.streamProperty().setValue(soundgardenStreamMap.get(selectedDate));
-            nightflightView.streamProperty().setValue(nightflightStreamMap.get(selectedDate));
-        });
-
-        GlyphsDude.setIcon(settingsButton, FontAwesomeIcon.COG, "1.5em");
-
         scheduleInitThreads();
-
-        selectedDay.setValue(startDay);
+        daysToggleGroup.selectToggle(liveButton);
     }
 
     private void scheduleInitThreads() {
@@ -134,7 +133,9 @@ public class MainViewController implements ControlledScreen {
                 }
             };
             initTasks.add(initTask);
-            new Thread(initTask).start();
+            Thread initThread = new Thread(initTask);
+            initThread.setName("Init-Stream-Thread");
+            initThread.start();
 
         }
     }
@@ -151,32 +152,26 @@ public class MainViewController implements ControlledScreen {
                                              .stream()
                                              .sorted(Comparator.reverseOrder())
                                              .collect(Collectors.toList());
+        liveStream.init();
 
         for (int i = threadNr; i < values.size(); i += NUM_THREADS) {
             LocalDate day = values.get(i);
             if (task.isCancelled()) {
                 return null;
             }
-                StreamInfo soundgarden = soundgardenStreamMap.get(day);
+            OnDemandStream soundgarden = soundgardenStreamMap.get(day);
             if (isTodayBeforeSoundgardenRelease(day)) {
-                soundgarden.titleProperty().setValue("Noch nicht verfügbar");
+                Platform.runLater(() -> soundgarden.titleProperty().setValue("Noch nicht verfügbar"));
             } else {
                 soundgarden.init();
             }
-            StreamInfo nightflight = nightflightStreamMap.get(day);
+            OnDemandStream nightflight = nightflightStreamMap.get(day);
             nightflight.init();
 
             toggleDayMap.inverse().get(day).disableProperty().setValue(false);
         }
         LOG.debug("Initializing streams took: {} seconds", ChronoUnit.SECONDS.between(started, LocalDateTime.now()));
         return null;
-    }
-
-    private void selectToggleForDay(LocalDate selectedDate) {
-        toggleDayMap.entrySet()
-                    .stream()
-                    .filter(entry -> entry.getValue().equals(selectedDate))
-                    .forEach(entry -> entry.getKey().setSelected(true));
     }
 
     public void stop() {
@@ -194,9 +189,9 @@ public class MainViewController implements ControlledScreen {
         }
     }
 
-    private void stopDownload(StreamInfo streamInfo) {
-        if (streamInfo != null) {
-            streamInfo.cancelDownload();
+    private void stopDownload(OnDemandStream onDemandStream) {
+        if (onDemandStream != null) {
+            onDemandStream.cancelDownload();
         }
     }
 

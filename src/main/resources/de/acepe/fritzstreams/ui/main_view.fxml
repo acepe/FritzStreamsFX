@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" styleClass="bordered" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.MainViewController">
+<ScrollPane fitToHeight="true" fitToWidth="true" styleClass="bordered" xmlns="http://javafx.com/javafx/9" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.MainViewController">
       <content>
           <VBox fx:id="streamView" styleClass="spaced">
               <HBox alignment="CENTER_LEFT" prefHeight="70.0" styleClass="content-pane">
@@ -64,6 +64,12 @@
                           <String fx:value="square-button" />
                       </styleClass>
                   </ToggleButton>
+            <ToggleButton fx:id="liveButton" text="Live" toggleGroup="$daysToggleGroup">
+               <styleClass>
+                  <String fx:value="day-button" />
+                  <String fx:value="square-button" />
+               </styleClass>
+            </ToggleButton>
                   <BorderPane maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
                       <right>
                           <Button fx:id="settingsButton" mnemonicParsing="false" onAction="#onSettingsPerformed" BorderPane.alignment="CENTER">

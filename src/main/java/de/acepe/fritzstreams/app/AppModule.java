@@ -12,10 +12,7 @@ import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 
-import de.acepe.fritzstreams.backend.Player;
-import de.acepe.fritzstreams.backend.Settings;
-import de.acepe.fritzstreams.backend.DownloadTask;
-import de.acepe.fritzstreams.backend.StreamInfo;
+import de.acepe.fritzstreams.backend.*;
 import de.acepe.fritzstreams.ui.Dialogs;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -43,7 +40,9 @@ public class AppModule extends AbstractModule {
         bind(ScreenManager.class).in(Singleton.class);
         bind(Dialogs.class).in(Singleton.class);
 
-        install(new FactoryModuleBuilder().implement(StreamInfo.class, StreamInfo.class)
+        bind(LiveStream.class).in(Singleton.class);
+
+        install(new FactoryModuleBuilder().implement(OnDemandStream.class, OnDemandStream.class)
                                           .build(StreamInfoFactory.class));
         install(new FactoryModuleBuilder().implement(DownloadTask.class, DownloadTask.class)
                                           .build(DownloadTaskFactory.class));

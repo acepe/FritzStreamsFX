@@ -92,6 +92,7 @@ public class PlayerController {
             player.seek(Duration.millis(player.getTotalDuration().toMillis() * posPercent));
             updateLabels();
         };
+        progress.setProgress(0);
         progress.setOnMouseClicked(seekOnClickListener);
         progress.setOnMouseDragged(seekOnClickListener);
         progress.disableProperty().bind(player.playingProperty().not());

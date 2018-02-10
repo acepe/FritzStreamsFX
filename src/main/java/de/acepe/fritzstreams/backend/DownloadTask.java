@@ -27,7 +27,7 @@ public class DownloadTask extends Task<Void> {
 
     private final OkHttpClient httpClient;
     private final Dialogs dialogs;
-    private final StreamInfo downloadable;
+    private final OnDemandStream downloadable;
     private final File targetFile;
     private final Playlist playlist;
     private final Consumer<File> downloadedFileConsumer;
@@ -35,7 +35,7 @@ public class DownloadTask extends Task<Void> {
     @AssistedInject
     public DownloadTask(OkHttpClient httpClient,
             Dialogs dialogs,
-            @Assisted StreamInfo downloadable,
+            @Assisted OnDemandStream downloadable,
             @Assisted Consumer<File> downloadedFileConsumer,
             @Assisted Playlist playlist) {
         this.httpClient = httpClient;

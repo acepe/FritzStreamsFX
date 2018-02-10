@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import java.lang.*?>
 <HBox fx:id="root" xmlns="http://javafx.com/javafx/9" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="de.acepe.fritzstreams.ui.StreamController">
+      fx:controller="de.acepe.fritzstreams.ui.StreamFragmentController">
     <styleClass>
         <String fx:value="stream"/>
         <String fx:value="bordered"/>

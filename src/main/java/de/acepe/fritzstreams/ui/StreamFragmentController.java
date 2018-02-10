@@ -14,7 +14,7 @@ import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.app.Screens;
 import de.acepe.fritzstreams.backend.Player;
 import de.acepe.fritzstreams.backend.Playlist;
-import de.acepe.fritzstreams.backend.StreamInfo;
+import de.acepe.fritzstreams.backend.OnDemandStream;
 import de.acepe.fritzstreams.util.FileUtil;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
@@ -32,10 +32,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-public class StreamController {
-    private static final Logger LOG = LoggerFactory.getLogger(StreamController.class);
+public class StreamFragmentController {
+    private static final Logger LOG = LoggerFactory.getLogger(StreamFragmentController.class);
 
-    private final ObjectProperty<StreamInfo> stream = new SimpleObjectProperty<>();
+    private final ObjectProperty<OnDemandStream> stream = new SimpleObjectProperty<>();
     private final InvalidationListener updatePlayListTextListener = this::updatePlayListButton;
     private final Player player;
     private final ScreenManager screenManager;
@@ -61,7 +61,7 @@ public class StreamController {
     private Stage playListStage;
 
     @Inject
-    public StreamController(Player player, ScreenManager screenManager) {
+    public StreamFragmentController(Player player, ScreenManager screenManager) {
         this.player = player;
         this.screenManager = screenManager;
     }
@@ -103,24 +103,24 @@ public class StreamController {
     }
 
     private void bindStreamInfo() {
-        StreamInfo streamInfo = stream.get();
+        OnDemandStream onDemandStream = stream.get();
 
-        titleProperty().bind(streamInfo.titleProperty());
-        subTitleProperty().bind(streamInfo.subtitleProperty());
-        imageProperty().bind(streamInfo.imageProperty());
+        titleProperty().bind(onDemandStream.titleProperty());
+        subTitleProperty().bind(onDemandStream.subtitleProperty());
+        imageProperty().bind(onDemandStream.imageProperty());
 
-        downloadButton.disableProperty().bind(streamInfo.initialisedProperty().not());
+        downloadButton.disableProperty().bind(onDemandStream.initialisedProperty().not());
         downloadButton.visibleProperty()
-                      .bind(streamInfo.initialisedProperty().and(streamInfo.downloadedFileProperty().isNull()));
+                      .bind(onDemandStream.initialisedProperty().and(onDemandStream.downloadedFileProperty().isNull()));
         playButton.visibleProperty()
-                  .bind(streamInfo.initialisedProperty().and(streamInfo.downloadedFileProperty().isNotNull()));
+                  .bind(onDemandStream.initialisedProperty().and(onDemandStream.downloadedFileProperty().isNotNull()));
 
-        playListButton.visibleProperty().bind(streamInfo.initialisedProperty().and(createBooleanBinding(() -> {
-            Playlist playlist = streamInfo.getPlaylist();
+        playListButton.visibleProperty().bind(onDemandStream.initialisedProperty().and(createBooleanBinding(() -> {
+            Playlist playlist = onDemandStream.getPlaylist();
             return playlist != null && !playlist.getEntries().isEmpty();
-        }, streamInfo.initialisedProperty())));
+        }, onDemandStream.initialisedProperty())));
 
-        streamInfo.initialisedProperty().addListener(updatePlayListTextListener);
+        onDemandStream.initialisedProperty().addListener(updatePlayListTextListener);
 
         updatePlayListButton(null);
     }
@@ -132,8 +132,8 @@ public class StreamController {
         downloadButton.disableProperty().unbind();
         playListButton.disableProperty().unbind();
 
-        StreamInfo streamInfo = stream.get();
-        streamInfo.initialisedProperty().removeListener(updatePlayListTextListener);
+        OnDemandStream onDemandStream = stream.get();
+        onDemandStream.initialisedProperty().removeListener(updatePlayListTextListener);
     }
 
     private void updatePlayListButton(Observable observable) {
@@ -146,13 +146,13 @@ public class StreamController {
     }
 
     private void bindDownloader() {
-        StreamInfo streamInfo = stream.get();
+        OnDemandStream onDemandStream = stream.get();
 
-        downloadProgress.progressProperty().bind(streamInfo.progressProperty());
-        downloadProgress.visibleProperty().bind(streamInfo.downloadingProperty());
+        downloadProgress.progressProperty().bind(onDemandStream.progressProperty());
+        downloadProgress.visibleProperty().bind(onDemandStream.downloadingProperty());
 
         downloadButton.disableProperty().unbind();
-        downloadButton.disableProperty().bind(streamInfo.downloadingProperty());
+        downloadButton.disableProperty().bind(onDemandStream.downloadingProperty());
     }
 
     private void unbindDownloader() {
@@ -168,18 +168,18 @@ public class StreamController {
             playListStage = null;
             return;
         }
-        StreamInfo streamInfo = stream.get();
+        OnDemandStream onDemandStream = stream.get();
         playListStage = screenManager.showScreenInNewStage(Screens.PLAYLIST);
         ControlledScreen controller = screenManager.getController(Screens.PLAYLIST);
-        ((PlaylistController) controller).setPlayList(streamInfo.getPlaylist());
+        ((PlaylistController) controller).setPlayList(onDemandStream.getPlaylist());
         playListStage.setOnCloseRequest(event -> playListStage = null);
     }
 
     @FXML
     void onDownloadPerformed() {
-        StreamInfo streamInfo = stream.get();
-        LOG.info("Starting Download {}", streamInfo);
-        streamInfo.download();
+        OnDemandStream onDemandStream = stream.get();
+        LOG.info("Starting Download {}", onDemandStream);
+        onDemandStream.download();
         bindDownloader();
     }
 
@@ -189,11 +189,11 @@ public class StreamController {
     }
 
     private void play(boolean external) {
-        StreamInfo streamInfo = stream.get();
-        if (!streamInfo.isDownloadFinished()) {
+        OnDemandStream onDemandStream = stream.get();
+        if (!onDemandStream.isDownloadFinished()) {
             return;
         }
-        LOG.info("Opening finished Download {}", streamInfo);
+        LOG.info("Opening finished Download {}", onDemandStream);
         File downloadedFile = stream.get().getDownloadedFile();
         if (external) {
             FileUtil.doOpen(downloadedFile);
@@ -206,27 +206,27 @@ public class StreamController {
     }
 
     private void open() {
-        StreamInfo streamInfo = stream.get();
-        if (!streamInfo.isDownloadFinished()) {
+        OnDemandStream onDemandStream = stream.get();
+        if (!onDemandStream.isDownloadFinished()) {
             return;
         }
-        LOG.info("Opening download folder {}", streamInfo);
+        LOG.info("Opening download folder {}", onDemandStream);
         File downloadedFile = stream.get().getDownloadedFile();
         FileUtil.doOpenFolder(downloadedFile);
     }
 
     private void delete() {
-        StreamInfo streamInfo = stream.get();
-        if (!streamInfo.isDownloadFinished()) {
+        OnDemandStream onDemandStream = stream.get();
+        if (!onDemandStream.isDownloadFinished()) {
             return;
         }
-        LOG.info("Deleting Download {}", streamInfo);
+        LOG.info("Deleting Download {}", onDemandStream);
         File downloadedFile = stream.get().getDownloadedFile();
 
         player.removePlaylistEntry(downloadedFile.toPath());
 
         FileUtil.delete(downloadedFile);
-        streamInfo.downloadedFileProperty().setValue(null);
+        onDemandStream.downloadedFileProperty().setValue(null);
     }
 
     public StringProperty titleProperty() {
@@ -241,7 +241,7 @@ public class StreamController {
         return imageView.imageProperty();
     }
 
-    public ObjectProperty<StreamInfo> streamProperty() {
+    public ObjectProperty<OnDemandStream> streamProperty() {
         return stream;
     }
 

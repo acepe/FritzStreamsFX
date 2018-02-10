@@ -2,8 +2,8 @@ package de.acepe.fritzstreams.app;
 
 import java.time.LocalDate;
 
-import de.acepe.fritzstreams.backend.StreamInfo;
+import de.acepe.fritzstreams.backend.OnDemandStream;
 
 public interface StreamInfoFactory {
-    StreamInfo create(LocalDate date, StreamInfo.Stream stream);
+    OnDemandStream create(LocalDate date, OnDemandStream.Stream stream);
 }
