@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import de.acepe.fritzstreams.backend.LiveStream;
 import de.acepe.fritzstreams.backend.Player;
+import de.acepe.fritzstreams.backend.StreamManager;
 import de.jensd.fx.glyphs.GlyphsDude;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -39,9 +40,9 @@ public class LiveFragmentController {
     private Button playButton;
 
     @Inject
-    public LiveFragmentController(Player player, LiveStream liveStream) {
+    public LiveFragmentController(Player player, StreamManager streamManager) {
         this.player = player;
-        this.liveStream = liveStream;
+        liveStream = streamManager.getLiveStream();
     }
 
     @FXML

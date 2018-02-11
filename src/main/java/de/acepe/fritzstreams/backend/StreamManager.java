@@ -10,7 +10,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -19,7 +18,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.acepe.fritzstreams.app.StreamInfoFactory;
+import de.acepe.fritzstreams.app.OnDemandStreamFactory;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 
@@ -32,7 +31,7 @@ public class StreamManager {
 
     private final Map<LocalDate, OnDemandStream> soundgardenStreamMap = new HashMap<>();
     private final Map<LocalDate, OnDemandStream> nightflightStreamMap = new HashMap<>();
-    private final StreamInfoFactory streamInfoFactory;
+    private final OnDemandStreamFactory onDemandStreamFactory;
     private final LiveStream liveStream;
     private final List<Task<Void>> initTasks = new ArrayList<>(NUM_THREADS);
     private final ScheduledExecutorService liveStreamUpdateService;
@@ -40,17 +39,14 @@ public class StreamManager {
     private StreamInitCallback callback;
 
     @Inject
-    public StreamManager(StreamInfoFactory streamInfoFactory, LiveStream liveStream) {
-        this.streamInfoFactory = streamInfoFactory;
+    public StreamManager(OnDemandStreamFactory onDemandStreamFactory, LiveStream liveStream) {
+        this.onDemandStreamFactory = onDemandStreamFactory;
         this.liveStream = liveStream;
 
-        liveStreamUpdateService = Executors.newScheduledThreadPool(1, new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread thread = new Thread(r);
-                thread.setName("Periodic-Live-Stream-Update");
-                return thread;
-            }
+        liveStreamUpdateService = Executors.newScheduledThreadPool(1, r -> {
+            Thread thread = new Thread(r);
+            thread.setName("Periodic-Live-Stream-Update");
+            return thread;
         });
         liveStreamUpdateService.schedule(liveStream::init, 1, TimeUnit.MINUTES);
     }
@@ -60,8 +56,8 @@ public class StreamManager {
         for (int i = 0; i <= DAYS_PAST; i++) {
             LocalDate date = startDay.minusDays(i);
 
-            soundgardenStreamMap.put(date, streamInfoFactory.create(date, SOUNDGARDEN));
-            nightflightStreamMap.put(date, streamInfoFactory.create(date, NIGHTFLIGHT));
+            soundgardenStreamMap.put(date, onDemandStreamFactory.create(date, SOUNDGARDEN));
+            nightflightStreamMap.put(date, onDemandStreamFactory.create(date, NIGHTFLIGHT));
         }
 
         scheduleInitThreads();
@@ -159,6 +155,10 @@ public class StreamManager {
 
     public boolean isInitialised(LocalDate date) {
         return soundgardenStreamMap.get(date).isInitialised() && nightflightStreamMap.get(date).isInitialised();
+    }
+
+    public LiveStream getLiveStream() {
+        return liveStream;
     }
 
     public interface StreamInitCallback {

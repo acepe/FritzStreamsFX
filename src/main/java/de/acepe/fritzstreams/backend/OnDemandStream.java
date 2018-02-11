@@ -8,7 +8,6 @@ import java.time.format.DateTimeFormatter;
 
 import javax.inject.Inject;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
@@ -18,6 +17,7 @@ import com.google.common.base.MoreObjects;
 import com.google.inject.assistedinject.Assisted;
 
 import de.acepe.fritzstreams.app.DownloadTaskFactory;
+import de.acepe.fritzstreams.app.StreamCrawlerFactory;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.concurrent.Task;
@@ -28,19 +28,16 @@ import okhttp3.Response;
 
 public class OnDemandStream {
 
+    private final StreamCrawlerFactory streamCrawlerFactory;
     private final OkHttpClient okHttpClient;
     private static final Logger LOG = LoggerFactory.getLogger(OnDemandStream.class);
     private static final DateTimeFormatter TARGET_Date_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter URL_DATE_FORMAT = DateTimeFormatter.ofPattern("ddMM");
-    private static final String BASE_URL = "https://fritz.de%s";
     private static final String NIGHTFLIGHT_URL = "/livestream/liveplayer_nightflight.htm/day=%s.html";
     private static final String SOUNDGARDEN_URL = "/livestream/liveplayer_bestemusik.htm/day=%s.html";
-    private static final String TITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > h3 > a > span";
-    private static final String SUBTITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > div > p";
     private static final String DOWNLOAD_SELECTOR = "#main > article > div.teaserboxgroup.first.count1.odd.layoutstandard.layouthalf_2_4 > section > article.manualteaser.last.count2.even.layoutmusikstream.layoutbeitrag_av_nur_av.doctypeteaser > div";
     private static final String PRORAMM_SELECTOR = "#sendungslink";
     private static final String DOWNLOAD_DESCRIPTOR_ATTRIBUTE = "data-media-ref";
-    private static final String IMAGE_SELECTOR = "#main .layoutlivestream .layouthalf_2_4.count2 .layoutlivestream_info .manualteaser .manualteaserpicture img";
 
     private static final String STREAM_TOKEN = "_stream\":\"";
     private static final String MP3_TOKEN = ".mp3";
@@ -67,12 +64,14 @@ public class OnDemandStream {
     private String streamURL;
 
     @Inject
-    public OnDemandStream(OkHttpClient okHttpClient,
+    public OnDemandStream(StreamCrawlerFactory streamCrawlerFactory,
+            OkHttpClient okHttpClient,
             Settings settings,
             DownloadTaskFactory downloadTaskFactory,
             Playlist playlist,
             @Assisted LocalDate date,
             @Assisted Stream stream) {
+        this.streamCrawlerFactory = streamCrawlerFactory;
         this.okHttpClient = okHttpClient;
         this.downloadTaskFactory = downloadTaskFactory;
         this.playlist = playlist;
@@ -96,38 +95,31 @@ public class OnDemandStream {
     }
 
     public void init() {
-        try {
-            String contentURL = buildURL();
-            try {
-                Request request = new Request.Builder().url(contentURL).build();
-                Response response = okHttpClient.newCall(request).execute();
-                String content = response.body().string();
-                doc = Jsoup.parse(content);
+        String contentURL = stream == Stream.NIGHTFLIGHT ? NIGHTFLIGHT_URL : SOUNDGARDEN_URL;
+        contentURL = String.format(contentURL, date.format(URL_DATE_FORMAT));
 
-                Request imgRequest = new Request.Builder().url(extractImageUrl(IMAGE_SELECTOR)).build();
-                Response imgResponse = okHttpClient.newCall(imgRequest).execute();
-                image.setValue(new Image(imgResponse.body().byteStream()));
-            } catch (IOException e) {
-                LOG.error("Init stream failed: " + e);
-                unavailable.setValue(true);
-                return;
-            }
+        streamCrawlerFactory.create(contentURL, this::onStreamCrawled).init();
+    }
 
-            streamURL = extractDownloadURL();
-            String title = extractTitle(TITLE_SELECTOR);
-            String subtitle = extractTitle(SUBTITLE_SELECTOR);
-
-            playlist.init(title, streamURL(extractProgrammUrl()));
-            Platform.runLater(() -> {
-                this.title.setValue(title);
-                this.subtitle.setValue(subtitle);
-                initializeDownloadFile();
-                initialised.setValue(streamURL != null);
-            });
-        } catch (Exception e) {
-            LOG.error("Init Stream {} {} failed", stream, date, e);
+    private void onStreamCrawled(StreamCrawler crawler) {
+        doc = crawler.getDoc();
+        if (doc == null) {
             unavailable.setValue(true);
+            return;
         }
+
+        String title = crawler.getTitle();
+        streamURL = extractDownloadURL();
+        playlist.init(title, extractProgrammUrl());
+
+        Platform.runLater(() -> {
+            this.title.setValue(title);
+            subtitle.setValue(crawler.getSubtitle());
+            image.setValue(crawler.getImage());
+
+            initializeDownloadFile();
+            initialised.setValue(streamURL != null);
+        });
     }
 
     private void initializeDownloadFile() {
@@ -140,28 +132,9 @@ public class OnDemandStream {
         return file.exists() ? file : null;
     }
 
-    private String buildURL() {
-        String contentURL = streamURL(stream == Stream.NIGHTFLIGHT ? NIGHTFLIGHT_URL : SOUNDGARDEN_URL);
-        return String.format(contentURL, date.format(URL_DATE_FORMAT));
-    }
-
-    private String streamURL(String subUrl) {
-        return String.format(BASE_URL, subUrl);
-    }
-
-    private String extractImageUrl(String imageSelector) {
-        String imageUrl = doc.select(imageSelector).attr("src");
-        return String.format(BASE_URL, imageUrl);
-    }
-
     private String extractProgrammUrl() {
         Elements info = doc.select(PRORAMM_SELECTOR);
-        return info.attr("href");
-    }
-
-    private String extractTitle(String selector) {
-        Elements info = doc.select(selector);
-        return info.text();
+        return StreamCrawler.BASE_URL + info.attr("href");
     }
 
     private String extractDownloadURL() {
@@ -171,7 +144,8 @@ public class OnDemandStream {
         }
 
         try {
-            Request request = new Request.Builder().url(new URL(streamURL(downloadDescriptorURL))).build();
+            URL downloadURL = new URL(StreamCrawler.BASE_URL + downloadDescriptorURL);
+            Request request = new Request.Builder().url(downloadURL).build();
             Response response = okHttpClient.newCall(request).execute();
             String jsonText = response.body().string();
 

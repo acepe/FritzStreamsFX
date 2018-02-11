@@ -10,18 +10,13 @@ import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.acepe.fritzstreams.app.StreamCrawlerFactory;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.scene.image.Image;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class LiveStream {
 
@@ -31,11 +26,7 @@ public class LiveStream {
     private static final int BITRATE = 128;
     private static final int PLAY_BUFFER_SIZE_IN_KB = BUFFER_SECONDS * BITRATE / 8 * 1024;
     private static final String LIVE_STREAM_URL = "http://rbb-fritz-live.cast.addradio.de/rbb/fritz/live/mp3/128/stream.mp3";
-
-    private static final String BASE_URL = "https://www.fritz.de";
-    private static final String TITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > h3 > a > span";
-    private static final String SUBTITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > div > p";
-    private static final String IMAGE_SELECTOR = "#main .layoutlivestream .layouthalf_2_4.count2 .layoutlivestream_info .manualteaser .manualteaserpicture img";
+    private static final String CONTENT_URL = "/livestream/";
 
     private final StringProperty title = new SimpleStringProperty();
     private final StringProperty subtitle = new SimpleStringProperty();
@@ -44,57 +35,30 @@ public class LiveStream {
     private final ObjectProperty<Path> tmpFile = new SimpleObjectProperty<>();
     private final BooleanProperty playing = new SimpleBooleanProperty();
     private final Settings settings;
-    private final OkHttpClient okHttpClient;
+    private final StreamCrawlerFactory streamCrawlerFactory;
 
     private boolean stopped;
     private ExecutorService downloaderService;
-    private Document doc;
 
     @Inject
-    public LiveStream(Settings settings, OkHttpClient okHttpClient) {
+    public LiveStream(Settings settings, StreamCrawlerFactory streamCrawlerFactory) {
         this.settings = settings;
-        this.okHttpClient = okHttpClient;
+        this.streamCrawlerFactory = streamCrawlerFactory;
+
         deleteTmpFile();
     }
 
     public void init() {
-        try {
-            try {
-                Request request = new Request.Builder().url(BASE_URL + "/livestream/").build();
-                Response response = okHttpClient.newCall(request).execute();
-                String content = response.body().string();
-                doc = Jsoup.parse(content);
-
-                Request imgRequest = new Request.Builder().url(extractImageUrl(IMAGE_SELECTOR)).build();
-                Response imgResponse = okHttpClient.newCall(imgRequest).execute();
-                image.setValue(new Image(imgResponse.body().byteStream()));
-            } catch (IOException e) {
-                LOG.error("Init stream failed: " + e);
-                return;
-            }
-
-            String title = extractTitle(TITLE_SELECTOR);
-            String subtitle = extractTitle(SUBTITLE_SELECTOR);
-
-            Platform.runLater(() -> {
-                this.title.setValue(title);
-                this.subtitle.setValue(subtitle);
-                initialised.setValue(title != null);
-            });
-        } catch (Exception e) {
-            LOG.error("Init live stream failed", e);
-        }
+        streamCrawlerFactory.create(CONTENT_URL, this::onStreamCrawled).init();
     }
 
-    // TODO: refactor
-    private String extractImageUrl(String imageSelector) {
-        String imageUrl = doc.select(imageSelector).attr("src");
-        return BASE_URL + imageUrl;
-    }
-
-    private String extractTitle(String selector) {
-        Elements info = doc.select(selector);
-        return info.text();
+    private void onStreamCrawled(StreamCrawler crawler) {
+        Platform.runLater(() -> {
+            title.setValue(crawler.getTitle());
+            subtitle.setValue(crawler.getSubtitle());
+            image.setValue(crawler.getImage());
+            initialised.setValue(crawler.getTitle() != null);
+        });
     }
 
     public void play() {
