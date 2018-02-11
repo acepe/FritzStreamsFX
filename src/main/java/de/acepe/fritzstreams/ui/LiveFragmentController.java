@@ -5,7 +5,6 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.STOP;
 
 import javax.inject.Inject;
 
-import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +19,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 public class LiveFragmentController {
     private static final Logger LOG = LoggerFactory.getLogger(LiveFragmentController.class);
@@ -29,7 +28,7 @@ public class LiveFragmentController {
     private final LiveStream liveStream;
 
     @FXML
-    private HBox root;
+    private VBox root;
     @FXML
     private ImageView imageView;
     @FXML

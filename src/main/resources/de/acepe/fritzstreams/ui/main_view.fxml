@@ -11,8 +11,8 @@
 
 <ScrollPane fitToHeight="true" fitToWidth="true" styleClass="bordered" xmlns="http://javafx.com/javafx/9" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.MainViewController">
       <content>
-          <VBox fx:id="streamView" styleClass="spaced">
-              <HBox alignment="CENTER_LEFT" prefHeight="70.0" styleClass="content-pane">
+          <VBox fx:id="streamView" maxHeight="1.7976931348623157E308" styleClass="spaced">
+              <HBox alignment="CENTER_LEFT" minHeight="-Infinity" minWidth="-Infinity" prefHeight="70.0" styleClass="content-pane" VBox.vgrow="NEVER">
             <ToggleButton disable="true" text="So">
                <styleClass>
                   <String fx:value="day-button" />
@@ -81,7 +81,7 @@
                       </right>
                   </BorderPane>
               </HBox>
-              <VBox fx:id="streamList" styleClass="spaced">
+              <VBox fx:id="streamList" styleClass="spaced" VBox.vgrow="ALWAYS">
                         <!--<StreamItem fx:id="soundgardenView"/>
                         <StreamItem fx:id="nightflightView"/>-->
                     </VBox>

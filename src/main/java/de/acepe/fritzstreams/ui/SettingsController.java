@@ -57,7 +57,7 @@ public class SettingsController implements ControlledScreen {
     void onSaveSettingsPerformed() {
         settings.setTargetpath(downloadLocationTextfield.getText());
         settings.persist();
-        screenManager.setScreen(Screens.STREAMS, ScreenManager.Direction.RIGHT);
+        screenManager.setScreen(Screens.MAIN, ScreenManager.Direction.RIGHT);
     }
 
 }

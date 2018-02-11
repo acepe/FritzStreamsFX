@@ -38,6 +38,7 @@ public class AppModule extends AbstractModule {
         bind(Settings.class).in(Singleton.class);
         bind(Player.class).in(Singleton.class);
         bind(ScreenManager.class).in(Singleton.class);
+        bind(StreamManager.class).in(Singleton.class);
         bind(Dialogs.class).in(Singleton.class);
 
         bind(LiveStream.class).in(Singleton.class);

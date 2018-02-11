@@ -10,33 +10,38 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<HBox fx:id="root" xmlns="http://javafx.com/javafx/9" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.LiveFragmentController">
-    <styleClass>
-        <String fx:value="stream" />
-        <String fx:value="bordered" />
-        <String fx:value="spaced" />
-    </styleClass>
-    <children>
-        <StackPane styleClass="description">
-            <ImageView fx:id="imageView" fitHeight="136.0" fitWidth="240.0" pickOnBounds="true" preserveRatio="true" styleClass="bordered" />
-        </StackPane>
-        <VBox HBox.hgrow="ALWAYS">
-            <styleClass>
-                <String fx:value="description" />
-                <String fx:value="spaced" />
-                <String fx:value="bordered" />
-            </styleClass>
-            <Label fx:id="titleLabel" styleClass="title" text="Show-Title" wrapText="true" />
-            <Label fx:id="subTitleLabel" styleClass="subtitle" text="mit" />
-            <AnchorPane VBox.vgrow="ALWAYS">
-                <children>
-                    <ButtonBar AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
-                        <buttons>
-                            <Button fx:id="playButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onPlayPerformed" prefWidth="80.0" styleClass="download-button" text="Play" />
-                        </buttons>
-                    </ButtonBar>
-                </children>
-            </AnchorPane>
-        </VBox>
-    </children>
-</HBox>
+<VBox fx:id="root" maxHeight="1.7976931348623157E308" xmlns="http://javafx.com/javafx/9" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.LiveFragmentController">
+   <children>
+      <HBox maxHeight="1.7976931348623157E308" minHeight="10.0" styleClass="description" VBox.vgrow="ALWAYS" />
+      <HBox styleClass="spaced">
+          <children>
+              <StackPane styleClass="description">
+                  <ImageView fx:id="imageView" fitHeight="136.0" fitWidth="240.0" pickOnBounds="true" preserveRatio="true" styleClass="bordered" />
+              </StackPane>
+              <VBox HBox.hgrow="ALWAYS">
+                  <styleClass>
+                      <String fx:value="description" />
+                      <String fx:value="spaced" />
+                      <String fx:value="bordered" />
+                  </styleClass>
+                  <Label fx:id="titleLabel" styleClass="title" text="Show-Title" wrapText="true" />
+                  <Label fx:id="subTitleLabel" styleClass="subtitle" text="mit" wrapText="true" />
+                  <AnchorPane VBox.vgrow="ALWAYS">
+                      <children>
+                          <ButtonBar AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                              <buttons>
+                                  <Button fx:id="playButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onPlayPerformed" prefWidth="80.0" styleClass="download-button" text="Play" />
+                              </buttons>
+                          </ButtonBar>
+                      </children>
+                  </AnchorPane>
+              </VBox>
+          </children>
+      </HBox>
+   </children>
+   <styleClass>
+      <String fx:value="bordered" />
+      <String fx:value="spaced" />
+      <String fx:value="stream" />
+   </styleClass>
+</VBox>

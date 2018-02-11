@@ -1,16 +1,10 @@
 package de.acepe.fritzstreams.ui;
 
 import static de.acepe.fritzstreams.app.Fragments.*;
-import static de.acepe.fritzstreams.backend.OnDemandStream.Stream.NIGHTFLIGHT;
-import static de.acepe.fritzstreams.backend.OnDemandStream.Stream.SOUNDGARDEN;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Locale;
 
 import javax.inject.Inject;
 
@@ -23,37 +17,27 @@ import com.google.common.collect.HashBiMap;
 import de.acepe.fritzstreams.app.ControlledScreen;
 import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.app.Screens;
-import de.acepe.fritzstreams.app.StreamInfoFactory;
-import de.acepe.fritzstreams.backend.LiveStream;
-import de.acepe.fritzstreams.backend.OnDemandStream;
+import de.acepe.fritzstreams.backend.StreamManager;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 public class MainViewController implements ControlledScreen {
     private static final Logger LOG = LoggerFactory.getLogger(MainViewController.class);
-
-    private static final int NUM_THREADS = 8;
     private static final int DAYS_PAST = 7;
     private static final DateTimeFormatter DAY_OF_WEEK = DateTimeFormatter.ofPattern("E").withLocale(Locale.GERMANY);
-    private static final ZoneId ZONE_BERLIN = ZoneId.of("Europe/Berlin");
 
-    private final List<Task<Void>> initTasks = new ArrayList<>(NUM_THREADS);
-    private final BiMap<ToggleButton, LocalDate> toggleDayMap = HashBiMap.create();
-    private final Map<LocalDate, OnDemandStream> soundgardenStreamMap = new HashMap<>();
-    private final Map<LocalDate, OnDemandStream> nightflightStreamMap = new HashMap<>();
-    // private final ObjectProperty<LocalDate> selectedDay = new SimpleObjectProperty<>();
     private final ScreenManager screenManager;
-    private final StreamInfoFactory streamInfoFactory;
-    private final LiveStream liveStream;
+    private final StreamManager streamManager;
+    private final BiMap<ToggleButton, LocalDate> toggleDayMap = HashBiMap.create();
 
     private StreamFragmentController soundgardenView;
     private StreamFragmentController nightflightView;
@@ -71,10 +55,9 @@ public class MainViewController implements ControlledScreen {
     private VBox playerControlsContainer;
 
     @Inject
-    public MainViewController(ScreenManager screenManager, StreamInfoFactory streamInfoFactory, LiveStream liveStream) {
+    public MainViewController(ScreenManager screenManager, StreamManager streamManager) {
         this.screenManager = screenManager;
-        this.streamInfoFactory = streamInfoFactory;
-        this.liveStream = liveStream;
+        this.streamManager = streamManager;
     }
 
     @FXML
@@ -97,101 +80,38 @@ public class MainViewController implements ControlledScreen {
             ToggleButton toggle = (ToggleButton) toggles.get(DAYS_PAST - i);
             toggle.setText(date.format(DAY_OF_WEEK));
             toggleDayMap.put(toggle, date);
-
-            soundgardenStreamMap.put(date, streamInfoFactory.create(date, SOUNDGARDEN));
-            nightflightStreamMap.put(date, streamInfoFactory.create(date, NIGHTFLIGHT));
         }
+        streamManager.registerInitCallback(this::onStreamInitialized);
+        updateToggles();
 
-        daysToggleGroup.selectedToggleProperty().addListener((obs, ov, toggle) -> {
-            if (toggle == liveButton) {
-                streamList.getChildren().setAll(liveStreamView.getContent());
+        daysToggleGroup.selectedToggleProperty().addListener((obs, ov, nv) -> {
+            if (daysToggleGroup.getSelectedToggle() == null) {
+                daysToggleGroup.selectToggle(ov);
+                return;
+            }
+            if (nv == liveButton) {
+                Parent liveStreamContent = liveStreamView.getContent();
+                streamList.getChildren().setAll(liveStreamContent);
+                VBox.setVgrow(liveStreamContent, Priority.ALWAYS);
             } else {
                 streamList.getChildren().setAll(soundgardenView.getContent(), nightflightView.getContent());
                 // noinspection SuspiciousMethodCalls
-                LocalDate selectedDay = toggleDayMap.get(toggle);
-                soundgardenView.streamProperty().setValue(soundgardenStreamMap.get(selectedDay));
-                nightflightView.streamProperty().setValue(nightflightStreamMap.get(selectedDay));
+                LocalDate selectedDay = toggleDayMap.get(nv);
+                soundgardenView.streamProperty().setValue(streamManager.getSoundgarden(selectedDay));
+                nightflightView.streamProperty().setValue(streamManager.getNightflight(selectedDay));
             }
         });
 
-        scheduleInitThreads();
         daysToggleGroup.selectToggle(liveButton);
     }
 
-    private void scheduleInitThreads() {
-        for (int i = 0; i < NUM_THREADS; i++) {
-            int finalI = i;
-            Task<Void> initTask = new Task<Void>() {
-                @Override
-                protected Void call() {
-                    return initStreams(this, finalI);
-                }
-
-                @Override
-                protected void done() {
-                    initTasks.remove(this);
-                }
-            };
-            initTasks.add(initTask);
-            Thread initThread = new Thread(initTask);
-            initThread.setName("Init-Stream-Thread");
-            initThread.start();
-
-        }
+    private void updateToggles() {
+        toggleDayMap.forEach((toggleButton, date) -> toggleButton.setDisable(!streamManager.isInitialised(date)));
     }
 
-    private boolean isTodayBeforeSoundgardenRelease(LocalDate date) {
-        LocalDateTime todayAt2200InGermanTime = LocalDateTime.now(ZONE_BERLIN).withHour(22).withMinute(0);
-        LocalDateTime nowInGermanTime = LocalDateTime.now(ZONE_BERLIN);
-        return date.isEqual(LocalDate.now()) && nowInGermanTime.isBefore(todayAt2200InGermanTime);
-    }
-
-    private Void initStreams(Task<Void> task, int threadNr) {
-        LocalDateTime started = LocalDateTime.now();
-        List<LocalDate> values = toggleDayMap.values()
-                                             .stream()
-                                             .sorted(Comparator.reverseOrder())
-                                             .collect(Collectors.toList());
-        liveStream.init();
-
-        for (int i = threadNr; i < values.size(); i += NUM_THREADS) {
-            LocalDate day = values.get(i);
-            if (task.isCancelled()) {
-                return null;
-            }
-            OnDemandStream soundgarden = soundgardenStreamMap.get(day);
-            if (isTodayBeforeSoundgardenRelease(day)) {
-                Platform.runLater(() -> soundgarden.titleProperty().setValue("Noch nicht verfügbar"));
-            } else {
-                soundgarden.init();
-            }
-            OnDemandStream nightflight = nightflightStreamMap.get(day);
-            nightflight.init();
-
-            toggleDayMap.inverse().get(day).disableProperty().setValue(false);
-        }
-        LOG.debug("Initializing streams took: {} seconds", ChronoUnit.SECONDS.between(started, LocalDateTime.now()));
-        return null;
-    }
-
-    public void stop() {
-        // reverse order, so we don't run into concurrent-modification exceptions, because tasks remove themselves from
-        // the list
-        for (int i = initTasks.size() - 1; i >= 0; i--) {
-            Task<Void> initTask = initTasks.get(i);
-            if (initTask.isRunning()) {
-                initTask.cancel();
-            }
-        }
-        for (LocalDate day : toggleDayMap.values()) {
-            stopDownload(soundgardenStreamMap.get(day));
-            stopDownload(nightflightStreamMap.get(day));
-        }
-    }
-
-    private void stopDownload(OnDemandStream onDemandStream) {
-        if (onDemandStream != null) {
-            onDemandStream.cancelDownload();
+    private void onStreamInitialized(LocalDate date) {
+        if (date != null) {
+            updateToggles();
         }
     }
 

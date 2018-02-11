@@ -55,8 +55,6 @@ public class LiveStream {
         this.settings = settings;
         this.okHttpClient = okHttpClient;
         deleteTmpFile();
-
-        // init();
     }
 
     public void init() {

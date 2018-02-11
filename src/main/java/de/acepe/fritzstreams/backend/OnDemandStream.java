@@ -29,11 +29,6 @@ import okhttp3.Response;
 public class OnDemandStream {
 
     private final OkHttpClient okHttpClient;
-
-    public enum Stream {
-        SOUNDGARDEN, NIGHTFLIGHT
-    }
-
     private static final Logger LOG = LoggerFactory.getLogger(OnDemandStream.class);
     private static final DateTimeFormatter TARGET_Date_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter URL_DATE_FORMAT = DateTimeFormatter.ofPattern("ddMM");
@@ -60,6 +55,7 @@ public class OnDemandStream {
     private final StringProperty subtitle = new SimpleStringProperty();
     private final ObjectProperty<Image> image = new SimpleObjectProperty<>();
     private final ReadOnlyBooleanWrapper initialised = new ReadOnlyBooleanWrapper();
+    private final ReadOnlyBooleanWrapper unavailable = new ReadOnlyBooleanWrapper();
     private final ObjectProperty<Long> totalSizeInBytes = new SimpleObjectProperty<>();
     private final ObjectProperty<Long> downloadedSizeInBytes = new SimpleObjectProperty<>();
     private final DoubleProperty progress = new SimpleDoubleProperty();
@@ -72,17 +68,31 @@ public class OnDemandStream {
 
     @Inject
     public OnDemandStream(OkHttpClient okHttpClient,
-                          Settings settings,
-                          DownloadTaskFactory downloadTaskFactory,
-                          Playlist playlist,
-                          @Assisted LocalDate date,
-                          @Assisted Stream stream) {
+            Settings settings,
+            DownloadTaskFactory downloadTaskFactory,
+            Playlist playlist,
+            @Assisted LocalDate date,
+            @Assisted Stream stream) {
         this.okHttpClient = okHttpClient;
         this.downloadTaskFactory = downloadTaskFactory;
         this.playlist = playlist;
         this.date = date;
         this.stream = stream;
         this.settings = settings;
+    }
+
+    public void notAvailableAnymore() {
+        Platform.runLater(() -> {
+            title.setValue("Nicht mehr verfügbar");
+            unavailable.setValue(true);
+        });
+    }
+
+    public void notAvailableYet() {
+        Platform.runLater(() -> {
+            title.setValue("Noch nicht verfügbar");
+            unavailable.setValue(true);
+        });
     }
 
     public void init() {
@@ -99,6 +109,7 @@ public class OnDemandStream {
                 image.setValue(new Image(imgResponse.body().byteStream()));
             } catch (IOException e) {
                 LOG.error("Init stream failed: " + e);
+                unavailable.setValue(true);
                 return;
             }
 
@@ -115,6 +126,7 @@ public class OnDemandStream {
             });
         } catch (Exception e) {
             LOG.error("Init Stream {} {} failed", stream, date, e);
+            unavailable.setValue(true);
         }
     }
 
@@ -300,5 +312,9 @@ public class OnDemandStream {
 
     public BooleanProperty downloadingProperty() {
         return downloading;
+    }
+
+    public boolean isInitialised() {
+        return initialised.get() || unavailable.get();
     }
 }
