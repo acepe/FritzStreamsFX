@@ -31,6 +31,12 @@ public class LiveFragmentController {
     @FXML
     private VBox root;
     @FXML
+    private ImageView onAirArtistImageView;
+    @FXML
+    private Label onAirArtistLabel;
+    @FXML
+    private Label onAirTitleLabel;
+    @FXML
     private ImageView imageView;
     @FXML
     private Label titleLabel;
@@ -47,6 +53,10 @@ public class LiveFragmentController {
 
     @FXML
     private void initialize() {
+        onAirArtistProperty().bind(liveStream.onAirArtistProperty());
+        onAirTitleProperty().bind(liveStream.onAirTitleProperty());
+        onAirImageProperty().bind(liveStream.onAirImageProperty());
+
         titleProperty().bind(liveStream.titleProperty());
         subTitleProperty().bind(liveStream.subtitleProperty());
         imageProperty().bind(liveStream.imageProperty());
@@ -123,6 +133,18 @@ public class LiveFragmentController {
 
     public ObjectProperty<Image> imageProperty() {
         return imageView.imageProperty();
+    }
+
+    public StringProperty onAirTitleProperty() {
+        return onAirTitleLabel.textProperty();
+    }
+
+    public StringProperty onAirArtistProperty() {
+        return onAirArtistLabel.textProperty();
+    }
+
+    public ObjectProperty<Image> onAirImageProperty() {
+        return onAirArtistImageView.imageProperty();
     }
 
     public Parent getContent() {

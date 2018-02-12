@@ -325,6 +325,12 @@
     -fx-text-fill: white;
 }
 
+.artist {
+    -fx-font-weight: bold;
+    -fx-font-size: 20px;
+    -fx-text-fill: white;
+}
+
 .playlist-title {
     -fx-font-size: 20px;
     -fx-font-weight: bold;

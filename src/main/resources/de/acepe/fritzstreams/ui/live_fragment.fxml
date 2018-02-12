@@ -12,7 +12,28 @@
 
 <VBox fx:id="root" maxHeight="1.7976931348623157E308" xmlns="http://javafx.com/javafx/9" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.LiveFragmentController">
    <children>
-      <HBox maxHeight="1.7976931348623157E308" minHeight="10.0" styleClass="description" VBox.vgrow="ALWAYS" />
+      <HBox maxHeight="1.7976931348623157E308" minHeight="10.0" VBox.vgrow="ALWAYS">
+         <children>
+            <StackPane>
+               <children>
+                  <ImageView fx:id="onAirArtistImageView" fitHeight="136.0" fitWidth="240.0" pickOnBounds="true" preserveRatio="true" styleClass="bordered" />
+               </children>
+            </StackPane>
+            <VBox HBox.hgrow="ALWAYS">
+               <styleClass>
+                  <String fx:value="spaced" />
+                  <String fx:value="bordered" />
+               </styleClass>
+               <children>
+                  <Label fx:id="onAirArtistLabel" styleClass="artist" text="Artist" wrapText="true" />
+                  <Label fx:id="onAirTitleLabel" styleClass="subtitle" text="Title" wrapText="true" />
+               </children>
+            </VBox>
+         </children>
+         <styleClass>
+            <String fx:value="spaced" />
+            <String fx:value="description" />
+         </styleClass></HBox>
       <HBox styleClass="spaced">
           <children>
               <StackPane styleClass="description">

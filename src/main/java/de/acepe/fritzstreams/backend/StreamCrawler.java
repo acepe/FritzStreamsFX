@@ -11,6 +11,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
 import com.google.inject.assistedinject.Assisted;
 
 import javafx.scene.image.Image;
@@ -22,9 +23,11 @@ public class StreamCrawler {
     private static final Logger LOG = LoggerFactory.getLogger(StreamCrawler.class);
 
     public static final String BASE_URL = "https://www.fritz.de";
+    private static final String ON_AIR_CONTENT_URL = "/content/dam/rbb/frz";
     private static final String TITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > h3 > a > span";
     private static final String SUBTITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > div > p";
     private static final String IMAGE_SELECTOR = "#main .layoutlivestream .layouthalf_2_4.count2 .layoutlivestream_info .manualteaser .manualteaserpicture img";
+    private static final String ON_AIR_URL = "/include/frz/zeitstrahl/nowonair.json";
 
     private final OkHttpClient okHttpClient;
     private final String contentURL;
@@ -33,7 +36,10 @@ public class StreamCrawler {
     private Document doc;
     private String title;
     private String subtitle;
+    private String onAirArtist;
+    private String onAirTitle;
     private Image image;
+    private Image onAirImage;
 
     @Inject
     public StreamCrawler(OkHttpClient okHttpClient,
@@ -54,6 +60,24 @@ public class StreamCrawler {
             Request imgRequest = new Request.Builder().url(extractImageUrl(IMAGE_SELECTOR)).build();
             Response imgResponse = okHttpClient.newCall(imgRequest).execute();
             image = new Image(imgResponse.body().byteStream());
+
+            Request onAirRequest = new Request.Builder().url(BASE_URL + ON_AIR_URL).build();
+            Response onAirResponse = okHttpClient.newCall(onAirRequest).execute();
+            String onAirContent = onAirResponse.body().string();
+
+            OnAirData onAirData = new Gson().fromJson(onAirContent, OnAirData.class);
+            onAirArtist = onAirData.getArtist();
+            onAirTitle = onAirData.getTitle();
+
+            if(onAirData.getImg()!=null){
+            Request onAirImgRequest = new Request.Builder().url(BASE_URL
+                                                                + ON_AIR_CONTENT_URL
+                                                                + onAirData.getImg().getLnk())
+                                                           .build();
+            Response onAirImgResponse = okHttpClient.newCall(onAirImgRequest).execute();
+            onAirImage = new Image(onAirImgResponse.body().byteStream());
+
+            }
 
             title = extractTitle(TITLE_SELECTOR);
             subtitle = extractTitle(SUBTITLE_SELECTOR);
@@ -88,5 +112,17 @@ public class StreamCrawler {
 
     public Image getImage() {
         return image;
+    }
+
+    public String getOnAirArtist() {
+        return onAirArtist;
+    }
+
+    public String getOnAirTitle() {
+        return onAirTitle;
+    }
+
+    public Image getOnAirImage() {
+        return onAirImage;
     }
 }

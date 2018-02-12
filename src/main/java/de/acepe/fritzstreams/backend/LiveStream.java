@@ -28,6 +28,9 @@ public class LiveStream {
     private static final String LIVE_STREAM_URL = "http://rbb-fritz-live.cast.addradio.de/rbb/fritz/live/mp3/128/stream.mp3";
     private static final String CONTENT_URL = "/livestream/";
 
+    private final StringProperty onAirTitle = new SimpleStringProperty();
+    private final StringProperty onAirArtist = new SimpleStringProperty();
+    private final ObjectProperty<Image> onAirImage = new SimpleObjectProperty<>();
     private final StringProperty title = new SimpleStringProperty();
     private final StringProperty subtitle = new SimpleStringProperty();
     private final ObjectProperty<Image> image = new SimpleObjectProperty<>();
@@ -57,6 +60,9 @@ public class LiveStream {
             title.setValue(crawler.getTitle());
             subtitle.setValue(crawler.getSubtitle());
             image.setValue(crawler.getImage());
+            onAirArtist.setValue(crawler.getOnAirArtist());
+            onAirTitle.setValue(crawler.getOnAirTitle());
+            onAirImage.setValue(crawler.getOnAirImage());
             initialised.setValue(crawler.getTitle() != null);
         });
     }
@@ -141,5 +147,17 @@ public class LiveStream {
 
     public boolean isPlaying() {
         return playing.get();
+    }
+
+    public StringProperty onAirTitleProperty() {
+        return onAirTitle;
+    }
+
+    public StringProperty onAirArtistProperty() {
+        return onAirArtist;
+    }
+
+    public ObjectProperty<Image> onAirImageProperty() {
+        return onAirImage;
     }
 }
