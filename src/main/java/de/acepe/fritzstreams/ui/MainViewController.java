@@ -39,8 +39,8 @@ public class MainViewController implements ControlledScreen {
     private final StreamManager streamManager;
     private final BiMap<ToggleButton, LocalDate> toggleDayMap = HashBiMap.create();
 
-    private StreamFragmentController soundgardenView;
-    private StreamFragmentController nightflightView;
+    private OnDemandFragmentController soundgardenView;
+    private OnDemandFragmentController nightflightView;
     private LiveFragmentController liveStreamView;
 
     @FXML

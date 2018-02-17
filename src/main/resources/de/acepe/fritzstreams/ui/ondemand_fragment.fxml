@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import java.lang.*?>
 <HBox fx:id="root" xmlns="http://javafx.com/javafx/9" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="de.acepe.fritzstreams.ui.StreamFragmentController">
+      fx:controller="de.acepe.fritzstreams.ui.OnDemandFragmentController">
     <styleClass>
         <String fx:value="stream"/>
         <String fx:value="bordered"/>
@@ -15,6 +15,8 @@
         <StackPane styleClass="description">
             <ImageView fx:id="imageView" fitHeight="136.0" fitWidth="240.0" pickOnBounds="true" preserveRatio="true"
                        styleClass="bordered"/>
+            <ImageView fx:id="fadeImageView" fitHeight="136.0" fitWidth="240.0" pickOnBounds="true" preserveRatio="true"
+                       styleClass="bordered" opacity="0"/>
         </StackPane>
         <VBox HBox.hgrow="ALWAYS">
             <styleClass>
