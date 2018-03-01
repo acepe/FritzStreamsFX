@@ -1,7 +1,6 @@
 package de.acepe.fritzstreams.backend;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -113,7 +112,7 @@ public class OnDemandStream {
         playlist.init(title, extractProgrammUrl());
 
         Platform.runLater(() -> {
-            this.title.setValue(title);
+            this.title.setValue(streamURL != null ? title : "Nicht verfügbar");
             subtitle.setValue(crawler.getSubtitle());
             image.setValue(crawler.getImage());
 
@@ -153,7 +152,7 @@ public class OnDemandStream {
             int endIndex = jsonText.indexOf(MP3_TOKEN) + MP3_TOKEN.length();
 
             return jsonText.substring(beginIndex, endIndex);
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOG.error("Couldn't extract download-URL from stream website", e);
             return null;
         }

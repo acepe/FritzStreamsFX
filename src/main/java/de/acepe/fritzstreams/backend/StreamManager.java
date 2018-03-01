@@ -26,7 +26,7 @@ public class StreamManager {
     private static final Logger LOG = LoggerFactory.getLogger(StreamManager.class);
 
     private static final int DAYS_PAST = 7;
-    private static final int NUM_THREADS = 8;
+    private static final int NUM_THREADS = 1;
     private static final ZoneId ZONE_BERLIN = ZoneId.of("Europe/Berlin");
 
     private final Map<LocalDate, OnDemandStream> soundgardenStreamMap = new HashMap<>();
@@ -154,7 +154,7 @@ public class StreamManager {
     }
 
     public boolean isInitialised(LocalDate date) {
-        return soundgardenStreamMap.get(date).isInitialised() && nightflightStreamMap.get(date).isInitialised();
+        return soundgardenStreamMap.get(date).isInitialised() || nightflightStreamMap.get(date).isInitialised();
     }
 
     public LiveStream getLiveStream() {
@@ -179,7 +179,13 @@ public class StreamManager {
 
         @Override
         protected void done() {
-            initTasks.remove(this);
+            Platform.runLater(() -> {
+                Throwable exception = getException();
+                if (exception != null) {
+                    LOG.error("Error during initialisation", exception);
+                }
+                initTasks.remove(this);
+            });
         }
     }
 }

@@ -18,6 +18,7 @@ import javafx.scene.image.Image;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 public class StreamCrawler {
     private static final Logger LOG = LoggerFactory.getLogger(StreamCrawler.class);
@@ -54,33 +55,41 @@ public class StreamCrawler {
         try {
             Request request = new Request.Builder().url(BASE_URL + contentURL).build();
             Response response = okHttpClient.newCall(request).execute();
-            String content = response.body().string();
-            doc = Jsoup.parse(content);
-
-            Request imgRequest = new Request.Builder().url(extractImageUrl(IMAGE_SELECTOR)).build();
-            Response imgResponse = okHttpClient.newCall(imgRequest).execute();
-            image = new Image(imgResponse.body().byteStream());
-
-            Request onAirRequest = new Request.Builder().url(BASE_URL + ON_AIR_URL).build();
-            Response onAirResponse = okHttpClient.newCall(onAirRequest).execute();
-            String onAirContent = onAirResponse.body().string();
-
-            OnAirData onAirData = new Gson().fromJson(onAirContent, OnAirData.class);
-            onAirArtist = onAirData.getArtist();
-            onAirTitle = onAirData.getTitle();
-
-            if(onAirData.getImg()!=null){
-            Request onAirImgRequest = new Request.Builder().url(BASE_URL
-                                                                + ON_AIR_CONTENT_URL
-                                                                + onAirData.getImg().getLnk())
-                                                           .build();
-            Response onAirImgResponse = okHttpClient.newCall(onAirImgRequest).execute();
-            onAirImage = new Image(onAirImgResponse.body().byteStream());
-
+            try (ResponseBody body = response.body()) {
+                String content = body.string();
+                doc = Jsoup.parse(content);
             }
 
             title = extractTitle(TITLE_SELECTOR);
             subtitle = extractTitle(SUBTITLE_SELECTOR);
+
+            String url = extractImageUrl(IMAGE_SELECTOR);
+            if (url != null) {
+                Request imgRequest = new Request.Builder().url(url).build();
+                Response imgResponse = okHttpClient.newCall(imgRequest).execute();
+                try (ResponseBody body = imgResponse.body()) {
+                    image = new Image(body.byteStream());
+                }
+
+                Request onAirRequest = new Request.Builder().url(BASE_URL + ON_AIR_URL).build();
+                Response onAirResponse = okHttpClient.newCall(onAirRequest).execute();
+                try (ResponseBody body = onAirResponse.body()) {
+                    String onAirContent = body.string();
+                    OnAirData onAirData = new Gson().fromJson(onAirContent, OnAirData.class);
+                    onAirArtist = onAirData.getArtist();
+                    onAirTitle = onAirData.getTitle();
+                    if (onAirData.getImg() != null) {
+                        Request onAirImgRequest = new Request.Builder().url(BASE_URL
+                                                                            + ON_AIR_CONTENT_URL
+                                                                            + onAirData.getImg().getLnk())
+                                                                       .build();
+                        Response onAirImgResponse = okHttpClient.newCall(onAirImgRequest).execute();
+                        try (ResponseBody onAirImgResponseBody = onAirImgResponse.body()) {
+                            onAirImage = new Image(onAirImgResponseBody.byteStream());
+                        }
+                    }
+                }
+            }
         } catch (IOException e) {
             LOG.error("Crawling stream failed", e);
             doc = null;
@@ -90,6 +99,9 @@ public class StreamCrawler {
 
     private String extractImageUrl(String imageSelector) {
         String imageUrl = doc.select(imageSelector).attr("src");
+        if (imageUrl.isEmpty()) {
+            return null;
+        }
         return BASE_URL + imageUrl;
     }
 
