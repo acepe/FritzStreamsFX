@@ -1,6 +1,7 @@
 package de.acepe.fritzstreams.backend;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -13,10 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
+import com.google.gson.Gson;
 import com.google.inject.assistedinject.Assisted;
 
 import de.acepe.fritzstreams.app.DownloadTaskFactory;
 import de.acepe.fritzstreams.app.StreamCrawlerFactory;
+import de.acepe.fritzstreams.backend.json.OnDemandDownload;
+import de.acepe.fritzstreams.backend.json.OnDemandStreamDescriptor;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.concurrent.Task;
@@ -34,12 +38,9 @@ public class OnDemandStream {
     private static final DateTimeFormatter URL_DATE_FORMAT = DateTimeFormatter.ofPattern("ddMM");
     private static final String NIGHTFLIGHT_URL = "/livestream/liveplayer_nightflight.htm/day=%s.html";
     private static final String SOUNDGARDEN_URL = "/livestream/liveplayer_bestemusik.htm/day=%s.html";
-    private static final String DOWNLOAD_SELECTOR = "#main > article > div.teaserboxgroup.first.count1.odd.layoutstandard.layouthalf_2_4 > section > article.manualteaser.last.count2.even.layoutmusikstream.layoutbeitrag_av_nur_av.doctypeteaser > div";
+    private static final String DOWNLOAD_SELECTOR = "#main > article > div.count1.first.layouthalf_2_4.layoutstandard.odd.teaserboxgroup > section > article.count2.doctypeteaser.even.last.layoutbeitrag_av_nur_av.layoutmusikstream.manualteaser > div";
     private static final String PRORAMM_SELECTOR = "#sendungslink";
-    private static final String DOWNLOAD_DESCRIPTOR_ATTRIBUTE = "data-media-ref";
-
-    private static final String STREAM_TOKEN = "_stream\":\"";
-    private static final String MP3_TOKEN = ".mp3";
+    private static final String DOWNLOAD_DESCRIPTOR_ATTRIBUTE = "data-jsb";
 
     private final Settings settings;
     private final DownloadTaskFactory downloadTaskFactory;
@@ -56,6 +57,7 @@ public class OnDemandStream {
     private final ObjectProperty<Long> downloadedSizeInBytes = new SimpleObjectProperty<>();
     private final DoubleProperty progress = new SimpleDoubleProperty();
     private final BooleanProperty downloading = new SimpleBooleanProperty();
+    private final Gson gson;
 
     private String downloadFileName;
     private Task<Void> downloadTask;
@@ -77,6 +79,8 @@ public class OnDemandStream {
         this.date = date;
         this.stream = stream;
         this.settings = settings;
+
+        gson = new Gson();
     }
 
     public void notAvailableAnymore() {
@@ -148,11 +152,17 @@ public class OnDemandStream {
             Response response = okHttpClient.newCall(request).execute();
             String jsonText = response.body().string();
 
-            int beginIndex = jsonText.indexOf(STREAM_TOKEN) + STREAM_TOKEN.length();
-            int endIndex = jsonText.indexOf(MP3_TOKEN) + MP3_TOKEN.length();
-
-            return jsonText.substring(beginIndex, endIndex);
-        } catch (Exception e) {
+            OnDemandStreamDescriptor target = gson.fromJson(jsonText, OnDemandStreamDescriptor.class);
+            String url = target.getMediaArray()
+                               .get(0)
+                               .getMediaStreamArray()
+                               .stream()
+                               .filter(m -> m.getQuality() != null)
+                               .findFirst()
+                               .orElseThrow(IOException::new)
+                               .getStream();
+            return url;
+        } catch (IOException e) {
             LOG.error("Couldn't extract download-URL from stream website", e);
             return null;
         }
@@ -160,7 +170,10 @@ public class OnDemandStream {
 
     private String extractDownloadDescriptorUrl() {
         Elements info = doc.select(DOWNLOAD_SELECTOR);
-        return info.attr(DOWNLOAD_DESCRIPTOR_ATTRIBUTE);
+        String downloadJSON = info.attr(DOWNLOAD_DESCRIPTOR_ATTRIBUTE);
+        OnDemandDownload download = gson.fromJson(downloadJSON, OnDemandDownload.class);
+
+        return download.getMedia();
     }
 
     private String createDownloadFileName() {
