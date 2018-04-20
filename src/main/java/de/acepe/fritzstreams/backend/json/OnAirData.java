@@ -1,4 +1,4 @@
-package de.acepe.fritzstreams.backend;
+package de.acepe.fritzstreams.backend.json;
 
 public class OnAirData {
 

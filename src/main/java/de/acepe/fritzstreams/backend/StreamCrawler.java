@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.google.inject.assistedinject.Assisted;
 
+import de.acepe.fritzstreams.backend.json.OnAirData;
 import javafx.scene.image.Image;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -29,6 +30,7 @@ public class StreamCrawler {
     private static final String SUBTITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > div > p";
     private static final String IMAGE_SELECTOR = "#main .layoutlivestream .layouthalf_2_4.count2 .layoutlivestream_info .manualteaser .manualteaserpicture img";
     private static final String ON_AIR_URL = "/include/frz/zeitstrahl/nowonair.json";
+    private static final String DEFAULT_IMAGE = "https://www.fritz.de/content/dam/rbb/frz/zeitstrahl/78/135/500027477.jpg.jpg/img.jpg";
 
     private final OkHttpClient okHttpClient;
     private final String contentURL;
@@ -78,7 +80,10 @@ public class StreamCrawler {
                     OnAirData onAirData = new Gson().fromJson(onAirContent, OnAirData.class);
                     onAirArtist = onAirData.getArtist();
                     onAirTitle = onAirData.getTitle();
-                    if (onAirData.getImg() != null) {
+
+                    if (onAirData.getImg() == null) {
+                        onAirImage = new Image(DEFAULT_IMAGE);
+                    } else {
                         Request onAirImgRequest = new Request.Builder().url(BASE_URL
                                                                             + ON_AIR_CONTENT_URL
                                                                             + onAirData.getImg().getLnk())
@@ -86,6 +91,7 @@ public class StreamCrawler {
                         Response onAirImgResponse = okHttpClient.newCall(onAirImgRequest).execute();
                         try (ResponseBody onAirImgResponseBody = onAirImgResponse.body()) {
                             onAirImage = new Image(onAirImgResponseBody.byteStream());
+
                         }
                     }
                 }
