@@ -31,8 +31,6 @@ import okhttp3.Response;
 
 public class OnDemandStream {
 
-    private final StreamCrawlerFactory streamCrawlerFactory;
-    private final OkHttpClient okHttpClient;
     private static final Logger LOG = LoggerFactory.getLogger(OnDemandStream.class);
     private static final DateTimeFormatter TARGET_Date_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter URL_DATE_FORMAT = DateTimeFormatter.ofPattern("ddMM");
@@ -47,6 +45,8 @@ public class OnDemandStream {
     private final LocalDate date;
     private final Stream stream;
     private final Playlist playlist;
+    private final StreamCrawlerFactory streamCrawlerFactory;
+    private final OkHttpClient okHttpClient;
     private final ObjectProperty<File> downloadedFile = new SimpleObjectProperty<>();
     private final StringProperty title = new SimpleStringProperty();
     private final StringProperty subtitle = new SimpleStringProperty();
