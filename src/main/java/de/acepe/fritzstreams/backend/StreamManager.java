@@ -1,26 +1,29 @@
 package de.acepe.fritzstreams.backend;
 
-import static de.acepe.fritzstreams.backend.Stream.NIGHTFLIGHT;
-import static de.acepe.fritzstreams.backend.Stream.SOUNDGARDEN;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.acepe.fritzstreams.app.OnDemandStreamFactory;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static de.acepe.fritzstreams.backend.Stream.NIGHTFLIGHT;
+import static de.acepe.fritzstreams.backend.Stream.SOUNDGARDEN;
+import static java.time.LocalDateTime.now;
+import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.Comparator.reverseOrder;
+import static java.util.stream.Collectors.toList;
 
 public class StreamManager {
     private static final Logger LOG = LoggerFactory.getLogger(StreamManager.class);
@@ -36,7 +39,7 @@ public class StreamManager {
     private final List<Task<Void>> initTasks = new ArrayList<>(NUM_THREADS);
     private final ScheduledExecutorService liveStreamUpdateService;
 
-    private StreamInitCallback callback;
+    private Runnable callback;
 
     @Inject
     public StreamManager(OnDemandStreamFactory onDemandStreamFactory, LiveStream liveStream) {
@@ -69,52 +72,59 @@ public class StreamManager {
             initTasks.add(initTask);
 
             Thread initThread = new Thread(initTask);
-            initThread.setName("Init-Stream-Thread");
+            initThread.setName("Init-Stream-Thread (" + i + "/" + NUM_THREADS + ")");
             initThread.start();
         }
     }
 
     private Void initStreams(Task<Void> task, int threadNr) {
-        LocalDateTime started = LocalDateTime.now();
+        LocalDateTime started = now();
         List<LocalDate> days = soundgardenStreamMap.keySet()
                                                    .stream()
-                                                   .sorted(Comparator.reverseOrder())
-                                                   .collect(Collectors.toList());
+                                                   .sorted(reverseOrder())
+                                                   .collect(toList());
 
         if (threadNr == 0) {
             liveStream.init();
         }
         for (int i = threadNr; i < days.size(); i += NUM_THREADS) {
-            LocalDate day = days.get(i);
             if (task.isCancelled()) {
                 return null;
             }
 
-            OnDemandStream soundgarden = soundgardenStreamMap.get(day);
-            if (day.isEqual(LocalDate.now()) && isBeforeSoundgardenRelease()) {
-                soundgarden.notAvailableYet();
-            } else {
-                soundgarden.init();
-            }
+            LocalDate day = days.get(i);
+            initSoundgarden(day);
+            initNightflight(day);
 
-            OnDemandStream nightflight = nightflightStreamMap.get(day);
-            if (day.isEqual(LocalDate.now().minusDays(DAYS_PAST)) && isBeforeSoundgardenRelease()) {
-                nightflight.notAvailableAnymore();
-            } else {
-                nightflight.init();
-            }
-
-            if (callback != null) {
-                Platform.runLater(() -> callback.onStreamInitialized(day));
-            }
+            Platform.runLater(() -> callback.run());
         }
-        LOG.debug("Initializing streams took: {} seconds", ChronoUnit.SECONDS.between(started, LocalDateTime.now()));
+        LOG.debug("Initializing streams took: {} seconds", SECONDS.between(started, now()));
         return null;
     }
 
+    private void initNightflight(LocalDate day) {
+        OnDemandStream nightflight = nightflightStreamMap.get(day);
+        if (day.isEqual(LocalDate.now()
+                                 .minusDays(DAYS_PAST)) && isBeforeSoundgardenRelease()) {
+            nightflight.notAvailableAnymore();
+        } else {
+            nightflight.init();
+        }
+    }
+
+    private void initSoundgarden(LocalDate day) {
+        OnDemandStream soundgarden = soundgardenStreamMap.get(day);
+        if (day.isEqual(LocalDate.now()) && isBeforeSoundgardenRelease()) {
+            soundgarden.notAvailableYet();
+        } else {
+            soundgarden.init();
+        }
+    }
+
     private boolean isBeforeSoundgardenRelease() {
-        LocalDateTime todayAt2200InGermanTime = LocalDateTime.now(ZONE_BERLIN).withHour(22).withMinute(0);
-        LocalDateTime nowInGermanTime = LocalDateTime.now(ZONE_BERLIN);
+        LocalDateTime todayAt2200InGermanTime = now(ZONE_BERLIN).withHour(22)
+                                                                .withMinute(0);
+        LocalDateTime nowInGermanTime = now(ZONE_BERLIN);
         return nowInGermanTime.isBefore(todayAt2200InGermanTime);
     }
 
@@ -149,7 +159,7 @@ public class StreamManager {
         return soundgardenStreamMap.get(day);
     }
 
-    public void registerInitCallback(StreamInitCallback callback) {
+    public void registerInitCallback(Runnable callback) {
         this.callback = callback;
     }
 
@@ -159,10 +169,6 @@ public class StreamManager {
 
     public LiveStream getLiveStream() {
         return liveStream;
-    }
-
-    public interface StreamInitCallback {
-        void onStreamInitialized(LocalDate date);
     }
 
     private class InitTask extends Task<Void> {

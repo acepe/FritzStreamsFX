@@ -1,25 +1,14 @@
 package de.acepe.fritzstreams.ui;
 
-import static de.acepe.fritzstreams.app.Fragments.*;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-
 import de.acepe.fritzstreams.app.ControlledScreen;
 import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.app.Screens;
 import de.acepe.fritzstreams.backend.StreamManager;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -29,11 +18,20 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+import static de.acepe.fritzstreams.app.Fragments.*;
+import static java.util.Locale.GERMANY;
 
 public class MainViewController implements ControlledScreen {
     private static final Logger LOG = LoggerFactory.getLogger(MainViewController.class);
     private static final int DAYS_PAST = 7;
-    private static final DateTimeFormatter DAY_OF_WEEK = DateTimeFormatter.ofPattern("E").withLocale(Locale.GERMANY);
+    private static final DateTimeFormatter DAY_OF_WEEK = DateTimeFormatter.ofPattern("E").withLocale(GERMANY);
 
     private final ScreenManager screenManager;
     private final StreamManager streamManager;
@@ -42,6 +40,7 @@ public class MainViewController implements ControlledScreen {
     private OnDemandFragmentController soundgardenView;
     private OnDemandFragmentController nightflightView;
     private LiveFragmentController liveStreamView;
+    private PlayerController playerController;
 
     @FXML
     private ToggleGroup daysToggleGroup;
@@ -63,15 +62,26 @@ public class MainViewController implements ControlledScreen {
     @FXML
     private void initialize() {
         GlyphsDude.setIcon(settingsButton, FontAwesomeIcon.COG, "1.5em");
+        initFragments();
+        addFragments();
+        initToggles();
 
+        streamManager.registerInitCallback(this::onStreamInitialized);
+    }
+
+    private void initFragments() {
         liveStreamView = screenManager.loadFragment(LIVE_STREAM);
         soundgardenView = screenManager.loadFragment(ONDEMAND_STREAM);
         nightflightView = screenManager.loadFragment(ONDEMAND_STREAM);
+        playerController = screenManager.loadFragment(PLAYER);
+    }
+
+    private void addFragments() {
         streamList.getChildren().setAll(soundgardenView.getContent(), nightflightView.getContent());
-
-        PlayerController playerController = screenManager.loadFragment(PLAYER);
         playerControlsContainer.getChildren().addAll(playerController.getContent());
+    }
 
+    private void initToggles() {
         LocalDate startDay = LocalDate.now();
         ObservableList<Toggle> toggles = daysToggleGroup.getToggles();
 
@@ -81,38 +91,45 @@ public class MainViewController implements ControlledScreen {
             toggle.setText(date.format(DAY_OF_WEEK));
             toggleDayMap.put(toggle, date);
         }
-        streamManager.registerInitCallback(this::onStreamInitialized);
         updateToggles();
 
-        daysToggleGroup.selectedToggleProperty().addListener((obs, ov, nv) -> {
-            if (daysToggleGroup.getSelectedToggle() == null) {
-                daysToggleGroup.selectToggle(ov);
-                return;
-            }
-            if (nv == liveButton) {
-                Parent liveStreamContent = liveStreamView.getContent();
-                streamList.getChildren().setAll(liveStreamContent);
-                VBox.setVgrow(liveStreamContent, Priority.ALWAYS);
-            } else {
-                streamList.getChildren().setAll(soundgardenView.getContent(), nightflightView.getContent());
-                // noinspection SuspiciousMethodCalls
-                LocalDate selectedDay = toggleDayMap.get(nv);
-                soundgardenView.streamProperty().setValue(streamManager.getSoundgarden(selectedDay));
-                nightflightView.streamProperty().setValue(streamManager.getNightflight(selectedDay));
-            }
-        });
-
+        daysToggleGroup.selectedToggleProperty().addListener(this::onSelectedToggleChanged);
         daysToggleGroup.selectToggle(liveButton);
+    }
+
+    private void onSelectedToggleChanged(ObservableValue<? extends Toggle> obs, Toggle ov, Toggle nv) {
+        if (daysToggleGroup.getSelectedToggle() == null) {
+            daysToggleGroup.selectToggle(ov);
+            return;
+        }
+        if (nv == liveButton) {
+            setLiveStreamView();
+        } else {
+            setOnDemandStreamViews(nv);
+        }
+    }
+
+    private void setOnDemandStreamViews(Toggle nv) {
+        streamList.getChildren()
+                  .setAll(soundgardenView.getContent(), nightflightView.getContent());
+        // noinspection SuspiciousMethodCalls
+        LocalDate selectedDay = toggleDayMap.get(nv);
+        soundgardenView.streamProperty().setValue(streamManager.getSoundgarden(selectedDay));
+        nightflightView.streamProperty().setValue(streamManager.getNightflight(selectedDay));
+    }
+
+    private void setLiveStreamView() {
+        Parent liveStreamContent = liveStreamView.getContent();
+        streamList.getChildren().setAll(liveStreamContent);
+        VBox.setVgrow(liveStreamContent, Priority.ALWAYS);
     }
 
     private void updateToggles() {
         toggleDayMap.forEach((toggleButton, date) -> toggleButton.setDisable(!streamManager.isInitialised(date)));
     }
 
-    private void onStreamInitialized(LocalDate date) {
-        if (date != null) {
-            updateToggles();
-        }
+    private void onStreamInitialized() {
+        updateToggles();
     }
 
     @FXML

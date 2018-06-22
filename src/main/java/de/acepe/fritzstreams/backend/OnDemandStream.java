@@ -1,22 +1,8 @@
 package de.acepe.fritzstreams.backend;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-
-import javax.inject.Inject;
-
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.MoreObjects;
 import com.google.gson.Gson;
 import com.google.inject.assistedinject.Assisted;
-
 import de.acepe.fritzstreams.app.DownloadTaskFactory;
 import de.acepe.fritzstreams.app.StreamCrawlerFactory;
 import de.acepe.fritzstreams.backend.json.OnDemandDownload;
@@ -28,6 +14,17 @@ import javafx.scene.image.Image;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class OnDemandStream {
 
@@ -66,12 +63,12 @@ public class OnDemandStream {
 
     @Inject
     public OnDemandStream(StreamCrawlerFactory streamCrawlerFactory,
-            OkHttpClient okHttpClient,
-            Settings settings,
-            DownloadTaskFactory downloadTaskFactory,
-            Playlist playlist,
-            @Assisted LocalDate date,
-            @Assisted Stream stream) {
+                          OkHttpClient okHttpClient,
+                          Settings settings,
+                          DownloadTaskFactory downloadTaskFactory,
+                          Playlist playlist,
+                          @Assisted LocalDate date,
+                          @Assisted Stream stream) {
         this.streamCrawlerFactory = streamCrawlerFactory;
         this.okHttpClient = okHttpClient;
         this.downloadTaskFactory = downloadTaskFactory;
@@ -98,10 +95,14 @@ public class OnDemandStream {
     }
 
     public void init() {
-        String contentURL = stream == Stream.NIGHTFLIGHT ? NIGHTFLIGHT_URL : SOUNDGARDEN_URL;
-        contentURL = String.format(contentURL, date.format(URL_DATE_FORMAT));
+        try {
+            String contentURL = stream == Stream.NIGHTFLIGHT ? NIGHTFLIGHT_URL : SOUNDGARDEN_URL;
+            contentURL = String.format(contentURL, date.format(URL_DATE_FORMAT));
 
-        streamCrawlerFactory.create(contentURL, this::onStreamCrawled).init();
+            streamCrawlerFactory.create(contentURL, this::onStreamCrawled).init();
+        } catch (Exception e) {
+            LOG.error("Couldn't initialize Stream {} for day {}", stream, date, e);
+        }
     }
 
     private void onStreamCrawled(StreamCrawler crawler) {
@@ -180,11 +181,11 @@ public class OnDemandStream {
         String targetpath = settings.getTargetpath();
 
         return targetpath
-               + File.separator
-               + getTitle().replaceAll(" ", "_")
-               + "_"
-               + getDate().format(TARGET_Date_FORMAT)
-               + ".mp3";
+                + File.separator
+                + getTitle().replaceAll(" ", "_")
+                + "_"
+                + getDate().format(TARGET_Date_FORMAT)
+                + ".mp3";
     }
 
     public void download() {
