@@ -50,8 +50,6 @@ public class OnDemandStream {
     private final ObjectProperty<Image> image = new SimpleObjectProperty<>();
     private final ReadOnlyBooleanWrapper initialised = new ReadOnlyBooleanWrapper();
     private final ReadOnlyBooleanWrapper unavailable = new ReadOnlyBooleanWrapper();
-    private final ObjectProperty<Long> totalSizeInBytes = new SimpleObjectProperty<>();
-    private final ObjectProperty<Long> downloadedSizeInBytes = new SimpleObjectProperty<>();
     private final DoubleProperty progress = new SimpleDoubleProperty();
     private final BooleanProperty downloading = new SimpleBooleanProperty();
     private final Gson gson;
@@ -115,6 +113,8 @@ public class OnDemandStream {
         String title = crawler.getTitle();
         streamURL = extractDownloadURL();
         playlist.init(title, extractProgrammUrl());
+
+        LOG.info("Stream: {}, URL: {}", title, streamURL);
 
         Platform.runLater(() -> {
             this.title.setValue(streamURL != null ? title : "Nicht verfügbar");
@@ -253,48 +253,16 @@ public class OnDemandStream {
         return downloadFileName;
     }
 
-    public Long getTotalSizeInBytes() {
-        return totalSizeInBytes.get();
-    }
-
-    public ObjectProperty<Long> totalSizeInBytesProperty() {
-        return totalSizeInBytes;
-    }
-
-    public Long getDownloadedSizeInBytes() {
-        return downloadedSizeInBytes.get();
-    }
-
-    public ObjectProperty<Long> downloadedSizeInBytesProperty() {
-        return downloadedSizeInBytes;
-    }
-
-    public void setDownloadedSizeInBytes(Long downloadedSizeInBytes) {
-        this.downloadedSizeInBytes.set(downloadedSizeInBytes);
-    }
-
-    public void setTotalSizeInBytes(Long sizeInBytes) {
-        this.totalSizeInBytes.set(sizeInBytes);
-    }
-
-    public boolean isDownloadFinished() {
-        return downloadedFileProperty().get() != null;
+    public boolean isDownloadRunning() {
+        return downloadedFileProperty().get() == null;
     }
 
     public Playlist getPlaylist() {
         return playlist;
     }
 
-    public double getProgress() {
-        return progress.get();
-    }
-
     public DoubleProperty progressProperty() {
         return progress;
-    }
-
-    public boolean isDownloading() {
-        return downloading.get();
     }
 
     public BooleanProperty downloadingProperty() {

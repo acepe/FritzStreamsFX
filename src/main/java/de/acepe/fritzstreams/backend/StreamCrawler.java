@@ -26,8 +26,8 @@ public class StreamCrawler {
 
     public static final String BASE_URL = "https://www.fritz.de";
     private static final String ON_AIR_CONTENT_URL = "/content/dam/rbb/frz";
-    private static final String TITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > h3 > a > span";
-    private static final String SUBTITLE_SELECTOR = "#main > article > div.teaserboxgroup.intermediate.count2.even.layoutstandard.layouthalf_2_4 > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > div > p";
+    private static final String TITLE_SELECTOR = "#main > article > div.count2.even.last.layouthalf_2_4.layoutstandard.teaserboxgroup > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > h3 > a > span";
+    private static final String SUBTITLE_SELECTOR = "#main > article > div.count2.even.last.layouthalf_2_4.layoutstandard.teaserboxgroup > section > article.manualteaser.first.count1.odd.layoutlaufende_sendung.doctypesendeplatz > div > p";
     private static final String IMAGE_SELECTOR = "#main .layoutlivestream .layouthalf_2_4.count2 .layoutlivestream_info .manualteaser .manualteaserpicture img";
     private static final String ON_AIR_URL = "/include/frz/zeitstrahl/nowonair.json";
     private static final String DEFAULT_IMAGE = "https://www.fritz.de/content/dam/rbb/frz/zeitstrahl/78/135/500027477.jpg.jpg/img.jpg";
@@ -91,7 +91,6 @@ public class StreamCrawler {
                         Response onAirImgResponse = okHttpClient.newCall(onAirImgRequest).execute();
                         try (ResponseBody onAirImgResponseBody = onAirImgResponse.body()) {
                             onAirImage = new Image(onAirImgResponseBody.byteStream());
-
                         }
                     }
                 }

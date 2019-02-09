@@ -1,5 +1,16 @@
 package de.acepe.fritzstreams.backend;
 
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import de.acepe.fritzstreams.ui.Dialogs;
+import javafx.concurrent.Task;
+import okhttp3.*;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.mp3.MP3File;
+import org.jaudiotagger.tag.FieldKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -7,20 +18,6 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.audio.mp3.MP3File;
-import org.jaudiotagger.tag.FieldKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-
-import de.acepe.fritzstreams.ui.Dialogs;
-import javafx.application.Platform;
-import javafx.concurrent.Task;
-import okhttp3.*;
 
 public class DownloadTask extends Task<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(DownloadTask.class);
@@ -34,10 +31,10 @@ public class DownloadTask extends Task<Void> {
 
     @AssistedInject
     public DownloadTask(OkHttpClient httpClient,
-            Dialogs dialogs,
-            @Assisted OnDemandStream downloadable,
-            @Assisted Consumer<File> downloadedFileConsumer,
-            @Assisted Playlist playlist) {
+                        Dialogs dialogs,
+                        @Assisted OnDemandStream downloadable,
+                        @Assisted Consumer<File> downloadedFileConsumer,
+                        @Assisted Playlist playlist) {
         this.httpClient = httpClient;
         this.dialogs = dialogs;
         this.downloadable = downloadable;
@@ -60,7 +57,6 @@ public class DownloadTask extends Task<Void> {
 
             try (InputStream is = response.body().byteStream(); OutputStream os = new FileOutputStream(targetFile)) {
                 long size = response.body().contentLength();
-                Platform.runLater(() -> downloadable.setTotalSizeInBytes(size));
                 updateProgress(0, size);
 
                 byte[] buffer = new byte[1024 * 4];
@@ -71,8 +67,6 @@ public class DownloadTask extends Task<Void> {
                         break;
                     }
                     downloadedSum += len;
-                    long finalDownloadedSum = downloadedSum;
-                    Platform.runLater(() -> downloadable.setDownloadedSizeInBytes(finalDownloadedSum));
                     updateProgress(downloadedSum, size);
                     os.write(buffer, 0, len);
                 }

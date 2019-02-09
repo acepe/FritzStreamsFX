@@ -211,7 +211,7 @@ public class OnDemandFragmentController {
 
     private void play(boolean external) {
         OnDemandStream onDemandStream = stream.get();
-        if (!onDemandStream.isDownloadFinished()) {
+        if (onDemandStream.isDownloadRunning()) {
             return;
         }
         LOG.info("Opening finished Download {}", onDemandStream);
@@ -228,7 +228,7 @@ public class OnDemandFragmentController {
 
     private void open() {
         OnDemandStream onDemandStream = stream.get();
-        if (!onDemandStream.isDownloadFinished()) {
+        if (onDemandStream.isDownloadRunning()) {
             return;
         }
         LOG.info("Opening download folder {}", onDemandStream);
@@ -238,7 +238,7 @@ public class OnDemandFragmentController {
 
     private void delete() {
         OnDemandStream onDemandStream = stream.get();
-        if (!onDemandStream.isDownloadFinished()) {
+        if (onDemandStream.isDownloadRunning()) {
             return;
         }
         LOG.info("Deleting Download {}", onDemandStream);
