@@ -1,95 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.String?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.ToggleButton?>
-<?import javafx.scene.control.ToggleGroup?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-
-<ScrollPane fitToHeight="true" fitToWidth="true" styleClass="bordered" xmlns="http://javafx.com/javafx/9" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.acepe.fritzstreams.ui.MainViewController">
-      <content>
-          <VBox fx:id="streamView" maxHeight="1.7976931348623157E308" styleClass="spaced">
-              <HBox alignment="CENTER_LEFT" minHeight="-Infinity" minWidth="-Infinity" prefHeight="70.0" styleClass="content-pane" VBox.vgrow="NEVER">
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import java.lang.*?>
+<ScrollPane fx:id="mainView" fitToHeight="true" fitToWidth="true" styleClass="bordered"
+            xmlns="http://javafx.com/javafx/9" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="de.acepe.fritzstreams.ui.MainViewController">
+    <VBox fx:id="streamView" maxHeight="1.7976931348623157E308" styleClass="spaced">
+        <HBox alignment="CENTER_LEFT" minHeight="-Infinity" minWidth="-Infinity" prefHeight="70.0"
+              styleClass="content-pane" VBox.vgrow="NEVER">
             <ToggleButton disable="true" text="So">
-               <styleClass>
-                  <String fx:value="day-button" />
-                  <String fx:value="square-button" />
-               </styleClass>
-               <toggleGroup>
-                          <ToggleGroup fx:id="daysToggleGroup" />
-               </toggleGroup>
+                <styleClass>
+                    <String fx:value="day-button"/>
+                    <String fx:value="square-button"/>
+                </styleClass>
+                <toggleGroup>
+                    <ToggleGroup fx:id="daysToggleGroup"/>
+                </toggleGroup>
             </ToggleButton>
-                  <ToggleButton disable="true" text="Mo" toggleGroup="$daysToggleGroup">
-                      <styleClass>
-                          <String fx:value="day-button" />
-                          <String fx:value="square-button" />
-                      </styleClass>
-                  </ToggleButton>
-                  <ToggleButton disable="true" text="Di" toggleGroup="$daysToggleGroup">
-                      <styleClass>
-                          <String fx:value="day-button" />
-                          <String fx:value="square-button" />
-                      </styleClass>
-                  </ToggleButton>
-                  <ToggleButton disable="true" text="Mi" toggleGroup="$daysToggleGroup">
-                      <styleClass>
-                          <String fx:value="day-button" />
-                          <String fx:value="square-button" />
-                      </styleClass>
-                  </ToggleButton>
-                  <ToggleButton disable="true" text="Do" toggleGroup="$daysToggleGroup">
-                      <styleClass>
-                          <String fx:value="day-button" />
-                          <String fx:value="square-button" />
-                      </styleClass>
-                  </ToggleButton>
-                  <ToggleButton disable="true" text="Fr" toggleGroup="$daysToggleGroup">
-                      <styleClass>
-                          <String fx:value="day-button" />
-                          <String fx:value="square-button" />
-                      </styleClass>
-                  </ToggleButton>
-                  <ToggleButton disable="true" text="Sa" toggleGroup="$daysToggleGroup">
-                      <styleClass>
-                          <String fx:value="day-button" />
-                          <String fx:value="square-button" />
-                      </styleClass>
-                  </ToggleButton>
-                  <ToggleButton disable="true" text="So" toggleGroup="$daysToggleGroup">
-                      <styleClass>
-                          <String fx:value="day-button" />
-                          <String fx:value="square-button" />
-                      </styleClass>
-                  </ToggleButton>
+            <ToggleButton disable="true" text="Mo" toggleGroup="$daysToggleGroup">
+                <styleClass>
+                    <String fx:value="day-button"/>
+                    <String fx:value="square-button"/>
+                </styleClass>
+            </ToggleButton>
+            <ToggleButton disable="true" text="Di" toggleGroup="$daysToggleGroup">
+                <styleClass>
+                    <String fx:value="day-button"/>
+                    <String fx:value="square-button"/>
+                </styleClass>
+            </ToggleButton>
+            <ToggleButton disable="true" text="Mi" toggleGroup="$daysToggleGroup">
+                <styleClass>
+                    <String fx:value="day-button"/>
+                    <String fx:value="square-button"/>
+                </styleClass>
+            </ToggleButton>
+            <ToggleButton disable="true" text="Do" toggleGroup="$daysToggleGroup">
+                <styleClass>
+                    <String fx:value="day-button"/>
+                    <String fx:value="square-button"/>
+                </styleClass>
+            </ToggleButton>
+            <ToggleButton disable="true" text="Fr" toggleGroup="$daysToggleGroup">
+                <styleClass>
+                    <String fx:value="day-button"/>
+                    <String fx:value="square-button"/>
+                </styleClass>
+            </ToggleButton>
+            <ToggleButton disable="true" text="Sa" toggleGroup="$daysToggleGroup">
+                <styleClass>
+                    <String fx:value="day-button"/>
+                    <String fx:value="square-button"/>
+                </styleClass>
+            </ToggleButton>
+            <ToggleButton disable="true" text="So" toggleGroup="$daysToggleGroup">
+                <styleClass>
+                    <String fx:value="day-button"/>
+                    <String fx:value="square-button"/>
+                </styleClass>
+            </ToggleButton>
             <ToggleButton fx:id="liveButton" text="Live" toggleGroup="$daysToggleGroup">
-               <styleClass>
-                  <String fx:value="day-button" />
-                  <String fx:value="square-button" />
-               </styleClass>
+                <styleClass>
+                    <String fx:value="day-button"/>
+                    <String fx:value="square-button"/>
+                </styleClass>
             </ToggleButton>
-                  <BorderPane maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
-                      <right>
-                          <Button fx:id="settingsButton" mnemonicParsing="false" onAction="#onSettingsPerformed" BorderPane.alignment="CENTER">
-                     <styleClass>
-                        <String fx:value="settings-button" />
-                        <String fx:value="square-button" />
-                     </styleClass>
-                  </Button>
-                      </right>
-                  </BorderPane>
-              </HBox>
-              <VBox fx:id="streamList" styleClass="spaced" VBox.vgrow="ALWAYS">
-                        <!--<StreamItem fx:id="soundgardenView"/>
+            <BorderPane maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
+                <right>
+                    <Button fx:id="settingsButton" mnemonicParsing="false" onAction="#onSettingsPerformed"
+                            BorderPane.alignment="CENTER">
+                        <styleClass>
+                            <String fx:value="settings-button"/>
+                            <String fx:value="square-button"/>
+                        </styleClass>
+                    </Button>
+                </right>
+            </BorderPane>
+        </HBox>
+        <VBox fx:id="streamList" styleClass="spaced" VBox.vgrow="ALWAYS">
+            <!--<StreamItem fx:id="soundgardenView"/>
                         <StreamItem fx:id="nightflightView"/>-->
-                    </VBox>
-         <HBox>
-            <children>
-               <VBox fx:id="playerControlsContainer" HBox.hgrow="ALWAYS" />
-            </children>
-         </HBox>
-          </VBox>
-      </content>
-  </ScrollPane>
+        </VBox>
+        <HBox>
+            <VBox fx:id="playerControlsContainer" HBox.hgrow="ALWAYS"/>
+        </HBox>
+    </VBox>
+</ScrollPane>

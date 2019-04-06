@@ -1,17 +1,12 @@
 package de.acepe.fritzstreams.app;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
-
+import de.acepe.fritzstreams.backend.DownloadManager;
 import de.acepe.fritzstreams.backend.Player;
 import de.acepe.fritzstreams.backend.Settings;
 import de.acepe.fritzstreams.backend.StreamManager;
@@ -20,6 +15,11 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
+
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class AppModule extends AbstractModule {
 
@@ -41,6 +41,7 @@ public class AppModule extends AbstractModule {
         bind(Player.class).in(Singleton.class);
         bind(ScreenManager.class).in(Singleton.class);
         bind(StreamManager.class).in(Singleton.class);
+        bind(DownloadManager.class).in(Singleton.class);
         bind(Dialogs.class).in(Singleton.class);
 
         FactoryModuleBuilder builder = new FactoryModuleBuilder();

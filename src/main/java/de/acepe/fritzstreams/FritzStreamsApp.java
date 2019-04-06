@@ -1,25 +1,30 @@
 package de.acepe.fritzstreams;
 
-import javax.inject.Inject;
-
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
 import de.acepe.fritzstreams.app.AppModule;
 import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.app.Screens;
+import de.acepe.fritzstreams.backend.DownloadManager;
 import de.acepe.fritzstreams.backend.StreamManager;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
 
 public class FritzStreamsApp extends Application {
+    private static final Logger LOG = LoggerFactory.getLogger(FritzStreamsApp.class);
 
     @Inject
     private ScreenManager screenManager;
     @Inject
     private StreamManager streamManager;
+    @Inject
+    private DownloadManager downloadManager;
 
     private Injector injector;
 
@@ -31,11 +36,8 @@ public class FritzStreamsApp extends Application {
         injector = Guice.createInjector(new AppModule(this, this::getInjector));
         injector.injectMembers(this);
 
-        streamManager.init();
-
         screenManager.loadScreen(Screens.SETTINGS);
         screenManager.loadScreen(Screens.MAIN);
-
 
         BorderPane root = new BorderPane();
         root.setCenter(screenManager);
@@ -54,7 +56,9 @@ public class FritzStreamsApp extends Application {
 
     @Override
     public void stop() throws Exception {
+        LOG.info("Shutting down");
         streamManager.stop();
+        downloadManager.stop();
         super.stop();
     }
 

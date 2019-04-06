@@ -8,6 +8,6 @@ import de.acepe.fritzstreams.backend.DownloadTask;
 import de.acepe.fritzstreams.backend.OnDemandStream;
 
 public interface DownloadTaskFactory {
-    DownloadTask create(OnDemandStream onDemandStream, Consumer<File> downloadedFileConsumer, Playlist playlist);
+    DownloadTask create(OnDemandStream onDemandStream, Consumer<File> downloadedFileConsumer);
 
 }

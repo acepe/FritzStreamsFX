@@ -1,7 +1,7 @@
 package de.acepe.fritzstreams.app;
 
 public enum Screens {
-    MAIN("ui/main_view.fxml", "Musikstreams", 630, 538),
+    MAIN("ui/main_view.fxml", "Musikstreams", 630, 710),
     SETTINGS("ui/settings.fxml", "Einstellungen", 630, 530),
     PLAYLIST("ui/playlist.fxml", "Playlist", 550, 530);
 

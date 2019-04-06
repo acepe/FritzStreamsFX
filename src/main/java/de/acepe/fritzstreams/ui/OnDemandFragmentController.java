@@ -1,14 +1,5 @@
 package de.acepe.fritzstreams.ui;
 
-import static javafx.beans.binding.Bindings.createBooleanBinding;
-
-import java.io.File;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.acepe.fritzstreams.app.ControlledScreen;
 import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.app.Screens;
@@ -22,7 +13,6 @@ import javafx.animation.FadeTransition;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -33,15 +23,22 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.io.File;
+
+import static javafx.beans.binding.Bindings.createBooleanBinding;
 
 public class OnDemandFragmentController {
     private static final Logger LOG = LoggerFactory.getLogger(OnDemandFragmentController.class);
     private static final int FADE_DURATION = 250;
 
-    private final ObjectProperty<OnDemandStream> stream = new SimpleObjectProperty<>();
     private final InvalidationListener updatePlayListTextListener = this::updatePlayListButton;
     private final Player player;
     private final ScreenManager screenManager;
+    private final OnDemandStreamAdapter adapter;
 
     @FXML
     private HBox root;
@@ -66,24 +63,28 @@ public class OnDemandFragmentController {
     private Stage playListStage;
 
     @Inject
-    public OnDemandFragmentController(Player player, ScreenManager screenManager) {
+    public OnDemandFragmentController(Player player, ScreenManager screenManager, OnDemandStreamAdapter adapter) {
         this.player = player;
         this.screenManager = screenManager;
+        this.adapter = adapter;
     }
 
     @FXML
     private void initialize() {
-        streamProperty().addListener((observable, oldValue, stream) -> {
-            unbindDownloader();
-            unbindStreamInfo();
-
-            bindStreamInfo();
-            bindDownloader();
-        });
         GlyphsDude.setIcon(downloadButton, MaterialDesignIcon.DOWNLOAD, "1.5em");
         GlyphsDude.setIcon(playButton, MaterialDesignIcon.PLAY, "1.5em");
 
         configurePlayMenu();
+    }
+
+    public void setOnDemandStream(OnDemandStream onDemandStream) {
+        unbindDownloader();
+        unbindStreamInfo();
+
+        adapter.setOnDemandStream(onDemandStream);
+
+        bindStreamInfo();
+        bindDownloader();
     }
 
     private void configurePlayMenu() {
@@ -100,31 +101,29 @@ public class OnDemandFragmentController {
         deleteDownloadMenuItem.setOnAction(event -> delete());
 
         playButton.getItems().addAll(playInternalMenuItem,
-                                     playExternalMenuItem,
-                                     new SeparatorMenuItem(),
-                                     openFolderMenuItem,
-                                     new SeparatorMenuItem(),
-                                     deleteDownloadMenuItem);
+                playExternalMenuItem,
+                new SeparatorMenuItem(),
+                openFolderMenuItem,
+                new SeparatorMenuItem(),
+                deleteDownloadMenuItem);
     }
 
     private void bindStreamInfo() {
-        OnDemandStream onDemandStream = stream.get();
+        titleProperty().bind(adapter.titleProperty());
+        subTitleProperty().bind(adapter.subtitleProperty());
 
-        titleProperty().bind(onDemandStream.titleProperty());
-        subTitleProperty().bind(onDemandStream.subtitleProperty());
-
-        downloadButton.disableProperty().bind(onDemandStream.initialisedProperty().not());
+        downloadButton.disableProperty().bind(adapter.initialisedProperty().not());
         downloadButton.visibleProperty()
-                      .bind(onDemandStream.initialisedProperty().and(onDemandStream.downloadedFileProperty().isNull()));
+                      .bind(adapter.initialisedProperty().and(adapter.downloadedFileProperty().isNull()));
         playButton.visibleProperty()
-                  .bind(onDemandStream.initialisedProperty().and(onDemandStream.downloadedFileProperty().isNotNull()));
+                  .bind(adapter.initialisedProperty().and(adapter.downloadedFileProperty().isNotNull()));
 
-        playListButton.visibleProperty().bind(onDemandStream.initialisedProperty().and(createBooleanBinding(() -> {
-            Playlist playlist = onDemandStream.getPlaylist();
+        playListButton.visibleProperty().bind(adapter.initialisedProperty().and(createBooleanBinding(() -> {
+            Playlist playlist = adapter.getPlaylist();
             return playlist != null && !playlist.getEntries().isEmpty();
-        }, onDemandStream.initialisedProperty())));
+        }, adapter.initialisedProperty())));
 
-        onDemandStream.initialisedProperty().addListener(updatePlayListTextListener);
+        adapter.initialisedProperty().addListener(updatePlayListTextListener);
 
         updatePlayListButton(null);
 
@@ -132,12 +131,12 @@ public class OnDemandFragmentController {
         ft1.setFromValue(1.0);
         ft1.setToValue(0);
 
-        fadeImageView.setImage(onDemandStream.imageProperty().getValue());
+        fadeImageView.setImage(adapter.imageProperty().getValue());
         FadeTransition ft2 = new FadeTransition(Duration.millis(FADE_DURATION), fadeImageView);
         ft2.setFromValue(0);
         ft2.setToValue(1);
         ft2.setOnFinished(event -> {
-            imageProperty().bind(onDemandStream.imageProperty());
+            imageProperty().bind(adapter.imageProperty());
             fadeImageView.setOpacity(0);
             imageView.setOpacity(1);
         });
@@ -153,8 +152,7 @@ public class OnDemandFragmentController {
         downloadButton.disableProperty().unbind();
         playListButton.disableProperty().unbind();
 
-        OnDemandStream onDemandStream = stream.get();
-        onDemandStream.initialisedProperty().removeListener(updatePlayListTextListener);
+        adapter.initialisedProperty().removeListener(updatePlayListTextListener);
     }
 
     private void updatePlayListButton(Observable observable) {
@@ -162,18 +160,16 @@ public class OnDemandFragmentController {
     }
 
     private String getPlayListButtonText() {
-        Playlist playlist = stream.get().getPlaylist();
+        Playlist playlist = adapter.getPlaylist();
         return playlist.getEntries().isEmpty() ? "keine Playlist" : "PlayList";
     }
 
     private void bindDownloader() {
-        OnDemandStream onDemandStream = stream.get();
-
-        downloadProgress.progressProperty().bind(onDemandStream.progressProperty());
-        downloadProgress.visibleProperty().bind(onDemandStream.downloadingProperty());
+        downloadProgress.progressProperty().bind(adapter.progressProperty());
+        downloadProgress.visibleProperty().bind(adapter.downloadingProperty());
 
         downloadButton.disableProperty().unbind();
-        downloadButton.disableProperty().bind(onDemandStream.downloadingProperty());
+        downloadButton.disableProperty().bind(adapter.downloadingProperty());
     }
 
     private void unbindDownloader() {
@@ -189,18 +185,16 @@ public class OnDemandFragmentController {
             playListStage = null;
             return;
         }
-        OnDemandStream onDemandStream = stream.get();
         playListStage = screenManager.showScreenInNewStage(Screens.PLAYLIST);
         ControlledScreen controller = screenManager.getController(Screens.PLAYLIST);
-        ((PlaylistController) controller).setPlayList(onDemandStream.getPlaylist());
+        ((PlaylistController) controller).setPlayList(adapter.getPlaylist());
         playListStage.setOnCloseRequest(event -> playListStage = null);
     }
 
     @FXML
     void onDownloadPerformed() {
-        OnDemandStream onDemandStream = stream.get();
-        LOG.info("Starting Download {}", onDemandStream);
-        onDemandStream.download();
+        LOG.info("Starting Download {}", adapter);
+        adapter.download();
         bindDownloader();
     }
 
@@ -210,12 +204,11 @@ public class OnDemandFragmentController {
     }
 
     private void play(boolean external) {
-        OnDemandStream onDemandStream = stream.get();
-        if (onDemandStream.isDownloadRunning()) {
+        if (adapter.isDownloadRunning()) {
             return;
         }
-        LOG.info("Opening finished Download {}", onDemandStream);
-        File downloadedFile = stream.get().getDownloadedFile();
+        LOG.info("Opening finished Download {}", adapter);
+        File downloadedFile = adapter.getDownloadedFile();
         if (external) {
             FileUtil.doOpen(downloadedFile);
         } else {
@@ -227,27 +220,25 @@ public class OnDemandFragmentController {
     }
 
     private void open() {
-        OnDemandStream onDemandStream = stream.get();
-        if (onDemandStream.isDownloadRunning()) {
+        if (adapter.isDownloadRunning()) {
             return;
         }
-        LOG.info("Opening download folder {}", onDemandStream);
-        File downloadedFile = stream.get().getDownloadedFile();
+        LOG.info("Opening download folder {}", adapter);
+        File downloadedFile = adapter.getDownloadedFile();
         FileUtil.doOpenFolder(downloadedFile);
     }
 
     private void delete() {
-        OnDemandStream onDemandStream = stream.get();
-        if (onDemandStream.isDownloadRunning()) {
+        if (adapter.isDownloadRunning()) {
             return;
         }
-        LOG.info("Deleting Download {}", onDemandStream);
-        File downloadedFile = stream.get().getDownloadedFile();
+        LOG.info("Deleting Download {}", adapter);
+        File downloadedFile = adapter.getDownloadedFile();
 
         player.removePlaylistEntry(downloadedFile.toPath());
 
         FileUtil.delete(downloadedFile);
-        onDemandStream.downloadedFileProperty().setValue(null);
+        adapter.downloadedFileProperty().setValue(null);
     }
 
     public StringProperty titleProperty() {
@@ -260,10 +251,6 @@ public class OnDemandFragmentController {
 
     public ObjectProperty<Image> imageProperty() {
         return imageView.imageProperty();
-    }
-
-    public ObjectProperty<OnDemandStream> streamProperty() {
-        return stream;
     }
 
     public Parent getContent() {

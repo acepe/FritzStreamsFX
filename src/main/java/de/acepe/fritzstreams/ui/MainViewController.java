@@ -5,6 +5,7 @@ import com.google.common.collect.HashBiMap;
 import de.acepe.fritzstreams.app.ControlledScreen;
 import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.app.Screens;
+import de.acepe.fritzstreams.backend.OnDemandStream;
 import de.acepe.fritzstreams.backend.StreamManager;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -12,36 +13,36 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
-import javafx.scene.control.Toggle;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.*;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import static de.acepe.fritzstreams.app.Fragments.*;
 import static java.util.Locale.GERMANY;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.range;
 
 public class MainViewController implements ControlledScreen {
-    private static final Logger LOG = LoggerFactory.getLogger(MainViewController.class);
     private static final int DAYS_PAST = 7;
     private static final DateTimeFormatter DAY_OF_WEEK = DateTimeFormatter.ofPattern("E").withLocale(GERMANY);
 
     private final ScreenManager screenManager;
     private final StreamManager streamManager;
     private final BiMap<ToggleButton, LocalDate> toggleDayMap = HashBiMap.create();
+    private final List<OnDemandFragmentController> fragments = new ArrayList<>(3);
 
-    private OnDemandFragmentController soundgardenView;
-    private OnDemandFragmentController nightflightView;
     private LiveFragmentController liveStreamView;
     private PlayerController playerController;
 
+    @FXML
+    private ScrollPane mainView;
     @FXML
     private ToggleGroup daysToggleGroup;
     @FXML
@@ -63,22 +64,16 @@ public class MainViewController implements ControlledScreen {
     private void initialize() {
         GlyphsDude.setIcon(settingsButton, FontAwesomeIcon.COG, "1.5em");
         initFragments();
-        addFragments();
         initToggles();
+        playerControlsContainer.getChildren().addAll(playerController.getContent());
 
-        streamManager.registerInitCallback(this::onStreamInitialized);
+        streamManager.init(this::onStreamInitialized);
     }
 
     private void initFragments() {
         liveStreamView = screenManager.loadFragment(LIVE_STREAM);
-        soundgardenView = screenManager.loadFragment(ONDEMAND_STREAM);
-        nightflightView = screenManager.loadFragment(ONDEMAND_STREAM);
         playerController = screenManager.loadFragment(PLAYER);
-    }
-
-    private void addFragments() {
-        streamList.getChildren().setAll(soundgardenView.getContent(), nightflightView.getContent());
-        playerControlsContainer.getChildren().addAll(playerController.getContent());
+        IntStream.range(0, 3).forEach(i -> fragments.add(screenManager.loadFragment(ONDEMAND_STREAM)));
     }
 
     private void initToggles() {
@@ -110,12 +105,20 @@ public class MainViewController implements ControlledScreen {
     }
 
     private void setOnDemandStreamViews(Toggle nv) {
-        streamList.getChildren()
-                  .setAll(soundgardenView.getContent(), nightflightView.getContent());
         // noinspection SuspiciousMethodCalls
         LocalDate selectedDay = toggleDayMap.get(nv);
-        soundgardenView.streamProperty().setValue(streamManager.getSoundgarden(selectedDay));
-        nightflightView.streamProperty().setValue(streamManager.getNightflight(selectedDay));
+        List<OnDemandStream> streams = streamManager.getStreams(selectedDay);
+
+        List<Parent> contents = range(0, streams.size()).filter(i -> streams.get(i).isInitialized())
+                                                        .mapToObj(i -> configureUiForStream(streams, i))
+                                                        .collect(toList());
+        streamList.getChildren().setAll(contents);
+    }
+
+    private Parent configureUiForStream(List<OnDemandStream> streams, int i) {
+        OnDemandFragmentController fragment = fragments.get(i);
+        fragment.setOnDemandStream(streams.get(i));
+        return fragment.getContent();
     }
 
     private void setLiveStreamView() {
@@ -124,12 +127,12 @@ public class MainViewController implements ControlledScreen {
         VBox.setVgrow(liveStreamContent, Priority.ALWAYS);
     }
 
-    private void updateToggles() {
-        toggleDayMap.forEach((toggleButton, date) -> toggleButton.setDisable(!streamManager.isInitialised(date)));
-    }
-
     private void onStreamInitialized() {
         updateToggles();
+    }
+
+    private void updateToggles() {
+        toggleDayMap.forEach((toggleButton, date) -> toggleButton.setDisable(!streamManager.isInitialized(date)));
     }
 
     @FXML

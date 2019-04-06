@@ -3,13 +3,9 @@ package de.acepe.fritzstreams.backend;
 import com.google.common.base.MoreObjects;
 import com.google.gson.Gson;
 import com.google.inject.assistedinject.Assisted;
-import de.acepe.fritzstreams.app.DownloadTaskFactory;
 import de.acepe.fritzstreams.app.StreamCrawlerFactory;
 import de.acepe.fritzstreams.backend.json.OnDemandDownload;
 import de.acepe.fritzstreams.backend.json.OnDemandStreamDescriptor;
-import javafx.application.Platform;
-import javafx.beans.property.*;
-import javafx.concurrent.Task;
 import javafx.scene.image.Image;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -24,116 +20,89 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class OnDemandStream {
 
     private static final Logger LOG = LoggerFactory.getLogger(OnDemandStream.class);
-    private static final DateTimeFormatter TARGET_Date_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final DateTimeFormatter URL_DATE_FORMAT = DateTimeFormatter.ofPattern("ddMM");
-    private static final String NIGHTFLIGHT_URL = "/livestream/liveplayer_nightflight.htm/day=%s.html";
-    private static final String SOUNDGARDEN_URL = "/livestream/liveplayer_bestemusik.htm/day=%s.html";
+    private static final ZoneId ZONE_BERLIN = ZoneId.of("Europe/Berlin");
     private static final String DOWNLOAD_SELECTOR = "#main > article > div.count1.first.layouthalf_2_4.layoutstandard.odd.teaserboxgroup > section > article.count2.doctypeteaser.even.last.layoutbeitrag_av_nur_av.layoutmusikstream.manualteaser > div";
     private static final String PRORAMM_SELECTOR = "#sendungslink";
     private static final String DOWNLOAD_DESCRIPTOR_ATTRIBUTE = "data-jsb";
+    private static final int LENGTH_OF_DATE = 10;
+    private static final int LENGTH_OF_TIME = 4;
+    private static final int LENGTH_FROM_END_OF_URL = "0000.html".length();
 
     private final Settings settings;
-    private final DownloadTaskFactory downloadTaskFactory;
-    private final LocalDate date;
-    private final Stream stream;
     private final Playlist playlist;
     private final StreamCrawlerFactory streamCrawlerFactory;
     private final OkHttpClient okHttpClient;
-    private final ObjectProperty<File> downloadedFile = new SimpleObjectProperty<>();
-    private final StringProperty title = new SimpleStringProperty();
-    private final StringProperty subtitle = new SimpleStringProperty();
-    private final ObjectProperty<Image> image = new SimpleObjectProperty<>();
-    private final ReadOnlyBooleanWrapper initialised = new ReadOnlyBooleanWrapper();
-    private final ReadOnlyBooleanWrapper unavailable = new ReadOnlyBooleanWrapper();
-    private final DoubleProperty progress = new SimpleDoubleProperty();
-    private final BooleanProperty downloading = new SimpleBooleanProperty();
-    private final Gson gson;
+    private final String url;
 
-    private String downloadFileName;
-    private Task<Void> downloadTask;
+    private final Gson gson;
+    private final ZonedDateTime time;
+    private final String id;
+
     private Document doc;
+    private OnDemandStreamDescriptor onDemandStreamDescriptor;
+    private String downloadFileName;
+    private String title;
+    private String subtitle;
     private String streamURL;
+    private Image image;
+    private boolean initialized;
 
     @Inject
     public OnDemandStream(StreamCrawlerFactory streamCrawlerFactory,
                           OkHttpClient okHttpClient,
                           Settings settings,
-                          DownloadTaskFactory downloadTaskFactory,
                           Playlist playlist,
-                          @Assisted LocalDate date,
-                          @Assisted Stream stream) {
+                          @Assisted("initialTitle") String initialTitle,
+                          @Assisted("url") String url) {
         this.streamCrawlerFactory = streamCrawlerFactory;
         this.okHttpClient = okHttpClient;
-        this.downloadTaskFactory = downloadTaskFactory;
         this.playlist = playlist;
-        this.date = date;
-        this.stream = stream;
         this.settings = settings;
+        this.url = url;
+
+        String dateString = initialTitle.substring(initialTitle.length() - LENGTH_OF_DATE);
+        LocalDate day = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+
+        int beginIndexOftimeString = url.length() - LENGTH_FROM_END_OF_URL;
+        String timeString = url.substring(beginIndexOftimeString, beginIndexOftimeString + LENGTH_OF_TIME);
+        LocalTime localTime = LocalTime.parse(timeString, DateTimeFormatter.ofPattern("HHmm"));
+        time = day.atStartOfDay(ZONE_BERLIN).with(localTime);
+
+        id = time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"));
 
         gson = new Gson();
     }
 
-    public void notAvailableAnymore() {
-        Platform.runLater(() -> {
-            title.setValue("Nicht mehr verfügbar");
-            unavailable.setValue(true);
-        });
-    }
-
-    public void notAvailableYet() {
-        Platform.runLater(() -> {
-            title.setValue("Noch nicht verfügbar");
-            unavailable.setValue(true);
-        });
-    }
-
     public void init() {
         try {
-            String contentURL = stream == Stream.NIGHTFLIGHT ? NIGHTFLIGHT_URL : SOUNDGARDEN_URL;
-            contentURL = String.format(contentURL, date.format(URL_DATE_FORMAT));
-
-            streamCrawlerFactory.create(contentURL, this::onStreamCrawled).init();
+            streamCrawlerFactory.create(url, this::onStreamCrawled).init();
         } catch (Exception e) {
-            LOG.error("Couldn't initialize Stream {} for day {}", stream, date, e);
+            LOG.error("Couldn't initialize Stream {}", id, e);
         }
     }
 
     private void onStreamCrawled(StreamCrawler crawler) {
         doc = crawler.getDoc();
         if (doc == null) {
-            unavailable.setValue(true);
             return;
         }
 
-        String title = crawler.getTitle();
-        streamURL = extractDownloadURL();
+        extractDownloadURL();
+
+        title = streamURL != null ? crawler.getTitle() : "Nicht verfügbar";
+        subtitle = crawler.getSubtitle();
+        image = crawler.getImage();
+
         playlist.init(title, extractProgrammUrl());
-
-        LOG.info("Stream: {}, URL: {}", title, streamURL);
-
-        Platform.runLater(() -> {
-            this.title.setValue(streamURL != null ? title : "Nicht verfügbar");
-            subtitle.setValue(crawler.getSubtitle());
-            image.setValue(crawler.getImage());
-
-            initializeDownloadFile();
-            initialised.setValue(streamURL != null);
-        });
-    }
-
-    private void initializeDownloadFile() {
-        downloadFileName = createDownloadFileName();
-        downloadedFile.setValue(tryGetExistingDownload());
-    }
-
-    private File tryGetExistingDownload() {
-        File file = new File(downloadFileName);
-        return file.exists() ? file : null;
+        initialized = true;
     }
 
     private String extractProgrammUrl() {
@@ -141,10 +110,11 @@ public class OnDemandStream {
         return StreamCrawler.BASE_URL + info.attr("href");
     }
 
-    private String extractDownloadURL() {
+    private void extractDownloadURL() {
         String downloadDescriptorURL = extractDownloadDescriptorUrl();
         if (downloadDescriptorURL == null) {
-            return null;
+            LOG.error("Couldn't find download-descriptor-URL for {} on stream website", id);
+            return;
         }
 
         try {
@@ -153,19 +123,20 @@ public class OnDemandStream {
             Response response = okHttpClient.newCall(request).execute();
             String jsonText = response.body().string();
 
-            OnDemandStreamDescriptor target = gson.fromJson(jsonText, OnDemandStreamDescriptor.class);
-            String url = target.getMediaArray()
-                               .get(0)
-                               .getMediaStreamArray()
-                               .stream()
-                               .filter(m -> m.getQuality() != null)
-                               .findFirst()
-                               .orElseThrow(IOException::new)
-                               .getStream();
-            return url;
+            onDemandStreamDescriptor = gson.fromJson(jsonText, OnDemandStreamDescriptor.class);
+            streamURL = onDemandStreamDescriptor.getMediaArray()
+                                                .get(0)
+                                                .getMediaStreamArray()
+                                                .stream()
+                                                .filter(m -> m.getQuality() != null)
+                                                .findFirst()
+                                                .orElseThrow(IOException::new)
+                                                .getStream();
+
+            initDownloadFileName();
+            LOG.info("Thread: {}, Stream: {}, URL: {}", Thread.currentThread().getName(), id, streamURL);
         } catch (IOException e) {
-            LOG.error("Couldn't extract download-URL from stream website", e);
-            return null;
+            LOG.error("Couldn't extract download-URL for {} from stream website", id, e);
         }
     }
 
@@ -177,99 +148,51 @@ public class OnDemandStream {
         return download.getMedia();
     }
 
-    private String createDownloadFileName() {
-        String targetpath = settings.getTargetpath();
-
-        return targetpath
-                + File.separator
-                + getTitle().replaceAll(" ", "_")
-                + "_"
-                + getDate().format(TARGET_Date_FORMAT)
-                + ".mp3";
+    private void initDownloadFileName() {
+        String rbbhandle = onDemandStreamDescriptor.getRbbhandle();
+        String filename = rbbhandle.substring(rbbhandle.lastIndexOf('/'));
+        downloadFileName = settings.getTargetpath() + File.separator + filename + ".mp3";
     }
 
-    public void download() {
-        initializeDownloadFile();
-        downloadTask = downloadTaskFactory.create(this, this::setDownloadedFile, getPlaylist());
-
-        progress.bind(downloadTask.progressProperty());
-        downloading.bind(downloadTask.runningProperty());
-
-        new Thread(downloadTask).start();
-    }
-
-    public void cancelDownload() {
-        if (downloadTask != null) {
-            downloadTask.cancel();
-        }
-    }
-
-    public String getDownloadURL() {
-        return streamURL;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public String getTitle() {
-        return title.get();
-    }
-
-    public StringProperty titleProperty() {
-        return title;
-    }
-
-    public StringProperty subtitleProperty() {
-        return subtitle;
-    }
-
-    public ObjectProperty<Image> imageProperty() {
-        return image;
-    }
-
-    public ReadOnlyBooleanProperty initialisedProperty() {
-        return initialised.getReadOnlyProperty();
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this).add("stream", stream).add("date", date).toString();
-    }
-
-    public File getDownloadedFile() {
-        return downloadedFile.get();
-    }
-
-    public ObjectProperty<File> downloadedFileProperty() {
-        return downloadedFile;
-    }
-
-    public void setDownloadedFile(File downloadedFile) {
-        this.downloadedFile.set(downloadedFile);
-    }
-
-    public String getTargetFileName() {
+    public String getDownloadFileName() {
         return downloadFileName;
     }
 
-    public boolean isDownloadRunning() {
-        return downloadedFileProperty().get() == null;
+    public String getTitle() {
+        return title;
+    }
+
+    public String getSubtitle() {
+        return subtitle;
     }
 
     public Playlist getPlaylist() {
         return playlist;
     }
 
-    public DoubleProperty progressProperty() {
-        return progress;
+    public Image getImage() {
+        return image;
     }
 
-    public BooleanProperty downloadingProperty() {
-        return downloading;
+    public String getStreamURL() {
+        return streamURL;
     }
 
-    public boolean isInitialised() {
-        return initialised.get() || unavailable.get();
+    public LocalDate getDay() {
+        return time.toLocalDate();
     }
+
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).add("id", id).toString();
+    }
+
+    public boolean isInitialized() {
+        return initialized;
+    }
+
 }

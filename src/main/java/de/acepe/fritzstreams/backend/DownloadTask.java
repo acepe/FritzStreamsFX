@@ -32,20 +32,19 @@ public class DownloadTask extends Task<Void> {
     @AssistedInject
     public DownloadTask(OkHttpClient httpClient,
                         Dialogs dialogs,
-                        @Assisted OnDemandStream downloadable,
-                        @Assisted Consumer<File> downloadedFileConsumer,
-                        @Assisted Playlist playlist) {
+                        @Assisted OnDemandStream onDemandStream,
+                        @Assisted Consumer<File> downloadedFileConsumer) {
         this.httpClient = httpClient;
         this.dialogs = dialogs;
-        this.downloadable = downloadable;
+        this.downloadable = onDemandStream;
         this.downloadedFileConsumer = downloadedFileConsumer;
-        targetFile = new File(downloadable.getTargetFileName());
-        this.playlist = playlist;
+        targetFile = new File(onDemandStream.getDownloadFileName());
+        this.playlist = onDemandStream.getPlaylist();
     }
 
     @Override
     protected Void call() throws Exception {
-        URL url = new URL(downloadable.getDownloadURL());
+        URL url = new URL(downloadable.getStreamURL());
         Call call = httpClient.newCall(new Request.Builder().url(url).get().build());
 
         Response response = call.execute();

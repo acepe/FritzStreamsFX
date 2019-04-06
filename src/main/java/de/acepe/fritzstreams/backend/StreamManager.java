@@ -1,6 +1,5 @@
 package de.acepe.fritzstreams.backend;
 
-import de.acepe.fritzstreams.app.OnDemandStreamFactory;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
@@ -9,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,8 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static de.acepe.fritzstreams.backend.Stream.NIGHTFLIGHT;
-import static de.acepe.fritzstreams.backend.Stream.SOUNDGARDEN;
+import static java.lang.Thread.currentThread;
 import static java.time.LocalDateTime.now;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Comparator.reverseOrder;
@@ -27,24 +24,20 @@ import static java.util.stream.Collectors.toList;
 
 public class StreamManager {
     private static final Logger LOG = LoggerFactory.getLogger(StreamManager.class);
-
-    private static final int DAYS_PAST = 7;
     private static final int NUM_THREADS = 6;
-    private static final ZoneId ZONE_BERLIN = ZoneId.of("Europe/Berlin");
 
-    private final Map<LocalDate, OnDemandStream> soundgardenStreamMap = new HashMap<>();
-    private final Map<LocalDate, OnDemandStream> nightflightStreamMap = new HashMap<>();
-    private final OnDemandStreamFactory onDemandStreamFactory;
+    private final Map<LocalDate, List<OnDemandStream>> streamMap = new HashMap<>();
     private final LiveStream liveStream;
+    private final StreamFinder streamFinder;
     private final List<Task<Void>> initTasks = new ArrayList<>(NUM_THREADS);
     private final ScheduledExecutorService liveStreamUpdateService;
 
     private Runnable callback;
 
     @Inject
-    public StreamManager(OnDemandStreamFactory onDemandStreamFactory, LiveStream liveStream) {
-        this.onDemandStreamFactory = onDemandStreamFactory;
+    public StreamManager(LiveStream liveStream, StreamFinder streamFinder) {
         this.liveStream = liveStream;
+        this.streamFinder = streamFinder;
 
         liveStreamUpdateService = Executors.newScheduledThreadPool(1, r -> {
             Thread thread = new Thread(r);
@@ -54,81 +47,47 @@ public class StreamManager {
         liveStreamUpdateService.scheduleAtFixedRate(liveStream::init, 10, 10, TimeUnit.SECONDS);
     }
 
-    public void init() {
-        LocalDate startDay = LocalDate.now();
-        for (int i = 0; i <= DAYS_PAST; i++) {
-            LocalDate date = startDay.minusDays(i);
+    public void init(Runnable callback) {
+        this.callback = callback;
+        streamFinder.init(this::manageStreams);
+    }
 
-            soundgardenStreamMap.put(date, onDemandStreamFactory.create(date, SOUNDGARDEN));
-            nightflightStreamMap.put(date, onDemandStreamFactory.create(date, NIGHTFLIGHT));
+    private void manageStreams(List<OnDemandStream> onDemandStreams) {
+        for (OnDemandStream stream : onDemandStreams) {
+            List<OnDemandStream> streamsForDay = streamMap.computeIfAbsent(stream.getDay(), d -> new ArrayList<>());
+            streamsForDay.add(stream);
         }
 
         scheduleInitThreads();
     }
 
     private void scheduleInitThreads() {
+        List<LocalDate> days = streamMap.keySet()
+                                        .stream()
+                                        .sorted(reverseOrder())
+                                        .collect(toList());
+
+        int batchSize = days.size() / NUM_THREADS;
+        int rest = days.size() % NUM_THREADS;
+
         for (int i = 0; i < NUM_THREADS; i++) {
-            Task<Void> initTask = new InitTask(i);
+            int batchBeginIndex = i * batchSize;
+            int batchEndIndex = batchBeginIndex + batchSize;
+            if (i == NUM_THREADS - 1 && rest != 0) {
+                batchEndIndex += rest;
+            }
+            List<LocalDate> batch = new ArrayList<>(days.subList(batchBeginIndex, batchEndIndex));
+            Task<Void> initTask = new InitTask(batch);
             initTasks.add(initTask);
 
             Thread initThread = new Thread(initTask);
-            initThread.setName("Init-Stream-Thread (" + i + "/" + NUM_THREADS + ")");
+            initThread.setName("Init-Stream-Thread (" + (i + 1) + "/" + NUM_THREADS + ")");
             initThread.start();
         }
     }
 
-    private Void initStreams(Task<Void> task, int threadNr) {
-        LocalDateTime started = now();
-        List<LocalDate> days = soundgardenStreamMap.keySet()
-                                                   .stream()
-                                                   .sorted(reverseOrder())
-                                                   .collect(toList());
-
-        if (threadNr == 0) {
-            liveStream.init();
-        }
-        for (int i = threadNr; i < days.size(); i += NUM_THREADS) {
-            if (task.isCancelled()) {
-                return null;
-            }
-
-            LocalDate day = days.get(i);
-            initSoundgarden(day);
-            initNightflight(day);
-
-            Platform.runLater(() -> callback.run());
-        }
-        LOG.debug("Initializing streams took: {} seconds", SECONDS.between(started, now()));
-        return null;
-    }
-
-    private void initNightflight(LocalDate day) {
-        OnDemandStream nightflight = nightflightStreamMap.get(day);
-        if (day.isEqual(LocalDate.now()
-                                 .minusDays(DAYS_PAST)) && isBeforeSoundgardenRelease()) {
-            nightflight.notAvailableAnymore();
-        } else {
-            nightflight.init();
-        }
-    }
-
-    private void initSoundgarden(LocalDate day) {
-        OnDemandStream soundgarden = soundgardenStreamMap.get(day);
-        if (day.isEqual(LocalDate.now()) && isBeforeSoundgardenRelease()) {
-            soundgarden.notAvailableYet();
-        } else {
-            soundgarden.init();
-        }
-    }
-
-    private boolean isBeforeSoundgardenRelease() {
-        LocalDateTime todayAt2200InGermanTime = now(ZONE_BERLIN).withHour(22)
-                                                                .withMinute(0);
-        LocalDateTime nowInGermanTime = now(ZONE_BERLIN);
-        return nowInGermanTime.isBefore(todayAt2200InGermanTime);
-    }
-
     public void stop() {
+        LOG.info("Shutting down");
         liveStreamUpdateService.shutdownNow();
 
         // reverse order, so we don't run into concurrent-modification exceptions, because tasks remove themselves from
@@ -139,32 +98,14 @@ public class StreamManager {
                 initTask.cancel();
             }
         }
-        for (LocalDate day : soundgardenStreamMap.keySet()) {
-            stopDownload(soundgardenStreamMap.get(day));
-            stopDownload(nightflightStreamMap.get(day));
-        }
     }
 
-    private void stopDownload(OnDemandStream onDemandStream) {
-        if (onDemandStream != null) {
-            onDemandStream.cancelDownload();
-        }
+    public List<OnDemandStream> getStreams(LocalDate day) {
+        return streamMap.getOrDefault(day, new ArrayList<>(0));
     }
 
-    public OnDemandStream getNightflight(LocalDate day) {
-        return nightflightStreamMap.get(day);
-    }
-
-    public OnDemandStream getSoundgarden(LocalDate day) {
-        return soundgardenStreamMap.get(day);
-    }
-
-    public void registerInitCallback(Runnable callback) {
-        this.callback = callback;
-    }
-
-    public boolean isInitialised(LocalDate date) {
-        return soundgardenStreamMap.get(date).isInitialised() || nightflightStreamMap.get(date).isInitialised();
+    public boolean isInitialized(LocalDate date) {
+        return getStreams(date).stream().anyMatch(OnDemandStream::isInitialized);
     }
 
     public LiveStream getLiveStream() {
@@ -172,15 +113,26 @@ public class StreamManager {
     }
 
     private class InitTask extends Task<Void> {
-        private final int threadNr;
+        private final List<LocalDate> days;
 
-        public InitTask(int threadNr) {
-            this.threadNr = threadNr;
+        public InitTask(List<LocalDate> days) {
+            this.days = days;
         }
 
         @Override
         protected Void call() {
-            return initStreams(this, threadNr);
+            LocalDateTime started = now();
+            days.forEach(day -> {
+                if (isCancelled()) {
+                    return;
+                }
+                streamMap.get(day).forEach(OnDemandStream::init);
+
+                Platform.runLater(() -> callback.run());
+            });
+            LOG.debug("Thread: {}: Initializing streams took: {} seconds", currentThread().getName(),
+                    SECONDS.between(started, now()));
+            return null;
         }
 
         @Override

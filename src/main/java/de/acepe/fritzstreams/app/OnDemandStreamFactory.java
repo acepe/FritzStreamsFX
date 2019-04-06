@@ -1,10 +1,8 @@
 package de.acepe.fritzstreams.app;
 
-import java.time.LocalDate;
-
+import com.google.inject.assistedinject.Assisted;
 import de.acepe.fritzstreams.backend.OnDemandStream;
-import de.acepe.fritzstreams.backend.Stream;
 
 public interface OnDemandStreamFactory {
-    OnDemandStream create(LocalDate date, Stream stream);
+    OnDemandStream create(@Assisted("initialTitle") String initialTitle, @Assisted("url") String url);
 }
