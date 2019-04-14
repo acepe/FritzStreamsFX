@@ -19,7 +19,7 @@ import okhttp3.Response;
 
 public class Playlist {
     private static final Logger LOG = LoggerFactory.getLogger(Playlist.class);
-    private static final String TABLE_SELECTOR = "#main > div.playlist_tables > div > table > tbody";
+    private static final String TABLE_SELECTOR = "#col1 > div > div > table";
     private final OkHttpClient httpClient;
 
     private String title;
@@ -32,6 +32,7 @@ public class Playlist {
 
     public void init(String title, String url) {
         this.title = title;
+        LOG.info("Playlist: "+title+", "+url);
         try {
             Request request = new Request.Builder().url(url).build();
             Response response = httpClient.newCall(request).execute();

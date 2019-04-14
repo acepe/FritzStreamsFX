@@ -25,9 +25,6 @@ public class OnDemandStream {
 
     private static final Logger LOG = LoggerFactory.getLogger(OnDemandStream.class);
     private static final ZoneId ZONE_BERLIN = ZoneId.of("Europe/Berlin");
-    private static final String DOWNLOAD_SELECTOR = "#main > article > div.count1.first.layouthalf_2_4.layoutstandard.odd.teaserboxgroup > section > article.count2.doctypeteaser.even.last.layoutbeitrag_av_nur_av.layoutmusikstream.manualteaser > div";
-    private static final String PRORAMM_SELECTOR = "#sendungslink";
-    private static final String DOWNLOAD_DESCRIPTOR_ATTRIBUTE = "data-jsb";
     private static final int LENGTH_OF_HTML = ".html".length();
     private static final int LENGTH_OF_DATETIME = "31120000".length();
     private static final DateTimeFormatter FIXED_URL_DATETIME_FORMAT = DateTimeFormatter.ofPattern("ddMMHHmmyyyy");
@@ -67,13 +64,12 @@ public class OnDemandStream {
         this.url = url;
 
         title = parseTitle(initialTitle);
-        LOG.info("Title: " + title);
         time = parseDate();
         id = time.format(ID_DATE_FORMATTER);
     }
 
     private String parseTitle(String initialTitle) {
-        initialTitle = initialTitle.replaceAll("\\<.*?\\>", "");
+        initialTitle = initialTitle.replaceAll("<.*?>", "");
         initialTitle = splitAt(initialTitle, " |");
         initialTitle = splitAt(initialTitle, ", ");
         return initialTitle;
@@ -127,13 +123,13 @@ public class OnDemandStream {
         subtitle = streamMetaData.getSubtitle();
         image = streamMetaData.getImage();
 
-        playlist.init(title, streamCrawler.extractProgrammUrl(PRORAMM_SELECTOR));
+        playlist.init(title, streamCrawler.getPlaylistURL(time));
         initialized = true;
     }
 
     private void extractDownloadURL() {
         String downloadDescriptorURL = streamCrawler
-                .extractDownloadDescriptorUrl(DOWNLOAD_SELECTOR, DOWNLOAD_DESCRIPTOR_ATTRIBUTE);
+                .extractDownloadDescriptorUrl();
         if (downloadDescriptorURL == null) {
             LOG.error("Couldn't find download-descriptor-URL for {} on stream website", id);
             return;

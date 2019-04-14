@@ -16,6 +16,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.util.Locale;
+
+import static java.time.format.DateTimeFormatter.ofPattern;
 
 public class StreamCrawler {
     private static final Logger LOG = LoggerFactory.getLogger(StreamCrawler.class);
@@ -27,11 +31,15 @@ public class StreamCrawler {
     private static final String IMAGE_SELECTOR = "#main .layoutlivestream .layouthalf_2_4.count2 .layoutlivestream_info .manualteaser .manualteaserpicture img";
     private static final String ON_AIR_URL = "/include/frz/zeitstrahl/nowonair.json";
     private static final String DEFAULT_IMAGE = "https://www.fritz.de/content/dam/rbb/frz/zeitstrahl/78/135/500027477.jpg.jpg/img.jpg";
+    private static final String DOWNLOAD_SELECTOR = "#main > article > div.count1.first.layouthalf_2_4.layoutstandard.odd.teaserboxgroup > section > article.count2.doctypeteaser.even.last.layoutbeitrag_av_nur_av.layoutmusikstream.manualteaser > div";
+    private static final String DOWNLOAD_DESCRIPTOR_ATTRIBUTE = "data-jsb";
+    private static final String PLAYLIST_URL_FORMAT = "/programm/sendungen/playlists/%s_am_%s/playlisten/%s/%s/%s.html";
 
     private final OkHttpClient okHttpClient;
     private final Gson gson;
 
     private Document doc;
+    private String contentURL;
 
     @Inject
     public StreamCrawler(OkHttpClient okHttpClient, Gson gson) {
@@ -40,6 +48,7 @@ public class StreamCrawler {
     }
 
     public StreamMetaData crawl(String contentURL) {
+        this.contentURL = contentURL;
         try {
             Request request = new Request.Builder().url(BASE_URL + contentURL).build();
             Response response = okHttpClient.newCall(request).execute();
@@ -103,17 +112,23 @@ public class StreamCrawler {
         return info.text();
     }
 
-    String extractDownloadDescriptorUrl(String downloadSelector, String downloadDescriptorAttribute) {
-        Elements info = doc.select(downloadSelector);
-        String downloadJSON = info.attr(downloadDescriptorAttribute);
+    String extractDownloadDescriptorUrl() {
+        Elements info = doc.select(DOWNLOAD_SELECTOR);
+        String downloadJSON = info.attr(DOWNLOAD_DESCRIPTOR_ATTRIBUTE);
         OnDemandDownload download = gson.fromJson(downloadJSON, OnDemandDownload.class);
 
         return download.getMedia();
     }
 
-    String extractProgrammUrl(String prorammSelector) {
-        Elements info = doc.select(prorammSelector);
-        return StreamCrawler.BASE_URL + info.attr("href");
+    String getPlaylistURL(ZonedDateTime time) {
+        //  String nightflight = "/programm/sendungen/playlists/beste_musik_am_mittwoch/playlisten/2019/04/190410_2000.html";
+        //  String beste_musik = "/programm/sendungen/playlists/nightflight_am_freitag/playlisten/2019/04/190412_0000.html";
+        String streamType = contentURL.contains("nightflight") ? "nightflight" : "beste_musik";
+        String day = time.format(ofPattern("eeee").withLocale(Locale.GERMANY)).toLowerCase(Locale.GERMANY);
+        String year = time.format(ofPattern("yyyy"));
+        String month = time.format(ofPattern("MM"));
+        String datetime = time.format(ofPattern("yyMMdd_HHmm"));
+        return StreamCrawler.BASE_URL + String.format(PLAYLIST_URL_FORMAT, streamType, day, year, month, datetime);
     }
 
 }
