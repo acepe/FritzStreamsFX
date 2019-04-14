@@ -38,6 +38,7 @@ public class OnDemandStream {
     private final StreamCrawler streamCrawler;
     private final OkHttpClient okHttpClient;
     private final String url;
+    private String title;
 
     private final Gson gson;
     private final ZonedDateTime time;
@@ -45,7 +46,6 @@ public class OnDemandStream {
 
     private OnDemandStreamDescriptor onDemandStreamDescriptor;
     private String downloadFileName;
-    private String title;
     private String subtitle;
     private String streamURL;
     private Image image;
@@ -66,8 +66,25 @@ public class OnDemandStream {
         this.settings = settings;
         this.url = url;
 
+        title = parseTitle(initialTitle);
+        LOG.info("Title: " + title);
         time = parseDate();
         id = time.format(ID_DATE_FORMATTER);
+    }
+
+    private String parseTitle(String initialTitle) {
+        initialTitle = initialTitle.replaceAll("\\<.*?\\>", "");
+        initialTitle = splitAt(initialTitle, " |");
+        initialTitle = splitAt(initialTitle, ", ");
+        return initialTitle;
+    }
+
+    private String splitAt(String title, String seperatorString) {
+        int endIndex = title.indexOf(seperatorString);
+        if (endIndex != -1) {
+            return title.substring(0, endIndex);
+        }
+        return title;
     }
 
     private ZonedDateTime parseDate() {
@@ -104,8 +121,9 @@ public class OnDemandStream {
 
         extractDownloadURL();
 
-        //noinspection VariableNotUsedInsideIf
-        title = streamURL != null ? streamMetaData.getTitle() : "Nicht verfügbar";
+        if (streamURL == null) {
+            title = "Nicht verfügbar";
+        }
         subtitle = streamMetaData.getSubtitle();
         image = streamMetaData.getImage();
 
@@ -114,7 +132,8 @@ public class OnDemandStream {
     }
 
     private void extractDownloadURL() {
-        String downloadDescriptorURL = streamCrawler.extractDownloadDescriptorUrl(DOWNLOAD_SELECTOR, DOWNLOAD_DESCRIPTOR_ATTRIBUTE);
+        String downloadDescriptorURL = streamCrawler
+                .extractDownloadDescriptorUrl(DOWNLOAD_SELECTOR, DOWNLOAD_DESCRIPTOR_ATTRIBUTE);
         if (downloadDescriptorURL == null) {
             LOG.error("Couldn't find download-descriptor-URL for {} on stream website", id);
             return;
