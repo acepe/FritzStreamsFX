@@ -1,5 +1,10 @@
 package de.acepe.fritzstreams.backend;
 
+import javafx.application.Platform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
@@ -7,16 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import de.acepe.fritzstreams.app.StreamCrawlerFactory;
-import javafx.application.Platform;
-import javafx.beans.property.*;
-import javafx.scene.image.Image;
+import java.util.function.Consumer;
 
 public class LiveStream {
 
@@ -28,43 +24,35 @@ public class LiveStream {
     private static final String LIVE_STREAM_URL = "http://rbb-fritz-live.cast.addradio.de/rbb/fritz/live/mp3/128/stream.mp3";
     private static final String CONTENT_URL = "/livestream/";
 
-    private final StringProperty onAirTitle = new SimpleStringProperty();
-    private final StringProperty onAirArtist = new SimpleStringProperty();
-    private final ObjectProperty<Image> onAirImage = new SimpleObjectProperty<>();
-    private final StringProperty title = new SimpleStringProperty();
-    private final StringProperty subtitle = new SimpleStringProperty();
-    private final ObjectProperty<Image> image = new SimpleObjectProperty<>();
-    private final ReadOnlyBooleanWrapper initialised = new ReadOnlyBooleanWrapper();
-    private final ObjectProperty<Path> tmpFile = new SimpleObjectProperty<>();
-    private final BooleanProperty playing = new SimpleBooleanProperty();
     private final Settings settings;
-    private final StreamCrawlerFactory streamCrawlerFactory;
+    private final StreamCrawler streamCrawler;
 
     private boolean stopped;
     private ExecutorService downloaderService;
+    private Consumer<StreamMetaData> onMetaDataUpdatedCallback;
+    private Runnable onPlayingChanged;
+    private Path tmpFile;
+    private StreamMetaData streamMetaData;
 
     @Inject
-    public LiveStream(Settings settings, StreamCrawlerFactory streamCrawlerFactory) {
+    public LiveStream(Settings settings, StreamCrawler streamCrawler) {
         this.settings = settings;
-        this.streamCrawlerFactory = streamCrawlerFactory;
+        this.streamCrawler = streamCrawler;
 
         deleteTmpFile();
     }
 
-    public void init() {
-        streamCrawlerFactory.create(CONTENT_URL, this::onStreamCrawled).init();
+    public void refresh() {
+        streamMetaData = streamCrawler.crawl(CONTENT_URL);
+        if (onMetaDataUpdatedCallback != null) {
+            onMetaDataUpdatedCallback.accept(streamMetaData);
+        }
     }
 
-    private void onStreamCrawled(StreamCrawler crawler) {
-        Platform.runLater(() -> {
-            title.setValue(crawler.getTitle());
-            subtitle.setValue(crawler.getSubtitle());
-            image.setValue(crawler.getImage());
-            onAirArtist.setValue(crawler.getOnAirArtist());
-            onAirTitle.setValue(crawler.getOnAirTitle());
-            onAirImage.setValue(crawler.getOnAirImage());
-            initialised.setValue(crawler.getTitle() != null);
-        });
+    public void registerUICallbacks(Consumer<StreamMetaData> onMetaDataUpdated, Runnable onPlayingChanged) {
+        this.onMetaDataUpdatedCallback = onMetaDataUpdated;
+        this.onPlayingChanged = onPlayingChanged;
+        onMetaDataUpdated.accept(streamMetaData);
     }
 
     public void play() {
@@ -75,13 +63,12 @@ public class LiveStream {
             return thread;
         });
         downloaderService.submit(this::downloadTemp);
-        playingProperty().set(true);
     }
 
     public void stop() {
         this.stopped = true;
         deleteTmpFile();
-        playingProperty().set(false);
+        onPlayingChanged.run();
     }
 
     private void downloadTemp() {
@@ -97,14 +84,15 @@ public class LiveStream {
         Path target = Paths.get(settings.getTmpPath());
 
         try (InputStream is = connection.getInputStream();
-                BufferedInputStream stream = new BufferedInputStream(is);
-                OutputStream outstream = new FileOutputStream(target.toFile())) {
+             BufferedInputStream stream = new BufferedInputStream(is);
+             OutputStream outstream = new FileOutputStream(target.toFile())) {
             byte[] buffer = new byte[WRITE_TO_FILE_BUFFER_SIZE];
             int len;
             while (!stopped && (len = stream.read(buffer)) > 0) {
                 outstream.write(buffer, 0, len);
-                if (tmpFileProperty().get() == null && target.toFile().length() >= PLAY_BUFFER_SIZE_IN_KB) {
-                    Platform.runLater(() -> tmpFile.setValue(target));
+                if (tmpFile == null && target.toFile().length() >= PLAY_BUFFER_SIZE_IN_KB) {
+                    tmpFile = target;
+                    onPlayingChanged.run();
                 }
             }
         } catch (IOException e) {
@@ -115,49 +103,17 @@ public class LiveStream {
             downloaderService = null;
         }
         Platform.runLater(() -> {
-            playingProperty().set(false);
-            tmpFileProperty().setValue(null);
+            tmpFile = null;
+            onPlayingChanged.run();
         });
     }
 
     private void deleteTmpFile() {
         new File(settings.getTmpPath()).delete();
-        tmpFileProperty().setValue(null);
+        tmpFile = null;
     }
 
-    public ObjectProperty<Path> tmpFileProperty() {
+    public Path getTmpFile() {
         return tmpFile;
-    }
-
-    public StringProperty titleProperty() {
-        return title;
-    }
-
-    public StringProperty subtitleProperty() {
-        return subtitle;
-    }
-
-    public ObjectProperty<Image> imageProperty() {
-        return image;
-    }
-
-    public BooleanProperty playingProperty() {
-        return playing;
-    }
-
-    public boolean isPlaying() {
-        return playing.get();
-    }
-
-    public StringProperty onAirTitleProperty() {
-        return onAirTitle;
-    }
-
-    public StringProperty onAirArtistProperty() {
-        return onAirArtist;
-    }
-
-    public ObjectProperty<Image> onAirImageProperty() {
-        return onAirImage;
     }
 }

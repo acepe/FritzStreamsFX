@@ -3,15 +3,11 @@ package de.acepe.fritzstreams.backend;
 import com.google.common.base.MoreObjects;
 import com.google.gson.Gson;
 import com.google.inject.assistedinject.Assisted;
-import de.acepe.fritzstreams.app.StreamCrawlerFactory;
-import de.acepe.fritzstreams.backend.json.OnDemandDownload;
 import de.acepe.fritzstreams.backend.json.OnDemandStreamDescriptor;
 import javafx.scene.image.Image;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,13 +28,14 @@ public class OnDemandStream {
     private static final String DOWNLOAD_SELECTOR = "#main > article > div.count1.first.layouthalf_2_4.layoutstandard.odd.teaserboxgroup > section > article.count2.doctypeteaser.even.last.layoutbeitrag_av_nur_av.layoutmusikstream.manualteaser > div";
     private static final String PRORAMM_SELECTOR = "#sendungslink";
     private static final String DOWNLOAD_DESCRIPTOR_ATTRIBUTE = "data-jsb";
-    private static final int LENGTH_OF_DATE = 10;
-    private static final int LENGTH_OF_TIME = 4;
-    private static final int LENGTH_FROM_END_OF_URL = "0000.html".length();
+    private static final int LENGTH_OF_HTML = ".html".length();
+    private static final int LENGTH_OF_DATETIME = "31120000".length();
+    private static final DateTimeFormatter FIXED_URL_DATETIME_FORMAT = DateTimeFormatter.ofPattern("ddMMHHmmyyyy");
+    private static final DateTimeFormatter ID_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm");
 
     private final Settings settings;
     private final Playlist playlist;
-    private final StreamCrawlerFactory streamCrawlerFactory;
+    private final StreamCrawler streamCrawler;
     private final OkHttpClient okHttpClient;
     private final String url;
 
@@ -46,7 +43,6 @@ public class OnDemandStream {
     private final ZonedDateTime time;
     private final String id;
 
-    private Document doc;
     private OnDemandStreamDescriptor onDemandStreamDescriptor;
     private String downloadFileName;
     private String title;
@@ -56,62 +52,69 @@ public class OnDemandStream {
     private boolean initialized;
 
     @Inject
-    public OnDemandStream(StreamCrawlerFactory streamCrawlerFactory,
+    public OnDemandStream(StreamCrawler streamCrawler,
+                          Gson gson,
                           OkHttpClient okHttpClient,
                           Settings settings,
                           Playlist playlist,
                           @Assisted("initialTitle") String initialTitle,
                           @Assisted("url") String url) {
-        this.streamCrawlerFactory = streamCrawlerFactory;
+        this.streamCrawler = streamCrawler;
+        this.gson = gson;
         this.okHttpClient = okHttpClient;
         this.playlist = playlist;
         this.settings = settings;
         this.url = url;
 
-        String dateString = initialTitle.substring(initialTitle.length() - LENGTH_OF_DATE);
-        LocalDate day = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        time = parseDate();
+        id = time.format(ID_DATE_FORMATTER);
+    }
 
-        int beginIndexOftimeString = url.length() - LENGTH_FROM_END_OF_URL;
-        String timeString = url.substring(beginIndexOftimeString, beginIndexOftimeString + LENGTH_OF_TIME);
-        LocalTime localTime = LocalTime.parse(timeString, DateTimeFormatter.ofPattern("HHmm"));
-        time = day.atStartOfDay(ZONE_BERLIN).with(localTime);
+    private ZonedDateTime parseDate() {
+        int beginIndexOfDateTimeString = url.length() - LENGTH_OF_DATETIME - LENGTH_OF_HTML;
+        String datetimeString = url
+                .substring(beginIndexOfDateTimeString, beginIndexOfDateTimeString + LENGTH_OF_DATETIME);
+        datetimeString = datetimeString.concat(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy")));
+        ZonedDateTime parsedTime = ZonedDateTime.now().withZoneSameLocal(ZONE_BERLIN)
+                                                .with(LocalTime.parse(datetimeString, FIXED_URL_DATETIME_FORMAT))
+                                                .with(LocalDate.parse(datetimeString, FIXED_URL_DATETIME_FORMAT));
+        return fixDateOnYearChanged(parsedTime);
+    }
 
-        id = time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm"));
-
-        gson = new Gson();
+    private ZonedDateTime fixDateOnYearChanged(ZonedDateTime parsedTime) {
+        if (parsedTime.isAfter(ZonedDateTime.now())) {
+            parsedTime = parsedTime.withYear(this.time.getYear() - 1);
+        }
+        return parsedTime;
     }
 
     public void init() {
         try {
-            streamCrawlerFactory.create(url, this::onStreamCrawled).init();
+            StreamMetaData streamMetaData = streamCrawler.crawl(url);
+            onStreamCrawled(streamMetaData);
         } catch (Exception e) {
             LOG.error("Couldn't initialize Stream {}", id, e);
         }
     }
 
-    private void onStreamCrawled(StreamCrawler crawler) {
-        doc = crawler.getDoc();
-        if (doc == null) {
+    private void onStreamCrawled(StreamMetaData streamMetaData) {
+        if (streamMetaData == null) {
             return;
         }
 
         extractDownloadURL();
 
-        title = streamURL != null ? crawler.getTitle() : "Nicht verfügbar";
-        subtitle = crawler.getSubtitle();
-        image = crawler.getImage();
+        //noinspection VariableNotUsedInsideIf
+        title = streamURL != null ? streamMetaData.getTitle() : "Nicht verfügbar";
+        subtitle = streamMetaData.getSubtitle();
+        image = streamMetaData.getImage();
 
-        playlist.init(title, extractProgrammUrl());
+        playlist.init(title, streamCrawler.extractProgrammUrl(PRORAMM_SELECTOR));
         initialized = true;
     }
 
-    private String extractProgrammUrl() {
-        Elements info = doc.select(PRORAMM_SELECTOR);
-        return StreamCrawler.BASE_URL + info.attr("href");
-    }
-
     private void extractDownloadURL() {
-        String downloadDescriptorURL = extractDownloadDescriptorUrl();
+        String downloadDescriptorURL = streamCrawler.extractDownloadDescriptorUrl(DOWNLOAD_SELECTOR, DOWNLOAD_DESCRIPTOR_ATTRIBUTE);
         if (downloadDescriptorURL == null) {
             LOG.error("Couldn't find download-descriptor-URL for {} on stream website", id);
             return;
@@ -138,14 +141,6 @@ public class OnDemandStream {
         } catch (IOException e) {
             LOG.error("Couldn't extract download-URL for {} from stream website", id, e);
         }
-    }
-
-    private String extractDownloadDescriptorUrl() {
-        Elements info = doc.select(DOWNLOAD_SELECTOR);
-        String downloadJSON = info.attr(DOWNLOAD_DESCRIPTOR_ATTRIBUTE);
-        OnDemandDownload download = gson.fromJson(downloadJSON, OnDemandDownload.class);
-
-        return download.getMedia();
     }
 
     private void initDownloadFileName() {

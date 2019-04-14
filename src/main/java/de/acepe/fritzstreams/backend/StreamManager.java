@@ -44,7 +44,7 @@ public class StreamManager {
             thread.setName("Periodic-Live-Stream-Update");
             return thread;
         });
-        liveStreamUpdateService.scheduleAtFixedRate(liveStream::init, 10, 10, TimeUnit.SECONDS);
+        liveStreamUpdateService.scheduleAtFixedRate(liveStream::refresh, 0, 10, TimeUnit.SECONDS);
     }
 
     public void init(Runnable callback) {

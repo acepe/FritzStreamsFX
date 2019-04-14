@@ -1,16 +1,6 @@
 package de.acepe.fritzstreams.ui;
 
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAY;
-import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.STOP;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import de.acepe.fritzstreams.backend.LiveStream;
 import de.acepe.fritzstreams.backend.Player;
-import de.acepe.fritzstreams.backend.StreamManager;
 import de.jensd.fx.glyphs.GlyphsDude;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -21,12 +11,19 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAY;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.STOP;
 
 public class LiveFragmentController {
     private static final Logger LOG = LoggerFactory.getLogger(LiveFragmentController.class);
 
     private final Player player;
-    private final LiveStream liveStream;
+    private final LiveStreamAdapter liveStreamAdapter;
 
     @FXML
     private VBox root;
@@ -46,23 +43,23 @@ public class LiveFragmentController {
     private Button playButton;
 
     @Inject
-    public LiveFragmentController(Player player, StreamManager streamManager) {
+    public LiveFragmentController(Player player, LiveStreamAdapter liveStreamAdapter) {
         this.player = player;
-        liveStream = streamManager.getLiveStream();
+        this.liveStreamAdapter = liveStreamAdapter;
     }
 
     @FXML
     private void initialize() {
-        onAirArtistProperty().bind(liveStream.onAirArtistProperty());
-        onAirTitleProperty().bind(liveStream.onAirTitleProperty());
-        onAirImageProperty().bind(liveStream.onAirImageProperty());
+        onAirArtistProperty().bind(liveStreamAdapter.onAirArtistProperty());
+        onAirTitleProperty().bind(liveStreamAdapter.onAirTitleProperty());
+        onAirImageProperty().bind(liveStreamAdapter.onAirImageProperty());
 
-        titleProperty().bind(liveStream.titleProperty());
-        subTitleProperty().bind(liveStream.subtitleProperty());
-        imageProperty().bind(liveStream.imageProperty());
+        titleProperty().bind(liveStreamAdapter.titleProperty());
+        subTitleProperty().bind(liveStreamAdapter.subtitleProperty());
+        imageProperty().bind(liveStreamAdapter.imageProperty());
 
-        liveStream.playingProperty().addListener(observable -> updateState());
-        liveStream.tmpFileProperty().addListener((obs, ov, nv) -> {
+        liveStreamAdapter.playingProperty().addListener(observable -> updateState());
+        liveStreamAdapter.tmpFileProperty().addListener((obs, ov, nv) -> {
             if (nv != null) {
                 player.currentFileProperty().setValue(nv);
                 if (!player.isPlaying()) {
@@ -75,7 +72,7 @@ public class LiveFragmentController {
 
         player.stoppedProperty().addListener((obs, ob, stopped) -> {
             if (stopped) {
-                stopStream();
+                liveStreamAdapter.stop();
             }
         });
         player.currentFileProperty().addListener((obs, ob, nv) -> onPlayedTrackChanged());
@@ -85,16 +82,17 @@ public class LiveFragmentController {
 
     @FXML
     void onPlayPerformed() {
-        if (liveStream.isPlaying()) {
-            stop();
+        if (liveStreamAdapter.isPlaying()) {
+            player.stop();
+            liveStreamAdapter.stop();
         } else {
             player.stop();
-            play();
+            liveStreamAdapter.play();
         }
     }
 
     private void updateState() {
-        boolean playing = liveStream.isPlaying();
+        boolean playing = liveStreamAdapter.isPlaying();
         if (playing) {
             GlyphsDude.setIcon(playButton, STOP, "1.5em");
         } else {
@@ -103,23 +101,9 @@ public class LiveFragmentController {
         playButton.setText(playing ? "Stop" : "Play");
     }
 
-    private void play() {
-        liveStream.play();
-
-    }
-
-    private void stop() {
-        player.stop();
-        stopStream();
-    }
-
-    private void stopStream() {
-        liveStream.stop();
-    }
-
     private void onPlayedTrackChanged() {
-        if (liveStream.isPlaying() && player.getCurrentFile() != liveStream.tmpFileProperty().get()) {
-            stopStream();
+        if (liveStreamAdapter.isPlaying() && player.getCurrentFile() != liveStreamAdapter.tmpFileProperty().get()) {
+            liveStreamAdapter.stop();
         }
     }
 

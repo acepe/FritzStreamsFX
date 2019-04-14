@@ -46,7 +46,6 @@ public class AppModule extends AbstractModule {
 
         FactoryModuleBuilder builder = new FactoryModuleBuilder();
         install(builder.build(OnDemandStreamFactory.class));
-        install(builder.build(StreamCrawlerFactory.class));
         install(builder.build(DownloadTaskFactory.class));
 
     }

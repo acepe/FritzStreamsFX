@@ -1,25 +1,21 @@
 package de.acepe.fritzstreams.backend;
 
-import java.io.IOException;
-import java.util.function.Consumer;
-
-import javax.inject.Inject;
-
+import com.google.gson.Gson;
+import de.acepe.fritzstreams.backend.json.OnAirData;
+import de.acepe.fritzstreams.backend.json.OnDemandDownload;
+import javafx.scene.image.Image;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.inject.assistedinject.Assisted;
-
-import de.acepe.fritzstreams.backend.json.OnAirData;
-import javafx.scene.image.Image;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
+import javax.inject.Inject;
+import java.io.IOException;
 
 public class StreamCrawler {
     private static final Logger LOG = LoggerFactory.getLogger(StreamCrawler.class);
@@ -33,27 +29,17 @@ public class StreamCrawler {
     private static final String DEFAULT_IMAGE = "https://www.fritz.de/content/dam/rbb/frz/zeitstrahl/78/135/500027477.jpg.jpg/img.jpg";
 
     private final OkHttpClient okHttpClient;
-    private final String contentURL;
-    private final Consumer<StreamCrawler> onStreamCrawledCallback;
+    private final Gson gson;
 
     private Document doc;
-    private String title;
-    private String subtitle;
-    private String onAirArtist;
-    private String onAirTitle;
-    private Image image;
-    private Image onAirImage;
 
     @Inject
-    public StreamCrawler(OkHttpClient okHttpClient,
-            @Assisted String contentURL,
-            @Assisted Consumer<StreamCrawler> onStreamCrawledCallback) {
+    public StreamCrawler(OkHttpClient okHttpClient, Gson gson) {
         this.okHttpClient = okHttpClient;
-        this.contentURL = contentURL;
-        this.onStreamCrawledCallback = onStreamCrawledCallback;
+        this.gson = gson;
     }
 
-    public void init() {
+    public StreamMetaData crawl(String contentURL) {
         try {
             Request request = new Request.Builder().url(BASE_URL + contentURL).build();
             Response response = okHttpClient.newCall(request).execute();
@@ -62,17 +48,20 @@ public class StreamCrawler {
                 doc = Jsoup.parse(content);
             }
 
-            title = extractTitle(TITLE_SELECTOR);
-            subtitle = extractTitle(SUBTITLE_SELECTOR);
+            String title = extractTitle(TITLE_SELECTOR);
+            String subtitle = extractTitle(SUBTITLE_SELECTOR);
 
-            String url = extractImageUrl(IMAGE_SELECTOR);
-            if (url != null) {
-                Request imgRequest = new Request.Builder().url(url).build();
+            String imageUrl = extractImageUrl();
+            Image image = null;
+            Image onAirImage = new Image(DEFAULT_IMAGE);
+            String onAirArtist = null;
+            String onAirTitle = null;
+            if (imageUrl != null) {
+                Request imgRequest = new Request.Builder().url(imageUrl).build();
                 Response imgResponse = okHttpClient.newCall(imgRequest).execute();
                 try (ResponseBody body = imgResponse.body()) {
                     image = new Image(body.byteStream());
                 }
-
                 Request onAirRequest = new Request.Builder().url(BASE_URL + ON_AIR_URL).build();
                 Response onAirResponse = okHttpClient.newCall(onAirRequest).execute();
                 try (ResponseBody body = onAirResponse.body()) {
@@ -81,12 +70,10 @@ public class StreamCrawler {
                     onAirArtist = onAirData.getArtist();
                     onAirTitle = onAirData.getTitle();
 
-                    if (onAirData.getImg() == null) {
-                        onAirImage = new Image(DEFAULT_IMAGE);
-                    } else {
+                    if (onAirData.getImg() != null) {
                         Request onAirImgRequest = new Request.Builder().url(BASE_URL
-                                                                            + ON_AIR_CONTENT_URL
-                                                                            + onAirData.getImg().getLnk())
+                                + ON_AIR_CONTENT_URL
+                                + onAirData.getImg().getLnk())
                                                                        .build();
                         Response onAirImgResponse = okHttpClient.newCall(onAirImgRequest).execute();
                         try (ResponseBody onAirImgResponseBody = onAirImgResponse.body()) {
@@ -95,15 +82,16 @@ public class StreamCrawler {
                     }
                 }
             }
+            return new StreamMetaData(title, subtitle, image, onAirImage, onAirArtist, onAirTitle);
         } catch (IOException e) {
             LOG.error("Crawling stream failed", e);
             doc = null;
         }
-        onStreamCrawledCallback.accept(this);
+        return null;
     }
 
-    private String extractImageUrl(String imageSelector) {
-        String imageUrl = doc.select(imageSelector).attr("src");
+    private String extractImageUrl() {
+        String imageUrl = doc.select(IMAGE_SELECTOR).attr("src");
         if (imageUrl.isEmpty()) {
             return null;
         }
@@ -115,31 +103,17 @@ public class StreamCrawler {
         return info.text();
     }
 
-    public Document getDoc() {
-        return doc;
+    String extractDownloadDescriptorUrl(String downloadSelector, String downloadDescriptorAttribute) {
+        Elements info = doc.select(downloadSelector);
+        String downloadJSON = info.attr(downloadDescriptorAttribute);
+        OnDemandDownload download = gson.fromJson(downloadJSON, OnDemandDownload.class);
+
+        return download.getMedia();
     }
 
-    public String getTitle() {
-        return title;
+    String extractProgrammUrl(String prorammSelector) {
+        Elements info = doc.select(prorammSelector);
+        return StreamCrawler.BASE_URL + info.attr("href");
     }
 
-    public String getSubtitle() {
-        return subtitle;
-    }
-
-    public Image getImage() {
-        return image;
-    }
-
-    public String getOnAirArtist() {
-        return onAirArtist;
-    }
-
-    public String getOnAirTitle() {
-        return onAirTitle;
-    }
-
-    public Image getOnAirImage() {
-        return onAirImage;
-    }
 }
