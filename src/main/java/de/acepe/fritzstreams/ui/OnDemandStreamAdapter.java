@@ -30,6 +30,7 @@ public class OnDemandStreamAdapter {
     }
 
     public void setOnDemandStream(OnDemandStream onDemandStream) {
+        unbindDownloader();
         this.onDemandStream = onDemandStream;
         if (!onDemandStream.isInitialized()) {
             title.setValue(null);
@@ -45,15 +46,30 @@ public class OnDemandStreamAdapter {
 
         downloadedFile.setValue(tryGetExistingDownload());
         initialised.setValue(true);
+        bindDownloader();
     }
 
     public void download() {
         DownloadTask downloadTask = downloadManager.download(onDemandStream, this::setDownloadedFile);
-
         progress.bind(downloadTask.progressProperty());
         downloading.bind(downloadTask.runningProperty());
 
         new Thread(downloadTask).start();
+    }
+
+    private void bindDownloader() {
+        DownloadTask downloadTask = downloadManager.getDownloadTask(onDemandStream);
+        if (downloadTask == null) {
+            return;
+        }
+        progress.bind(downloadTask.progressProperty());
+        downloading.bind(downloadTask.runningProperty());
+    }
+
+    private void unbindDownloader() {
+        progress.unbind();
+        downloading.unbind();
+        progress.setValue(0);
     }
 
     private File tryGetExistingDownload() {

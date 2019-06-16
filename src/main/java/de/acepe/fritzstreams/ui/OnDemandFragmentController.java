@@ -74,17 +74,19 @@ public class OnDemandFragmentController {
         GlyphsDude.setIcon(downloadButton, MaterialDesignIcon.DOWNLOAD, "1.5em");
         GlyphsDude.setIcon(playButton, MaterialDesignIcon.PLAY, "1.5em");
 
+        downloadProgress.progressProperty().bind(adapter.progressProperty());
+        downloadProgress.visibleProperty().bind(adapter.downloadingProperty());
+
+        downloadButton.disableProperty().unbind();
+        downloadButton.disableProperty().bind(adapter.downloadingProperty());
+
         configurePlayMenu();
     }
 
     public void setOnDemandStream(OnDemandStream onDemandStream) {
-        unbindDownloader();
         unbindStreamInfo();
-
         adapter.setOnDemandStream(onDemandStream);
-
         bindStreamInfo();
-        bindDownloader();
     }
 
     private void configurePlayMenu() {
@@ -164,20 +166,6 @@ public class OnDemandFragmentController {
         return playlist.getEntries().isEmpty() ? "keine Playlist" : "PlayList";
     }
 
-    private void bindDownloader() {
-        downloadProgress.progressProperty().bind(adapter.progressProperty());
-        downloadProgress.visibleProperty().bind(adapter.downloadingProperty());
-
-        downloadButton.disableProperty().unbind();
-        downloadButton.disableProperty().bind(adapter.downloadingProperty());
-    }
-
-    private void unbindDownloader() {
-        downloadProgress.progressProperty().unbind();
-        downloadProgress.visibleProperty().unbind();
-        downloadButton.disableProperty().unbind();
-    }
-
     @FXML
     void onPlayListPerformed() {
         if (playListStage != null) {
@@ -195,7 +183,6 @@ public class OnDemandFragmentController {
     void onDownloadPerformed() {
         LOG.info("Starting Download {}", adapter);
         adapter.download();
-        bindDownloader();
     }
 
     @FXML
