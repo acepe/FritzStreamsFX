@@ -74,19 +74,20 @@ public class StreamCrawler {
                 Request onAirRequest = new Request.Builder().url(BASE_URL + ON_AIR_URL).build();
                 Response onAirResponse = okHttpClient.newCall(onAirRequest).execute();
                 try (ResponseBody body = onAirResponse.body()) {
-                    String onAirContent = body.string();
-                    OnAirData onAirData = new Gson().fromJson(onAirContent, OnAirData.class);
-                    onAirArtist = onAirData.getArtist();
-                    onAirTitle = onAirData.getTitle();
+                    if (onAirResponse.isSuccessful()) {
+                        String onAirContent = body.string();
+                        OnAirData onAirData = new Gson().fromJson(onAirContent, OnAirData.class);
+                        onAirArtist = onAirData.getArtist();
+                        onAirTitle = onAirData.getTitle();
 
-                    if (onAirData.getImg() != null) {
-                        Request onAirImgRequest = new Request.Builder().url(BASE_URL
-                                + ON_AIR_CONTENT_URL
-                                + onAirData.getImg().getLnk())
-                                                                       .build();
-                        Response onAirImgResponse = okHttpClient.newCall(onAirImgRequest).execute();
-                        try (ResponseBody onAirImgResponseBody = onAirImgResponse.body()) {
-                            onAirImage = new Image(onAirImgResponseBody.byteStream());
+                        if (onAirData.getImg() != null) {
+                            Request onAirImgRequest = new Request.Builder().url(BASE_URL
+                                    + ON_AIR_CONTENT_URL
+                                    + onAirData.getImg().getLnk()).build();
+                            Response onAirImgResponse = okHttpClient.newCall(onAirImgRequest).execute();
+                            try (ResponseBody onAirImgResponseBody = onAirImgResponse.body()) {
+                                onAirImage = new Image(onAirImgResponseBody.byteStream());
+                            }
                         }
                     }
                 }

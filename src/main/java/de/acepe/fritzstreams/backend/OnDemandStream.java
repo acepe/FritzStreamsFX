@@ -96,7 +96,7 @@ public class OnDemandStream {
 
     private ZonedDateTime fixDateOnYearChanged(ZonedDateTime parsedTime) {
         if (parsedTime.isAfter(ZonedDateTime.now())) {
-            parsedTime = parsedTime.withYear(this.time.getYear() - 1);
+            parsedTime = parsedTime.withYear(parsedTime.getYear() - 1);
         }
         return parsedTime;
     }
