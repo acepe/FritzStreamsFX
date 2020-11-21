@@ -31,7 +31,7 @@ public class StreamCrawler {
     private static final String IMAGE_SELECTOR = "#main .layoutlivestream .layouthalf_2_4.count2 .layoutlivestream_info .manualteaser .manualteaserpicture img";
     private static final String ON_AIR_URL = "/include/frz/zeitstrahl/nowonair.json";
     private static final String DEFAULT_IMAGE = "https://www.fritz.de/content/dam/rbb/frz/zeitstrahl/78/135/500027477.jpg.jpg/img.jpg";
-    private static final String DOWNLOAD_SELECTOR = "#main > article > div.count1.first.layouthalf_2_4.layoutstandard.odd.teaserboxgroup > section > article.count2.doctypeteaser.even.last.layoutbeitrag_av_nur_av.layoutmusikstream.manualteaser > div";
+    private static final String DOWNLOAD_SELECTOR = "#main > article > div.count1.first.layouthalf_2_4.layoutstandard.odd.teaserboxgroup > section > article > div";
     private static final String DOWNLOAD_DESCRIPTOR_ATTRIBUTE = "data-jsb";
     private static final String PLAYLIST_URL_FORMAT = "/programm/sendungen/playlists/%s_am_%s/playlisten/%s/%s/%s.html";
 
