@@ -122,8 +122,8 @@ public class StreamCrawler {
     }
 
     String getPlaylistURL(ZonedDateTime time) {
-        //  String nightflight = "/programm/sendungen/playlists/beste_musik_am_mittwoch/playlisten/2019/04/190410_2000.html";
-        //  String beste_musik = "/programm/sendungen/playlists/nightflight_am_freitag/playlisten/2019/04/190412_0000.html";
+        //  String beste_musik = "/programm/sendungen/playlists/beste_musik_am_mittwoch/playlisten/2019/04/190410_2000.html";
+        //  String nightflight = "/programm/sendungen/playlists/nightflight_am_freitag/playlisten/2019/04/190412_0000.html";
         String streamType = contentURL.contains("nightflight") ? "nightflight" : "beste_musik";
         String day = time.format(ofPattern("eeee").withLocale(Locale.GERMANY)).toLowerCase(Locale.GERMANY);
         String year = time.format(ofPattern("yyyy"));

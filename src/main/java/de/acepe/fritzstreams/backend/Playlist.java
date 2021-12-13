@@ -1,11 +1,8 @@
 package de.acepe.fritzstreams.backend;
 
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.inject.Inject;
-
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,9 +10,10 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import javax.inject.Inject;
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Playlist {
     private static final Logger LOG = LoggerFactory.getLogger(Playlist.class);
@@ -32,22 +30,31 @@ public class Playlist {
 
     public void init(String title, String url) {
         this.title = title;
-        LOG.info("Playlist: "+title+", "+url);
+        LOG.info("Playlist: " + title + ", " + url);
         try {
-            Request request = new Request.Builder().url(url).build();
-            Response response = httpClient.newCall(request).execute();
-            String content = response.body().string();
+            fetchPlaylist(url);
 
-            Document doc = Jsoup.parse(content);
-            Elements table = doc.select(TABLE_SELECTOR);
-
-            entries = extractPlayListEntries(table);
+            if (url.endsWith("2000.html")) {
+                String url2 = url.replace("2000.html", "2100.html");
+                fetchPlaylist(url2);
+            }
         } catch (IOException e) {
             LOG.error("Init stream failed: " + e);
         }
     }
 
-    private List<PlayListEntry> extractPlayListEntries(Elements table) {
+    private void fetchPlaylist(String url) throws IOException {
+        Request request = new Request.Builder().url(url).build();
+        Response response = httpClient.newCall(request).execute();
+        String content = response.body().string();
+
+        Document doc = Jsoup.parse(content);
+        Elements table = doc.select(TABLE_SELECTOR);
+
+        extractPlayListEntries(table);
+    }
+
+    private void extractPlayListEntries(Elements table) {
         for (Element row : table.select("tr")) {
             if (!row.hasClass("play_track")) {
                 continue;
@@ -56,7 +63,6 @@ public class Playlist {
             String title = row.select("td.tracktitle").text();
             entries.add(new PlayListEntry(artist, title));
         }
-        return entries;
     }
 
     public List<PlayListEntry> getEntries() {
