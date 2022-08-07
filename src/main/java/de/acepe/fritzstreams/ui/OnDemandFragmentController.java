@@ -199,6 +199,7 @@ public class OnDemandFragmentController {
         if (external) {
             FileUtil.doOpen(downloadedFile);
         } else {
+            player.refreshFolder();
             player.currentFileProperty().setValue(downloadedFile.toPath());
             if (!player.isPlaying()) {
                 player.playOrPause();

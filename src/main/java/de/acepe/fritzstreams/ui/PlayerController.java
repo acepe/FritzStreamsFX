@@ -56,7 +56,7 @@ public class PlayerController {
         nowPlayingComboBox.getSelectionModel().select(player.getCurrentFile());
         player.currentFileProperty()
               .addListener((observable, oldValue, newValue) -> nowPlayingComboBox.getSelectionModel().select(newValue));
-        nowPlayingComboBox.setConverter(new ToStringConverter<>(path -> path.getFileName().toString()));
+        nowPlayingComboBox.setConverter(new ToStringConverter<>(path ->path!=null?path.getFileName().toString():null));
 
         nowPlayingComboBox.itemsProperty().bindBidirectional(player.filesProperty());
         nowPlayingComboBox.getSelectionModel().selectedItemProperty().addListener((obs, old, newSelection) -> {

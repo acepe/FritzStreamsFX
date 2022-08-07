@@ -1,17 +1,5 @@
 package de.acepe.fritzstreams.backend;
 
-import static java.util.stream.Collectors.toCollection;
-
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.Comparator;
-
-import javax.inject.Inject;
-
-import org.fxmisc.easybind.EasyBind;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
 import javafx.beans.value.ObservableValue;
@@ -21,6 +9,17 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
+import org.fxmisc.easybind.EasyBind;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.Comparator;
+
+import static java.util.stream.Collectors.toCollection;
+import static javafx.collections.FXCollections.emptyObservableList;
 
 public class Player {
 
@@ -110,7 +109,7 @@ public class Player {
         Status status = mp.getStatus();
         playing.setValue(status == Status.PLAYING);
         paused.setValue(status == Status.PAUSED);
-        stopped.setValue(status == Status.DISPOSED ||status == Status.STOPPED || status == Status.READY || status == null || status == Status.UNKNOWN);
+        stopped.setValue(status == Status.DISPOSED || status == Status.STOPPED || status == Status.READY || status == null || status == Status.UNKNOWN);
         hasNext.setValue(!files.isEmpty() && currentIndex < files.size() - 1);
         hasPrev.setValue(!files.isEmpty() && currentIndex > 0);
     }
@@ -119,7 +118,7 @@ public class Player {
         Path downloadFolder = Paths.get(settings.getTargetpath());
         Path file = Files.exists(downloadFolder) ? downloadFolder : Paths.get(System.getProperty("user.home"));
         currentDirectory.set(file);
-        files.bind(EasyBind.map(currentDirectory, this::listFiles).orElse(FXCollections.emptyObservableList()));
+        files.bind(EasyBind.map(currentDirectory, this::listFiles).orElse(emptyObservableList()));
         if (!files.isEmpty()) {
             currentFile.setValue(files.get(0));
             currentIndex = 0;
@@ -132,10 +131,15 @@ public class Player {
             return Files.list(dir)
                         .filter(matcher::matches)
                         .sorted(Comparator.comparing(Path::getFileName))
-                        .collect(toCollection(FXCollections::<Path> observableArrayList));
+                        .collect(toCollection(FXCollections::<Path>observableArrayList));
         } catch (IOException exc) {
             return FXCollections.observableArrayList();
         }
+    }
+
+    public void refreshFolder() {
+        files.unbind();
+        configureCurrentDirectory();
     }
 
     public void playOrPause() {
