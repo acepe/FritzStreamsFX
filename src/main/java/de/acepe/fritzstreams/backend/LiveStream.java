@@ -21,7 +21,7 @@ public class LiveStream {
     private static final int BUFFER_SECONDS = 3;
     private static final int BITRATE = 128;
     private static final int PLAY_BUFFER_SIZE_IN_KB = BUFFER_SECONDS * BITRATE / 8 * 1024;
-    private static final String LIVE_STREAM_URL = "http://rbb-fritz-live.cast.addradio.de/rbb/fritz/live/mp3/128/stream.mp3";
+    private static final String LIVE_STREAM_URL = "http://fritz.de/livemp3";
     private static final String CONTENT_URL = "/livestream/";
 
     private final Settings settings;

@@ -24,7 +24,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.14.3</version>
+            <version>1.15.3</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -109,14 +109,6 @@
                 <version>3.8.1</version>
                 <configuration>
                     <release>11</release>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.openjfx</groupId>
-                <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.8</version>
-                <configuration>
-                    <mainClass>de.acepe.fritzstreams.FritzStreamsApp</mainClass>
                 </configuration>
             </plugin>
             <plugin>
