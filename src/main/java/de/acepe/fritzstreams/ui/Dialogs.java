@@ -1,16 +1,8 @@
 package de.acepe.fritzstreams.ui;
 
-import static javafx.scene.layout.GridPane.setHgrow;
-import static javafx.scene.layout.VBox.setVgrow;
-
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import javax.inject.Inject;
-
 import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.backend.Settings;
+import jakarta.inject.Inject;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
@@ -19,6 +11,13 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import static javafx.scene.layout.GridPane.setHgrow;
+import static javafx.scene.layout.VBox.setVgrow;
 
 public class Dialogs {
 

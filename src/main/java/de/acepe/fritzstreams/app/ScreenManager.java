@@ -1,18 +1,8 @@
 package de.acepe.fritzstreams.app;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Provider;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Provider;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -31,6 +21,14 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class ScreenManager extends StackPane {
 
@@ -53,8 +51,8 @@ public class ScreenManager extends StackPane {
 
     @Inject
     public ScreenManager(Application application,
-            Provider<FXMLLoader> fxmlLoaderProvider,
-            @Named("APP_TITLE") String appTitle) {
+                         Provider<FXMLLoader> fxmlLoaderProvider,
+                         @Named("APP_TITLE") String appTitle) {
         this.application = application;
         this.fxmlLoaderProvider = fxmlLoaderProvider;
         this.appTitle = appTitle;
@@ -158,14 +156,14 @@ public class ScreenManager extends StackPane {
         Node oldNode = getChildren().get(0);
         Bounds oldNodeBounds = oldNode.getBoundsInParent();
         ImageView oldImage = new ImageView(oldNode.snapshot(new SnapshotParameters(),
-                                                            new WritableImage((int) oldNodeBounds.getWidth(),
-                                                                              (int) oldNodeBounds.getHeight())));
+                new WritableImage((int) oldNodeBounds.getWidth(),
+                        (int) oldNodeBounds.getHeight())));
 
         Node newNode = screens.get(id);
         getChildren().add(newNode);
         ImageView newImage = new ImageView(newNode.snapshot(new SnapshotParameters(),
-                                                            new WritableImage((int) oldNodeBounds.getWidth(),
-                                                                              (int) oldNodeBounds.getHeight())));
+                new WritableImage((int) oldNodeBounds.getWidth(),
+                        (int) oldNodeBounds.getHeight())));
         getChildren().remove(newNode);
 
         // Create new animationPane with both images
@@ -177,9 +175,9 @@ public class ScreenManager extends StackPane {
         newImage.setTranslateX(direction == Direction.LEFT ? oldNodeBounds.getWidth() : -oldNodeBounds.getWidth());
 
         KeyFrame newImageKeyFrame = new KeyFrame(FADE_DURATION,
-                                                 new KeyValue(newImage.translateXProperty(),
-                                                              0,
-                                                              Interpolator.EASE_BOTH));
+                new KeyValue(newImage.translateXProperty(),
+                        0,
+                        Interpolator.EASE_BOTH));
         Timeline newImageTimeline = new Timeline(newImageKeyFrame);
         newImageTimeline.setOnFinished(t -> {
             notifyActiveScreenHidden();
@@ -192,9 +190,9 @@ public class ScreenManager extends StackPane {
 
         double endValue = direction == Direction.LEFT ? -oldNodeBounds.getWidth() : oldNodeBounds.getWidth();
         KeyFrame oldImageKeyFrame = new KeyFrame(FADE_DURATION,
-                                                 new KeyValue(oldImage.translateXProperty(),
-                                                              endValue,
-                                                              Interpolator.EASE_BOTH));
+                new KeyValue(oldImage.translateXProperty(),
+                        endValue,
+                        Interpolator.EASE_BOTH));
         Timeline oldImageTimeLine = new Timeline(oldImageKeyFrame);
 
         newImageTimeline.play();

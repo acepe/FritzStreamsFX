@@ -1,11 +1,11 @@
 package de.acepe.fritzstreams.backend;
 
 import de.acepe.fritzstreams.app.DownloadTaskFactory;
+import jakarta.inject.Inject;
 import javafx.concurrent.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;

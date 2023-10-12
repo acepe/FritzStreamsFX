@@ -1,10 +1,10 @@
 package de.acepe.fritzstreams.backend;
 
+import jakarta.inject.Inject;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;

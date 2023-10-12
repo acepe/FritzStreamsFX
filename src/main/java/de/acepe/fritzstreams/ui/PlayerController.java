@@ -7,7 +7,7 @@ import static java.util.concurrent.TimeUnit.*;
 
 import java.nio.file.Path;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import de.acepe.fritzstreams.backend.Player;
 import de.acepe.fritzstreams.util.ToStringConverter;

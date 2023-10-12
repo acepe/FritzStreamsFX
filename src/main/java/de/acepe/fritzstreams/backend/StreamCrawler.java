@@ -3,6 +3,7 @@ package de.acepe.fritzstreams.backend;
 import com.google.gson.Gson;
 import de.acepe.fritzstreams.backend.json.OnAirData;
 import de.acepe.fritzstreams.backend.json.OnDemandDownload;
+import jakarta.inject.Inject;
 import javafx.scene.image.Image;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -14,7 +15,6 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Locale;

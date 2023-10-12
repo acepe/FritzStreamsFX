@@ -4,6 +4,7 @@ import com.google.common.base.MoreObjects;
 import com.google.gson.Gson;
 import com.google.inject.assistedinject.Assisted;
 import de.acepe.fritzstreams.backend.json.OnDemandStreamDescriptor;
+import jakarta.inject.Inject;
 import javafx.scene.image.Image;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -11,7 +12,6 @@ import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;

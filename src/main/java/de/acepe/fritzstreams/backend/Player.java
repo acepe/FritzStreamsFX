@@ -1,5 +1,6 @@
 package de.acepe.fritzstreams.backend;
 
+import jakarta.inject.Inject;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
 import javafx.beans.value.ObservableValue;
@@ -13,7 +14,6 @@ import org.fxmisc.easybind.EasyBind;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Comparator;
@@ -129,9 +129,9 @@ public class Player {
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**.{mp3,m4a,aiff,aif,wav}");
         try {
             return Files.list(dir)
-                        .filter(matcher::matches)
-                        .sorted(Comparator.comparing(Path::getFileName))
-                        .collect(toCollection(FXCollections::<Path>observableArrayList));
+                    .filter(matcher::matches)
+                    .sorted(Comparator.comparing(Path::getFileName))
+                    .collect(toCollection(FXCollections::<Path>observableArrayList));
         } catch (IOException exc) {
             return FXCollections.observableArrayList();
         }

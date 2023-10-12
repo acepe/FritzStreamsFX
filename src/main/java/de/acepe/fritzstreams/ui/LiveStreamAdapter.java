@@ -7,7 +7,7 @@ import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.scene.image.Image;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.nio.file.Path;
 
 public class LiveStreamAdapter {
