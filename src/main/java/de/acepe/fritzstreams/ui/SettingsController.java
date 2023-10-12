@@ -1,19 +1,17 @@
 package de.acepe.fritzstreams.ui;
 
-import java.io.File;
-
-import jakarta.inject.Inject;
-
 import de.acepe.fritzstreams.app.ControlledScreen;
 import de.acepe.fritzstreams.app.ScreenManager;
 import de.acepe.fritzstreams.app.Screens;
 import de.acepe.fritzstreams.backend.Settings;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import jakarta.inject.Inject;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+
+import java.io.File;
 
 public class SettingsController implements ControlledScreen {
 
@@ -22,11 +20,7 @@ public class SettingsController implements ControlledScreen {
     private final Settings settings;
 
     @FXML
-    private Label settingsLabel;
-    @FXML
     private Button backButton;
-    @FXML
-    private Button changeDownloadLocationButton;
     @FXML
     private TextField downloadLocationTextfield;
 

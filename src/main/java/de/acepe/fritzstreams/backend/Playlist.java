@@ -19,9 +19,9 @@ public class Playlist {
     private static final Logger LOG = LoggerFactory.getLogger(Playlist.class);
     private static final String TABLE_SELECTOR = "#col1 > div > div > table";
     private final OkHttpClient httpClient;
+    private final List<PlayListEntry> entries = new LinkedList<>();
 
     private String title;
-    private List<PlayListEntry> entries = new LinkedList<>();
 
     @Inject
     public Playlist(OkHttpClient httpClient) {

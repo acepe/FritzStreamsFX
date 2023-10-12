@@ -9,6 +9,7 @@ import de.acepe.fritzstreams.backend.Playlist;
 import de.acepe.fritzstreams.util.FileUtil;
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
+import jakarta.inject.Inject;
 import javafx.animation.FadeTransition;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -20,13 +21,11 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.inject.Inject;
 import java.io.File;
 
 import static javafx.beans.binding.Bindings.createBooleanBinding;
@@ -50,8 +49,6 @@ public class OnDemandFragmentController {
     private Label titleLabel;
     @FXML
     private Label subTitleLabel;
-    @FXML
-    private StackPane downloadStackPane;
     @FXML
     private Button playListButton;
     @FXML
@@ -116,9 +113,9 @@ public class OnDemandFragmentController {
 
         downloadButton.disableProperty().bind(adapter.initialisedProperty().not());
         downloadButton.visibleProperty()
-                      .bind(adapter.initialisedProperty().and(adapter.downloadedFileProperty().isNull()));
+                .bind(adapter.initialisedProperty().and(adapter.downloadedFileProperty().isNull()));
         playButton.visibleProperty()
-                  .bind(adapter.initialisedProperty().and(adapter.downloadedFileProperty().isNotNull()));
+                .bind(adapter.initialisedProperty().and(adapter.downloadedFileProperty().isNotNull()));
 
         playListButton.visibleProperty().bind(adapter.initialisedProperty().and(createBooleanBinding(() -> {
             Playlist playlist = adapter.getPlaylist();

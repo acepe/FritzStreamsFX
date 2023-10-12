@@ -2,6 +2,7 @@ package de.acepe.fritzstreams.ui;
 
 import de.acepe.fritzstreams.backend.Player;
 import de.jensd.fx.glyphs.GlyphsDude;
+import jakarta.inject.Inject;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
@@ -11,17 +12,11 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import jakarta.inject.Inject;
 
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.PLAY;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.STOP;
 
 public class LiveFragmentController {
-    private static final Logger LOG = LoggerFactory.getLogger(LiveFragmentController.class);
-
     private final Player player;
     private final LiveStreamAdapter liveStreamAdapter;
 

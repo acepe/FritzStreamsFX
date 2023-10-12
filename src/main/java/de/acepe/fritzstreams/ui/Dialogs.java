@@ -61,13 +61,11 @@ public class Dialogs {
         alert.getDialogPane().setExpandableContent(expContent);
         // workaround for https://bugs.openjdk.java.net/browse/JDK-8095777
         // dialog doesn't resize if expandable is collapsed
-        alert.getDialogPane().expandedProperty().addListener((l) -> {
-            Platform.runLater(() -> {
-                alert.getDialogPane().requestLayout();
-                Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-                stage.sizeToScene();
-            });
-        });
+        alert.getDialogPane().expandedProperty().addListener((l) -> Platform.runLater(() -> {
+            alert.getDialogPane().requestLayout();
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.sizeToScene();
+        }));
         alert.showAndWait();
     }
 

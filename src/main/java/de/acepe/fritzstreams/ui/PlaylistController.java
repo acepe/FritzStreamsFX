@@ -1,21 +1,12 @@
 package de.acepe.fritzstreams.ui;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.stream.Collectors;
-
-import jakarta.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.net.UrlEscapers;
-
 import de.acepe.fritzstreams.app.ControlledScreen;
 import de.acepe.fritzstreams.backend.PlayListEntry;
 import de.acepe.fritzstreams.backend.Playlist;
 import de.acepe.fritzstreams.util.FileUtil;
 import de.acepe.fritzstreams.util.ListUtils;
+import jakarta.inject.Inject;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -31,6 +22,12 @@ import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.util.StringConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.stream.Collectors;
 
 public class PlaylistController implements ControlledScreen {
 
@@ -88,7 +85,7 @@ public class PlaylistController implements ControlledScreen {
             ContextMenu contextMenu = new ContextMenu();
             contextMenu.getItems().addAll(copyItem, copyList, googleItem, vkItem);
             cell.emptyProperty()
-                .addListener((obs, wasEmpty, isNowEmpty) -> cell.setContextMenu(isNowEmpty ? null : contextMenu));
+                    .addListener((obs, wasEmpty, isNowEmpty) -> cell.setContextMenu(isNowEmpty ? null : contextMenu));
             return cell;
         });
         ListUtils.installCopyPasteHandler(entriesListView, entryConverter);
@@ -96,7 +93,7 @@ public class PlaylistController implements ControlledScreen {
 
     private void searchTrack(String template, ObjectProperty<PlayListEntry> itemProperty) {
         String searchUri = String.format(template,
-                                         UrlEscapers.urlFormParameterEscaper().escape(itemToString(itemProperty)));
+                UrlEscapers.urlFormParameterEscaper().escape(itemToString(itemProperty)));
         try {
             FileUtil.doOpen(new URI(searchUri));
         } catch (URISyntaxException e) {
@@ -113,7 +110,7 @@ public class PlaylistController implements ControlledScreen {
         titleLabel.setText(playlist.getTitle());
     }
 
-    private final StringConverter<PlayListEntry> entryConverter = new StringConverter<PlayListEntry>() {
+    private final StringConverter<PlayListEntry> entryConverter = new StringConverter<>() {
         @Override
         public String toString(PlayListEntry entry) {
             if (entry == null) {

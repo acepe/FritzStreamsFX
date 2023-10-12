@@ -42,8 +42,6 @@ public class MainViewController implements ControlledScreen {
     private PlayerController playerController;
 
     @FXML
-    private ScrollPane mainView;
-    @FXML
     private ToggleGroup daysToggleGroup;
     @FXML
     private ToggleButton liveButton;
