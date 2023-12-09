@@ -62,14 +62,23 @@ public class StreamCrawler {
 
             String imageUrl = extractImageUrl();
             Image image = null;
-            Image onAirImage = new Image(DEFAULT_IMAGE);
+            Image onAirImage = null;
+            try {
+                onAirImage = new Image(DEFAULT_IMAGE);
+            } catch (RuntimeException e) {
+                LOG.debug("'Not-initialized ...' Runtime Exception is caught. We are probably running headless.");
+            }
             String onAirArtist = null;
             String onAirTitle = null;
             if (imageUrl != null) {
                 Request imgRequest = new Request.Builder().url(imageUrl).build();
                 Response imgResponse = okHttpClient.newCall(imgRequest).execute();
                 try (ResponseBody body = imgResponse.body()) {
-                    image = new Image(body.byteStream());
+                    try {
+                        image = new Image(body.byteStream());
+                    } catch (RuntimeException e) {
+                        LOG.debug("'Not-initialized ...' Runtime Exception is caught. We are probably running headless.");
+                    }
                 }
                 Request onAirRequest = new Request.Builder().url(BASE_URL + ON_AIR_URL).build();
                 Response onAirResponse = okHttpClient.newCall(onAirRequest).execute();

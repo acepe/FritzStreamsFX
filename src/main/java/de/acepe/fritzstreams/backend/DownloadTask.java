@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -44,32 +45,34 @@ public class DownloadTask extends Task<Void> {
 
     @Override
     protected Void call() throws Exception {
-        URL url = new URL(downloadable.getStreamURL());
+        URL url = URI.create(downloadable.getStreamURL()).toURL();
         Call call = httpClient.newCall(new Request.Builder().url(url).get().build());
 
-        Response response = call.execute();
-        if (response.code() == 200 || response.code() == 201) {
-            Headers responseHeaders = response.headers();
-            for (int i = 0; i < responseHeaders.size(); i++) {
-                LOG.debug("DownloadTask Response {}", responseHeaders.name(i) + ": " + responseHeaders.value(i));
-            }
-
-            try (InputStream is = response.body().byteStream(); OutputStream os = new FileOutputStream(targetFile)) {
-                long size = response.body().contentLength();
-                updateProgress(0, size);
-
-                byte[] buffer = new byte[1024 * 4];
-                int downloadedSum = 0;
-                int len;
-                while ((len = is.read(buffer)) > 0) {
-                    if (isCancelled()) {
-                        break;
-                    }
-                    downloadedSum += len;
-                    updateProgress(downloadedSum, size);
-                    os.write(buffer, 0, len);
+        try (Response response = call.execute()) {
+            if (response.code() == 200 || response.code() == 201) {
+                Headers responseHeaders = response.headers();
+                for (int i = 0; i < responseHeaders.size(); i++) {
+                    LOG.debug("DownloadTask Response {}", responseHeaders.name(i) + ": " + responseHeaders.value(i));
                 }
-                writePlaylistMetaData();
+
+                try (InputStream is = response.body()
+                                              .byteStream(); OutputStream os = new FileOutputStream(targetFile)) {
+                    long size = response.body().contentLength();
+                    updateProgress(0, size);
+
+                    byte[] buffer = new byte[1024 * 4];
+                    int downloadedSum = 0;
+                    int len;
+                    while ((len = is.read(buffer)) > 0) {
+                        if (isCancelled()) {
+                            break;
+                        }
+                        downloadedSum += len;
+                        updateProgress(downloadedSum, size);
+                        os.write(buffer, 0, len);
+                    }
+                    writePlaylistMetaData();
+                }
             }
         }
         return null;

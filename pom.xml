@@ -10,8 +10,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
         <guice.version>7.0.0</guice.version>
         <javafx.version>22-ea+11</javafx.version>
         <javafx.maven.plugin.version>0.0.8</javafx.maven.plugin.version>
@@ -65,7 +63,12 @@
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
             <version>2.0.9</version>
         </dependency>
 
@@ -93,7 +96,7 @@
     </dependencies>
 
     <repositories>
-         <repository>
+        <repository>
             <id>central</id>
             <url>https://repo1.maven.org/maven2</url>
         </repository>
@@ -106,7 +109,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <release>11</release>
+                    <release>21</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -119,20 +122,41 @@
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <finalName>FritzStreams</finalName>
-                    <archive>
-                        <manifest>
-                            <mainClass>de.acepe.fritzstreams.FritzStreams</mainClass>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <appendAssemblyId>false</appendAssemblyId>
-                </configuration>
+                <version>3.6.0</version>
                 <executions>
                     <execution>
+                        <id>frizstreams-fx</id>
+                        <configuration>
+                            <finalName>FritzStreams</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>de.acepe.fritzstreams.FritzStreams</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stahlwerk-DL</id>
+                        <configuration>
+                            <finalName>stahlwerkDL</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>de.acepe.fritzstreams.StahlwerkDownloader</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
                         <phase>package</phase>
                         <goals>
                             <goal>single</goal>
