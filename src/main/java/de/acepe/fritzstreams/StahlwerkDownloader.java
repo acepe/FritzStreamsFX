@@ -71,9 +71,12 @@ public class StahlwerkDownloader {
         Optional<OnDemandStream> ods = onDemandStreams.stream().filter(s -> s.getTitle().contains("Stahlwerk"))
                                                       .findFirst();
         if (ods.isPresent()) {
+            LOG.info("Found Stahlwerk Stream");
             OnDemandStream stahlwerk = ods.get();
             stahlwerk.init();
             download(stahlwerk);
+        } else {
+            LOG.error("No Stahlwerk stream found.");
         }
         System.exit(0);
     }
@@ -96,7 +99,7 @@ public class StahlwerkDownloader {
 
                     try (var is = response.body().byteStream(); OutputStream os = new FileOutputStream(targetFile)) {
                         long size = response.body().contentLength();
-                        LOG.info("Download size: " + size);
+                        LOG.info("Download size: {}", size);
 
                         byte[] buffer = new byte[1024 * 40];
                         int downloadedSum = 0;
